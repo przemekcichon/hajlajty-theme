@@ -139,3 +139,93 @@ function hajlajty_build_timeline( $events ): array {
 
 	return $out;
 }
+
+/**
+ * Indeks zdarzeń zawodnika: `events[]` → mapa `player_id` → agregat zdarzeń.
+ * Łącznik events↔lineups po `player_id` (i `assist_id` dla schodzących w subst).
+ * Zasila wskaźniki przy koszulce (boisko) i „↑ minuta" na ławce (wchodzący).
+ *
+ * Pola agregatu (każdy zawodnik z ≥1 zdarzeniem):
+ *  - gole (int)        — zwykłe + z karnego (samobójcze liczone OSOBNO, bo
+ *                        wskaźnik ⚽ przy zawodniku oznaczałby zdobytą bramkę),
+ *  - samoboje (int),
+ *  - zolta (int)       — żółte kartki,
+ *  - druga_zolta (int) — druga żółta (skutkuje czerwoną),
+ *  - czerwona (int)    — czerwone (proste + z drugiej żółtej),
+ *  - zszedl (?int)     — minuta zejścia (z subst, assist_id),
+ *  - wszedl (?int)     — minuta wejścia (z subst, player_id).
+ *
+ * @param array $events Lista eventów z match_data.
+ * @return array<int,array> Mapa player_id → agregat (pusta dla braku eventów).
+ */
+function hajlajty_player_event_index( $events ): array {
+	if ( empty( $events ) || ! is_array( $events ) ) {
+		return array();
+	}
+
+	$idx = array();
+
+	$ensure = static function ( &$idx, $pid ) {
+		if ( ! isset( $idx[ $pid ] ) ) {
+			$idx[ $pid ] = array(
+				'gole'        => 0,
+				'samoboje'    => 0,
+				'zolta'       => 0,
+				'druga_zolta' => 0,
+				'czerwona'    => 0,
+				'zszedl'      => null,
+				'wszedl'      => null,
+			);
+		}
+	};
+
+	foreach ( $events as $ev ) {
+		$type   = (string) ( $ev['type'] ?? '' );
+		$detail = (string) ( $ev['detail'] ?? '' );
+		$minute = $ev['minute'] ?? null;
+		$pid    = isset( $ev['player_id'] ) ? (int) $ev['player_id'] : null;
+
+		// subst: player_id = WCHODZĄCY, assist_id = SCHODZĄCY (potwierdzone empirycznie).
+		if ( 'subst' === $type ) {
+			if ( null !== $pid ) {
+				$ensure( $idx, $pid );
+				$idx[ $pid ]['wszedl'] = $minute;
+			}
+			$aid = isset( $ev['assist_id'] ) ? (int) $ev['assist_id'] : null;
+			if ( null !== $aid ) {
+				$ensure( $idx, $aid );
+				$idx[ $aid ]['zszedl'] = $minute;
+			}
+			continue;
+		}
+
+		if ( null === $pid ) {
+			continue;
+		}
+
+		$key = hajlajty_lookup_event( $type, $detail )['key'];
+		$ensure( $idx, $pid );
+
+		switch ( $key ) {
+			case 'goal':
+			case 'penalty_goal':
+				++$idx[ $pid ]['gole'];
+				break;
+			case 'own_goal':
+				++$idx[ $pid ]['samoboje'];
+				break;
+			case 'yellow':
+				++$idx[ $pid ]['zolta'];
+				break;
+			case 'second_yellow':
+				++$idx[ $pid ]['druga_zolta'];
+				++$idx[ $pid ]['czerwona'];
+				break;
+			case 'red':
+				++$idx[ $pid ]['czerwona'];
+				break;
+		}
+	}
+
+	return $idx;
+}

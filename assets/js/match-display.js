@@ -41,6 +41,18 @@
     statsAnimated = true; requestAnimationFrame(animateStats);
   }
 
+  /* ---------- SKŁADY: przełącznik paneli home/away ---------- */
+  var lineupTabs = $$("#lineupTabs .lineup-tab");
+  if (lineupTabs.length) {
+    lineupTabs.forEach(function (tab) {
+      tab.addEventListener("click", function () {
+        var pane = tab.dataset.pane;
+        lineupTabs.forEach(function (t) { t.classList.toggle("is-active", t === tab); });
+        $$(".lineup-pane").forEach(function (p) { p.classList.toggle("is-active", p.dataset.pane === pane); });
+      });
+    });
+  }
+
   /* ---------- PLAYER: facade → osadzony iframe YouTube ---------- */
   var player = $("#player"), playBtn = $("#playBtn");
   if (player && playBtn) {

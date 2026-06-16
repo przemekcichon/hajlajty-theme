@@ -227,9 +227,183 @@ $match_label = $home_name . ' – ' . $away_name;
 					<?php endif; ?>
 				</section>
 
-				<!-- SKŁADY — render w E5 (half-pitch + ławka + wskaźniki) -->
+				<!-- SKŁADY (half-pitch + ławka; wskaźniki z indeksu zdarzeń) -->
 				<section class="tabpanel" data-tab="lineups" role="tabpanel" aria-label="Składy">
-					<p style="color: var(--text-muted);">Składy (boisko + ławka) dochodzą w E5.</p>
+					<?php
+					$lineups   = isset( $data['lineups'] ) && is_array( $data['lineups'] ) ? $data['lineups'] : array();
+					$player_idx = hajlajty_player_event_index( $data['events'] ?? array() );
+
+					// Wskaźniki przy koszulce (z indeksu zdarzeń). Render dokleja ikony.
+					$player_inds = static function ( $pid ) use ( $player_idx ) {
+						if ( null === $pid || ! isset( $player_idx[ $pid ] ) ) {
+							return '';
+						}
+						$e    = $player_idx[ $pid ];
+						$html = '';
+						if ( $e['gole'] > 0 ) {
+							$html .= '<span class="ind ind--goal">⚽</span>';
+						}
+						if ( $e['druga_zolta'] > 0 ) {
+							$html .= '<span class="ind ind--card yellow"></span><span class="ind ind--card red"></span>';
+						} elseif ( $e['czerwona'] > 0 ) {
+							$html .= '<span class="ind ind--card red"></span>';
+						} elseif ( $e['zolta'] > 0 ) {
+							$html .= '<span class="ind ind--card yellow"></span>';
+						}
+						if ( null !== $e['zszedl'] ) {
+							$html .= '<span class="ind ind--sub" title="' . esc_attr( 'Zszedł z boiska, ' . $e['zszedl'] . "'" ) . '"><svg viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></svg></span>';
+						}
+						return '' !== $html ? '<span class="pl__inds">' . $html . '</span>' : '';
+					};
+
+					// Rozkład startXI po `grid` ("rząd:kolumna"; rząd 1=bramkarz, w dół);
+					// fallback do kubełków pozycji G/D/M/F, gdy grid brak.
+					$pitch_rows = static function ( $start_xi ) {
+						if ( empty( $start_xi ) || ! is_array( $start_xi ) ) {
+							return array();
+						}
+						$has_grid = false;
+						foreach ( $start_xi as $p ) {
+							if ( ! empty( $p['grid'] ) ) {
+								$has_grid = true;
+								break;
+							}
+						}
+						if ( $has_grid ) {
+							$rows = array();
+							foreach ( $start_xi as $p ) {
+								if ( ! empty( $p['grid'] ) && preg_match( '/^(\d+)\s*:\s*(\d+)$/', $p['grid'], $m ) ) {
+									$r = (int) $m[1];
+									$c = (int) $m[2];
+								} else {
+									$r = 99;
+									$c = 99; // brak/niepoprawny grid → na koniec.
+								}
+								$rows[ $r ][] = array(
+									'c' => $c,
+									'p' => $p,
+								);
+							}
+							ksort( $rows );
+							$out = array();
+							foreach ( $rows as $list ) {
+								usort(
+									$list,
+									static function ( $a, $b ) {
+										return $a['c'] <=> $b['c'];
+									}
+								);
+								$out[] = array_map(
+									static function ( $x ) {
+										return $x['p'];
+									},
+									$list
+								);
+							}
+							return $out;
+						}
+						// Fallback: kubełki pozycji.
+						$buckets = array(
+							'G' => array(),
+							'D' => array(),
+							'M' => array(),
+							'F' => array(),
+						);
+						$other = array();
+						foreach ( $start_xi as $p ) {
+							$pos = $p['pos'] ?? '';
+							if ( isset( $buckets[ $pos ] ) ) {
+								$buckets[ $pos ][] = $p;
+							} else {
+								$other[] = $p;
+							}
+						}
+						$out = array();
+						foreach ( array( 'G', 'D', 'M', 'F' ) as $k ) {
+							if ( ! empty( $buckets[ $k ] ) ) {
+								$out[] = $buckets[ $k ];
+							}
+						}
+						if ( ! empty( $other ) ) {
+							$out[] = $other;
+						}
+						return $out;
+					};
+
+					$has_home = isset( $lineups['home'] ) && is_array( $lineups['home'] );
+					$has_away = isset( $lineups['away'] ) && is_array( $lineups['away'] );
+					?>
+					<?php if ( ! $has_home && ! $has_away ) : ?>
+						<p style="color: var(--text-muted);">Brak składów dla tego meczu.</p>
+					<?php else : ?>
+						<!-- Sprite koszulki (reużywalny w obu połowach boiska) -->
+						<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+							<symbol id="jersey" viewBox="0 0 44 40"><path d="M15 5 L22 8.5 L29 5 L36 9 L41 15 L34 21 L31.5 18 L31.5 38 L12.5 38 L12.5 18 L10 21 L3 15 L8 9 Z"/></symbol>
+						</defs></svg>
+
+						<div class="lineup-head">
+							<div class="lineup-tabs" id="lineupTabs">
+								<button class="lineup-tab is-active" data-pane="home" type="button"><?php if ( '' !== $home_flag ) : ?><img class="country-flag" src="<?php echo esc_url( $home_flag ); ?>" alt="" /><?php endif; ?> <?php echo esc_html( $home_name ); ?></button>
+								<button class="lineup-tab" data-pane="away" type="button"><?php if ( '' !== $away_flag ) : ?><img class="country-flag" src="<?php echo esc_url( $away_flag ); ?>" alt="" /><?php endif; ?> <?php echo esc_html( $away_name ); ?></button>
+							</div>
+							<?php // NIE portujemy #followBtn „Obserwuj reprezentację" — Faza 4 (hajlajty-user). ?>
+						</div>
+
+						<?php foreach ( array( 'home', 'away' ) as $side ) : ?>
+							<div class="lineup-pane<?php echo 'home' === $side ? ' is-active' : ''; ?>" data-pane="<?php echo esc_attr( $side ); ?>">
+								<?php
+								$lu        = isset( $lineups[ $side ] ) && is_array( $lineups[ $side ] ) ? $lineups[ $side ] : array();
+								$formation = $lu['formation'] ?? '';
+								$start_xi  = isset( $lu['startXI'] ) && is_array( $lu['startXI'] ) ? $lu['startXI'] : array();
+								$subs      = isset( $lu['substitutes'] ) && is_array( $lu['substitutes'] ) ? $lu['substitutes'] : array();
+								?>
+								<div class="lineup-split">
+									<div class="lineup-col">
+										<div class="lineup-meta">
+											<span>Ustawienie: <b><?php echo esc_html( '' !== $formation ? $formation : '—' ); ?></b></span>
+											<?php // STUB 3b: trener placeholder — realne dane po 3bi (kontrakt importu). ?>
+											<span>Trener: <b>—</b></span>
+										</div>
+										<div class="half-pitch" data-team="<?php echo esc_attr( $side ); ?>">
+											<?php foreach ( $pitch_rows( $start_xi ) as $row ) : ?>
+												<div class="hp-row">
+													<?php foreach ( $row as $p ) : ?>
+														<span class="pl"><span class="pl__badge"><svg class="jersey" viewBox="0 0 44 40"><use href="#jersey"/></svg><span class="pl__num"><?php echo esc_html( $p['number'] ?? '' ); ?></span></span><?php echo $player_inds( isset( $p['id'] ) ? (int) $p['id'] : null ); // phpcs:ignore — HTML wskaźników budowany z esc ?><span class="pl__name"><?php echo esc_html( $p['name'] ?? '' ); ?></span></span>
+													<?php endforeach; ?>
+												</div>
+											<?php endforeach; ?>
+										</div>
+									</div>
+
+									<div class="lineup-col">
+										<div class="squad-list">
+											<div class="squad-block">
+												<h3 class="squad-block__title"><svg viewBox="0 0 24 24"><path d="M5 19h14M7 19v-7l-2-1 2-4h3a2 2 0 0 0 4 0h3l2 4-2 1v7"/></svg> Ławka rezerwowych</h3>
+												<ul class="squad-rows">
+													<?php
+													foreach ( $subs as $p ) :
+														$pid    = isset( $p['id'] ) ? (int) $p['id'] : null;
+														$in_min = ( null !== $pid && isset( $player_idx[ $pid ] ) && null !== $player_idx[ $pid ]['wszedl'] ) ? $player_idx[ $pid ]['wszedl'] : null;
+														?>
+														<li class="squad-row">
+															<span class="squad-row__num"><?php echo esc_html( $p['number'] ?? '' ); ?></span>
+															<span class="squad-row__name"><?php echo esc_html( $p['name'] ?? '' ); ?></span>
+															<?php if ( null !== $in_min ) : ?>
+																<span class="squad-row__in"><svg viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg><?php echo esc_html( $in_min . "'" ); ?></span>
+															<?php else : ?>
+																<span class="squad-row__pos"><?php echo esc_html( hajlajty_lookup_position( $p['pos'] ?? null ) ); ?></span>
+															<?php endif; ?>
+														</li>
+													<?php endforeach; ?>
+												</ul>
+											</div>
+											<?php // Blok „Nieobecni / pauzujący" POMINIĘTY w całości (3b) — brak pola w 4 zmapowanych endpointach (Faza 5 / injuries). ?>
+										</div>
+									</div>
+								</div>
+							</div>
+						<?php endforeach; ?>
+					<?php endif; ?>
 				</section>
 
 				<!-- STATYSTYKI -->
