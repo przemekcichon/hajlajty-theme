@@ -467,7 +467,157 @@ $match_label = $home_name . ' – ' . $away_name;
 			</div>
 		</div><!-- /.watch__main -->
 
-		<?php // PRAWY ASIDE (Inne skróty) — render w E6. ?>
+		<?php
+		// ===== PRAWY ASIDE: „Inne skróty" z tych samych rozgrywek =====
+		// „Polecane dla Ciebie" (personalizacja) → Faza 4, POMINIĘTE w 3b.
+		$roz     = get_the_terms( $post_id, 'rozgrywki' );
+		$roz_ids = ( is_array( $roz ) && ! is_wp_error( $roz ) ) ? wp_list_pluck( $roz, 'term_id' ) : array();
+
+		// Niepuste skrot_url = praktyczny wyznacznik ZAKOŃCZONEGO meczu (skrót
+		// dodaje redaktor dopiero PO meczu) — status żyje w JSON-ie (niefiltrowalny
+		// w SQL), więc filtrujemy po indeksowalnym skrot_url. orderby po płaskim
+		// `kickoff` (malejąco). no_found_rows: nie liczymy paginacji.
+		$other_args = array(
+			'post_type'           => 'mecz',
+			'posts_per_page'      => 4,
+			'post__not_in'        => array( $post_id ),
+			'no_found_rows'       => true,
+			'ignore_sticky_posts' => true,
+			'meta_query'          => array(
+				'relation' => 'AND',
+				'skrot'    => array(
+					'key'     => 'skrot_url',
+					'value'   => '',
+					'compare' => '!=',
+				),
+				'kick'     => array(
+					'key'     => 'kickoff',
+					'compare' => 'EXISTS',
+				),
+			),
+			'orderby'             => array( 'kick' => 'DESC' ),
+		);
+		if ( ! empty( $roz_ids ) ) {
+			$other_args['tax_query'] = array(
+				array(
+					'taxonomy' => 'rozgrywki',
+					'field'    => 'term_id',
+					'terms'    => $roz_ids,
+				),
+			);
+		}
+		$other = new WP_Query( $other_args );
+
+		if ( $other->have_posts() ) :
+			// Zbierz dane meczów + WSZYSTKIE api_id, by rozwiązać drużyny JEDNYM
+			// get_terms (bez N+1). Meta primowane przez WP_Query (cache).
+			$cards   = array();
+			$api_ids = array();
+			foreach ( $other->posts as $rp ) {
+				$md = hajlajty_get_match_data( $rp->ID );
+				$h  = isset( $md['teams']['home']['api_id'] ) ? (int) $md['teams']['home']['api_id'] : 0;
+				$a  = isset( $md['teams']['away']['api_id'] ) ? (int) $md['teams']['away']['api_id'] : 0;
+				if ( $h ) {
+					$api_ids[] = $h;
+				}
+				if ( $a ) {
+					$api_ids[] = $a;
+				}
+				$cards[] = array(
+					'post'  => $rp,
+					'h_api' => $h,
+					'a_api' => $a,
+					'gh'    => $md['goals']['home'] ?? null,
+					'ga'    => $md['goals']['away'] ?? null,
+					'round' => hajlajty_lookup_round( $md['round'] ?? null ),
+				);
+			}
+
+			$term_by_api = array();
+			$api_ids     = array_values( array_unique( array_filter( $api_ids ) ) );
+			if ( ! empty( $api_ids ) ) {
+				$tt = get_terms(
+					array(
+						'taxonomy'   => 'druzyna',
+						'hide_empty' => false,
+						'meta_query' => array(
+							array(
+								'key'     => 'api_id',
+								'value'   => array_map( 'strval', $api_ids ),
+								'compare' => 'IN',
+							),
+						),
+					)
+				);
+				if ( ! is_wp_error( $tt ) ) {
+					foreach ( $tt as $t ) {
+						$term_by_api[ (int) get_term_meta( $t->term_id, 'api_id', true ) ] = $t;
+					}
+				}
+			}
+
+			$api_flag = static function ( $api ) use ( $term_by_api ) {
+				if ( empty( $api ) || ! isset( $term_by_api[ $api ] ) ) {
+					return '';
+				}
+				$c = strtolower( (string) get_term_meta( $term_by_api[ $api ]->term_id, 'fifa_code', true ) );
+				return '' !== $c ? 'https://flagcdn.com/' . $c . '.svg' : '';
+			};
+			$api_code = static function ( $api ) use ( $term_by_api ) {
+				if ( empty( $api ) || ! isset( $term_by_api[ $api ] ) ) {
+					return '—';
+				}
+				$c = strtoupper( (string) get_term_meta( $term_by_api[ $api ]->term_id, 'fifa_code', true ) );
+				return '' !== $c ? $c : $term_by_api[ $api ]->name;
+			};
+			$api_name = static function ( $api ) use ( $term_by_api ) {
+				return ( ! empty( $api ) && isset( $term_by_api[ $api ] ) ) ? $term_by_api[ $api ]->name : '—';
+			};
+			?>
+			<aside class="watch__aside">
+				<section class="aside-sec">
+					<h2 class="aside-sec__title"><span class="kicker-dot"></span> Inne skróty</h2>
+					<?php
+					foreach ( $cards as $card ) :
+						$rp        = $card['post'];
+						$hn        = $api_name( $card['h_api'] );
+						$an        = $api_name( $card['a_api'] );
+						$hf        = $api_flag( $card['h_api'] );
+						$af        = $api_flag( $card['a_api'] );
+						$gh        = null === $card['gh'] ? '–' : $card['gh'];
+						$ga        = null === $card['ga'] ? '–' : $card['ga'];
+						$dur       = function_exists( 'get_field' ) ? get_field( 'skrot_duration', $rp->ID ) : get_post_meta( $rp->ID, 'skrot_duration', true );
+						$chan_terms = get_the_terms( $rp->ID, 'kanal' );
+						$chan      = ( is_array( $chan_terms ) && ! is_wp_error( $chan_terms ) && ! empty( $chan_terms ) ) ? $chan_terms[0]->name : '';
+						$ago       = human_time_diff( (int) get_post_time( 'U', true, $rp ), (int) current_time( 'timestamp', true ) );
+						?>
+						<a class="card--highlight" href="<?php echo esc_url( get_permalink( $rp ) ); ?>" data-card-id="mecz-<?php echo (int) $rp->ID; ?>">
+							<div class="card__media">
+								<?php if ( ! empty( $dur ) ) : ?><span class="card__dur"><?php echo esc_html( $dur ); ?></span><?php endif; ?>
+								<?php if ( '' !== $chan ) : ?><span class="card__channel"><?php echo esc_html( $chan ); ?></span><?php endif; ?>
+								<span class="card__play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
+							</div>
+							<div class="card__body">
+								<div class="card__result">
+									<span class="card__side"><?php if ( '' !== $hf ) : ?><img class="country-flag" src="<?php echo esc_url( $hf ); ?>" alt="" /><?php endif; ?> <?php echo esc_html( $api_code( $card['h_api'] ) ); ?></span>
+									<span class="card__final"><?php echo esc_html( $gh . ' : ' . $ga ); ?></span>
+									<span class="card__side card__side--away"><?php if ( '' !== $af ) : ?><img class="country-flag" src="<?php echo esc_url( $af ); ?>" alt="" /><?php endif; ?> <?php echo esc_html( $api_code( $card['a_api'] ) ); ?></span>
+								</div>
+								<h3 class="card__title"><?php echo esc_html( $hn . ' ' . $gh . '–' . $ga . ' ' . $an . ' · skrót' ); ?></h3>
+								<div class="card__meta">
+									<?php if ( '' !== $card['round'] ) : ?><span class="card__comp"><?php echo esc_html( $card['round'] ); ?></span><span class="card__dot"></span><?php endif; ?>
+									<?php echo esc_html( '' !== $ago ? $ago . ' temu' : '' ); ?>
+								</div>
+							</div>
+						</a>
+					<?php endforeach; ?>
+				</section>
+				<?php // „Polecane dla Ciebie" (personalizacja) → Faza 4 (hajlajty-user). POMINIĘTE. ?>
+			</aside>
+			<?php
+			wp_reset_postdata();
+		endif;
+		?>
 
 	</div>
 </main>
