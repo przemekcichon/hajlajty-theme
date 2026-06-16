@@ -1,0 +1,100 @@
+/* ============================================================
+   HAJLAJTY — styles/tokens.css
+   ------------------------------------------------------------
+   GLOBALNE TOKENY PROJEKTU (Single Source of Truth).
+   Jedyne miejsce, w którym wolno deklarować kolory marki,
+   skalę odstępów, promienie, typografię i przejścia.
+
+   Komponenty (components/*.css) NIE używają tych wartości
+   bezpośrednio w regułach — mapują je na LOKALNE zmienne
+   komponentu (--card-*), co pozwala stronom sterować gęstością
+   UI bez dotykania plików komponentów.
+
+   Kolejność ładowania:
+     1. styles/tokens.css   ← ten plik
+     2. styles/base.css
+     3. components/*.css
+     4. pages/*.css
+============================================================ */
+
+:root {
+  /* ---- MARKA / AKCENTY (identyczne w obu motywach) ---- */
+  --accent:        oklch(0.72 0.17 160);
+  --accent-strong: oklch(0.66 0.18 160);
+  --accent-soft:   oklch(0.72 0.17 160 / 0.14);
+  --accent-ink:    oklch(0.22 0.06 160);   /* tekst na zielonym tle */
+
+  /* ---- KOLOR LIVE ---- */
+  --live:          oklch(0.63 0.22 25);
+  --live-soft:     oklch(0.63 0.22 25 / 0.16);
+
+  /* ---- KONTENER / LAYOUT ---- */
+  --container: 1320px;
+  --gutter: clamp(16px, 3vw, 40px);
+  --topbar-h: 72px;
+  --sidebar-w: 288px;
+  --chips-pad-y: 14px;
+
+  /* ---- SKALA ODSTĘPÓW ---- */
+  --space-3xs: 4px;
+  --space-2xs: 8px;
+  --space-xs:  12px;
+  --space-sm:  16px;
+  --space-md:  24px;
+  --space-lg:  40px;
+  --space-xl:  64px;
+  --space-2xl: 96px;
+
+  /* ---- PROMIENIE ---- */
+  --r-sm: 10px;
+  --r-md: 16px;
+  --r-lg: 22px;
+  --r-pill: 999px;
+
+  /* ---- TYPOGRAFIA ---- */
+  --font: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-emoji: "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", "Twemoji Mozilla", sans-serif;
+
+  /* ---- PRZEJŚCIA ---- */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --t-fast: 140ms var(--ease);
+  --t-med:  240ms var(--ease);
+}
+
+/* ---- MOTYW CIEMNY (domyślny) ---- */
+[data-theme="dark"] {
+  --bg:            oklch(0.17 0.008 250);
+  --bg-elev:       oklch(0.205 0.009 250);
+  --surface:       oklch(0.225 0.01 250);
+  --surface-2:     oklch(0.27 0.011 250);
+  --surface-hover: oklch(0.30 0.012 250);
+  --border:        oklch(1 0 0 / 0.09);
+  --border-strong: oklch(1 0 0 / 0.16);
+  --text:          oklch(0.96 0.003 250);
+  --text-muted:    oklch(0.72 0.006 250);
+  --text-faint:    oklch(0.56 0.006 250);
+  --shadow: 0 1px 2px oklch(0 0 0 / 0.4), 0 12px 32px -12px oklch(0 0 0 / 0.55);
+  --thumb-a: oklch(0.26 0.012 250);
+  --thumb-b: oklch(0.235 0.01 250);
+  --scrim: oklch(0 0 0 / 0.62);
+  --scrollthumb: oklch(1 0 0 / 0.22);
+}
+
+/* ---- MOTYW JASNY ---- */
+[data-theme="light"] {
+  --bg:            oklch(0.985 0.003 250);
+  --bg-elev:       oklch(1 0 0);
+  --surface:       oklch(1 0 0);
+  --surface-2:     oklch(0.975 0.004 250);
+  --surface-hover: oklch(0.955 0.005 250);
+  --border:        oklch(0.2 0.01 250 / 0.1);
+  --border-strong: oklch(0.2 0.01 250 / 0.2);
+  --text:          oklch(0.24 0.012 250);
+  --text-muted:    oklch(0.46 0.01 250);
+  --text-faint:    oklch(0.6 0.008 250);
+  --shadow: 0 1px 2px oklch(0.2 0.02 250 / 0.06), 0 14px 34px -16px oklch(0.2 0.04 250 / 0.18);
+  --thumb-a: oklch(0.93 0.006 250);
+  --thumb-b: oklch(0.96 0.004 250);
+  --scrim: oklch(0.2 0.02 250 / 0.4);
+  --scrollthumb: oklch(0.3 0.02 250 / 0.32);
+}
