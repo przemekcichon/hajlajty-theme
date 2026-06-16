@@ -90,6 +90,9 @@ function hajlajty_lookup_position( ?string $pos ): string {
  * UWAGA: kierunek subst (player=wchodzący, assist=schodzący) to sprawa RENDERU,
  * nie tego lookupu — tu tylko etykieta typu.
  */
+// TODO: zweryfikować detale eventów (own goal / penalty / missed penalty / second
+//       yellow / VAR) na realnych danych — gałęzie przewidywane, sprawdzone tylko
+//       na syntetycznych eventach w teście; fallback 'other' jest bezpieczny.
 function hajlajty_lookup_event( ?string $type, ?string $detail ): array {
 	$type   = (string) $type;
 	$detail = (string) $detail;
