@@ -128,9 +128,103 @@ $match_label = $home_name . ' – ' . $away_name;
 			<!-- ===== PANELE ZAKŁADEK ===== -->
 			<div class="tabpanels">
 
-				<!-- OŚ CZASU — render w E4 (derive.php: narastający wynik) -->
+				<!-- OŚ CZASU (narastający wynik — derive.php; najnowsze u góry) -->
 				<section class="tabpanel is-active" data-tab="timeline" role="tabpanel" aria-label="Oś czasu">
-					<p style="color: var(--text-muted);">Oś czasu zdarzeń dochodzi w E4.</p>
+					<?php
+					$timeline = hajlajty_build_timeline( $data['events'] ?? array() );
+
+					// Ikona per semantyczny klucz (render dokleja emoji — lookups go nie zna).
+					$event_icon = static function ( $key ) {
+						switch ( $key ) {
+							case 'goal':
+							case 'penalty_goal':
+							case 'own_goal':
+								return '⚽';
+							case 'yellow':
+								return '🟨';
+							case 'red':
+							case 'second_yellow':
+								return '🟥';
+							case 'subst':
+								return '⇄';
+							case 'missed_penalty':
+								return '❌';
+							default:
+								return '•';
+						}
+					};
+
+					// Minuta + doliczony czas: „45+1'", inaczej „58'".
+					$minute_txt = static function ( $item ) {
+						$min = $item['minute'];
+						if ( null === $min ) {
+							return '';
+						}
+						$extra = $item['extra'];
+						return ( null !== $extra && '' !== $extra ) ? ( $min . '+' . $extra . "'" ) : ( $min . "'" );
+					};
+
+					// Najnowsze u góry: kolejność MALEJĄCA (wynik narastający policzony rosnąco).
+					$timeline_desc = array_reverse( $timeline );
+					$visible = array_filter(
+						$timeline_desc,
+						static function ( $it ) {
+							return 'var' !== $it['key']; // TODO VAR (derive.php): eventy Var pomijamy.
+						}
+					);
+					?>
+					<?php if ( empty( $visible ) ) : ?>
+						<p style="color: var(--text-muted);">Brak zarejestrowanych zdarzeń.</p>
+					<?php else : ?>
+						<div class="timeline">
+							<?php
+							foreach ( $visible as $item ) :
+								$side    = $item['side'];
+								$term    = $terms[ $side ];
+								$tflag   = $flag_url( $term );
+								$tname   = $team_name( $term );
+								$is_goal = in_array( $item['key'], array( 'goal', 'penalty_goal', 'own_goal', 'missed_penalty' ), true );
+								$is_sub  = ( 'subst' === $item['key'] );
+
+								// Tytuł: zmiana → po drużynie; reszta → po zawodniku (gdy jest).
+								if ( $is_sub ) {
+									$title = $item['label'] . ' — ' . $tname;
+								} elseif ( ! empty( $item['player'] ) ) {
+									$title = $item['label'] . ' — ' . $item['player'];
+								} else {
+									$title = $item['label'];
+								}
+								?>
+								<div class="tl-item">
+									<span class="tl-min"><?php echo esc_html( $minute_txt( $item ) ); ?></span>
+									<span class="tl-rail"><span class="tl-node<?php echo $item['counts'] ? ' is-goal' : ''; ?>"><?php echo $event_icon( $item['key'] ); // phpcs:ignore — statyczne emoji ?></span></span>
+									<div class="tl-content">
+										<div class="tl-row">
+											<span class="tl-title"><?php echo esc_html( $title ); ?></span>
+											<?php if ( is_array( $item['score'] ) ) : ?>
+												<span class="tl-score"><?php echo esc_html( $item['score']['home'] . ':' . $item['score']['away'] ); ?></span>
+											<?php endif; ?>
+										</div>
+										<span class="tl-sub">
+											<?php if ( '' !== $tflag ) : ?><img class="country-flag" src="<?php echo esc_url( $tflag ); ?>" alt="" /><?php endif; ?>
+											<?php
+											if ( $is_sub ) {
+												// player=wchodzący, assist=schodzący (potwierdzone empirycznie).
+												$in  = $item['player'] ? $item['player'] : '—';
+												$out = $item['assist'] ? $item['assist'] : '—';
+												echo esc_html( $in . ' za ' . $out );
+											} elseif ( $is_goal && ! empty( $item['assist'] ) ) {
+												echo esc_html( $tname . ' · asysta ' . $item['assist'] );
+											} else {
+												echo esc_html( $tname );
+											}
+											?>
+										</span>
+									</div>
+								</div>
+							<?php endforeach; ?>
+						</div>
+					<?php endif; ?>
 				</section>
 
 				<!-- SKŁADY — render w E5 (half-pitch + ławka + wskaźniki) -->
