@@ -274,6 +274,10 @@
 .squad-row:first-child { border-top: none; }
 .squad-row__num { flex: 0 0 26px; text-align: center; font-weight: 800; font-size: 13px; font-variant-numeric: tabular-nums; color: var(--text-muted); }
 .squad-row__name { font-weight: 700; font-size: 14px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Grupa po prawej: opcjonalne markery (gol/kartka) + pozycja lub „↑ minuta".
+   Zbiera wszystko prawostronnie jednym margin-left:auto; wewnątrz shrink-wrap,
+   więc własne margin-left:auto z __pos/__in jest tu neutralne. (3bi) */
+.squad-row__end { margin-left: auto; flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; }
 .squad-row__pos { margin-left: auto; flex: 0 0 auto; font-size: 11px; font-weight: 800; letter-spacing: 0.04em; color: var(--text-faint); background: var(--surface-2); padding: 3px 9px; border-radius: var(--r-pill); }
 .squad-row__in { margin-left: auto; flex: 0 0 auto; display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 800; color: var(--accent-strong); background: var(--accent-soft); padding: 3px 9px 3px 7px; border-radius: var(--r-pill); }
 [data-theme="dark"] .squad-row__in { color: var(--accent); }

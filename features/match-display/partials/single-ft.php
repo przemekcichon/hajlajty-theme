@@ -233,14 +233,16 @@ $match_label = $home_name . ' – ' . $away_name;
 					$lineups   = isset( $data['lineups'] ) && is_array( $data['lineups'] ) ? $data['lineups'] : array();
 					$player_idx = hajlajty_player_event_index( $data['events'] ?? array() );
 
-					// Wskaźniki przy koszulce (z indeksu zdarzeń). Render dokleja ikony.
-					$player_inds = static function ( $pid ) use ( $player_idx ) {
+					// Markery gol/kartka z indeksu zdarzeń — WSPÓLNE dla boiska i ławki.
+					// Render dokleja ikony (lookups/derive ich nie znają). ⚽ ×liczba goli;
+					// samobóje pominięte (⚽ przy zawodniku = zdobyta bramka, nie samobój).
+					$marks_goal_card = static function ( $pid ) use ( $player_idx ) {
 						if ( null === $pid || ! isset( $player_idx[ $pid ] ) ) {
 							return '';
 						}
 						$e    = $player_idx[ $pid ];
 						$html = '';
-						if ( $e['gole'] > 0 ) {
+						for ( $i = 0; $i < (int) $e['gole']; $i++ ) {
 							$html .= '<span class="ind ind--goal">⚽</span>';
 						}
 						if ( $e['druga_zolta'] > 0 ) {
@@ -250,8 +252,14 @@ $match_label = $home_name . ' – ' . $away_name;
 						} elseif ( $e['zolta'] > 0 ) {
 							$html .= '<span class="ind ind--card yellow"></span>';
 						}
-						if ( null !== $e['zszedl'] ) {
-							$html .= '<span class="ind ind--sub" title="' . esc_attr( 'Zszedł z boiska, ' . $e['zszedl'] . "'" ) . '"><svg viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></svg></span>';
+						return $html;
+					};
+
+					// Wskaźniki przy koszulce (boisko): markery + strzałka zejścia.
+					$player_inds = static function ( $pid ) use ( $marks_goal_card, $player_idx ) {
+						$html = $marks_goal_card( $pid );
+						if ( null !== $pid && isset( $player_idx[ $pid ] ) && null !== $player_idx[ $pid ]['zszedl'] ) {
+							$html .= '<span class="ind ind--sub" title="' . esc_attr( 'Zszedł z boiska, ' . $player_idx[ $pid ]['zszedl'] . "'" ) . '"><svg viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></svg></span>';
 						}
 						return '' !== $html ? '<span class="pl__inds">' . $html . '</span>' : '';
 					};
@@ -395,11 +403,14 @@ $match_label = $home_name . ' – ' . $away_name;
 														<li class="squad-row">
 															<span class="squad-row__num"><?php echo esc_html( $p['number'] ?? '' ); ?></span>
 															<span class="squad-row__name"><?php echo esc_html( $p['name'] ?? '' ); ?></span>
-															<?php if ( null !== $in_min ) : ?>
-																<span class="squad-row__in"><svg viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg><?php echo esc_html( $in_min . "'" ); ?></span>
-															<?php else : ?>
-																<span class="squad-row__pos"><?php echo esc_html( hajlajty_lookup_position( $p['pos'] ?? null ) ); ?></span>
-															<?php endif; ?>
+															<span class="squad-row__end">
+																<?php echo $marks_goal_card( $pid ); // phpcs:ignore — HTML markerów budowany z esc ?>
+																<?php if ( null !== $in_min ) : ?>
+																	<span class="squad-row__in"><svg viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg><?php echo esc_html( $in_min . "'" ); ?></span>
+																<?php else : ?>
+																	<span class="squad-row__pos"><?php echo esc_html( hajlajty_lookup_position( $p['pos'] ?? null ) ); ?></span>
+																<?php endif; ?>
+															</span>
 														</li>
 													<?php endforeach; ?>
 												</ul>
