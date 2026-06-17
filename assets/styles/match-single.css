@@ -249,13 +249,16 @@
   width: 20%; height: 3.4%; border: 1.5px solid oklch(1 0 0 / 0.5); border-top: none; border-radius: 0 0 3px 3px; }
 .half-pitch::after { content: ""; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
   width: 56%; height: 19%; border: 1px solid oklch(1 0 0 / 0.2); border-top: none; border-radius: 0 0 10px 10px; }
-.half-pitch[data-team="home"] { --shirt: var(--team-home, var(--accent)); --shirt-num: var(--team-home-num, #fff); }
-.half-pitch[data-team="away"] { --shirt: var(--team-away, var(--text-faint)); --shirt-num: var(--team-away-num, #fff); }
+.half-pitch[data-team="home"] { --shirt: var(--team-home, var(--accent)); --shirt-num: var(--team-home-num, #fff); --shirt-border: var(--team-home-border, transparent); }
+.half-pitch[data-team="away"] { --shirt: var(--team-away, var(--text-faint)); --shirt-num: var(--team-away-num, #fff); --shirt-border: var(--team-away-border, transparent); }
 .hp-row { display: flex; align-items: center; justify-content: space-evenly; gap: 2px; position: relative; z-index: 1; }
 
 .pl { position: relative; display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 0; }
 .pl__badge { position: relative; width: clamp(30px, 11%, 42px); }
-.pl__badge .jersey { width: 100%; height: auto; display: block; fill: var(--shirt, var(--accent)); filter: drop-shadow(0 2px 5px oklch(0 0 0 / 0.42)); }
+/* Obrys koszulki z colors.player.border (3bi) — wiernie z danych; gdy brak
+   danych → transparent (koszulka bez obrysu, jak w 3b). stroke dziedziczy do
+   <use> tak samo jak fill. */
+.pl__badge .jersey { width: 100%; height: auto; display: block; fill: var(--shirt, var(--accent)); stroke: var(--shirt-border, transparent); stroke-width: 1.5; filter: drop-shadow(0 2px 5px oklch(0 0 0 / 0.42)); }
 /* Numer w kolorze koszulki z colors.player.number (3bi) — czytelny też na jasnej
    koszulce; fallback #fff (ciemne stuby) gdy brak danych. Cień zostaje dla kontrastu. */
 .pl__num { position: absolute; left: 0; right: 0; top: 52%; transform: translateY(-50%); text-align: center; font-weight: 800; font-size: 12px; color: var(--shirt-num, #fff); text-shadow: 0 1px 2px oklch(0 0 0 / 0.55); }
