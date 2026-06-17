@@ -249,14 +249,16 @@
   width: 20%; height: 3.4%; border: 1.5px solid oklch(1 0 0 / 0.5); border-top: none; border-radius: 0 0 3px 3px; }
 .half-pitch::after { content: ""; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
   width: 56%; height: 19%; border: 1px solid oklch(1 0 0 / 0.2); border-top: none; border-radius: 0 0 10px 10px; }
-.half-pitch[data-team="home"] { --shirt: var(--team-home, var(--accent)); }
-.half-pitch[data-team="away"] { --shirt: var(--team-away, var(--text-faint)); }
+.half-pitch[data-team="home"] { --shirt: var(--team-home, var(--accent)); --shirt-num: var(--team-home-num, #fff); }
+.half-pitch[data-team="away"] { --shirt: var(--team-away, var(--text-faint)); --shirt-num: var(--team-away-num, #fff); }
 .hp-row { display: flex; align-items: center; justify-content: space-evenly; gap: 2px; position: relative; z-index: 1; }
 
 .pl { position: relative; display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 0; }
 .pl__badge { position: relative; width: clamp(30px, 11%, 42px); }
 .pl__badge .jersey { width: 100%; height: auto; display: block; fill: var(--shirt, var(--accent)); filter: drop-shadow(0 2px 5px oklch(0 0 0 / 0.42)); }
-.pl__num { position: absolute; left: 0; right: 0; top: 52%; transform: translateY(-50%); text-align: center; font-weight: 800; font-size: 12px; color: #fff; text-shadow: 0 1px 2px oklch(0 0 0 / 0.55); }
+/* Numer w kolorze koszulki z colors.player.number (3bi) — czytelny też na jasnej
+   koszulce; fallback #fff (ciemne stuby) gdy brak danych. Cień zostaje dla kontrastu. */
+.pl__num { position: absolute; left: 0; right: 0; top: 52%; transform: translateY(-50%); text-align: center; font-weight: 800; font-size: 12px; color: var(--shirt-num, #fff); text-shadow: 0 1px 2px oklch(0 0 0 / 0.55); }
 .pl__name { font-size: 10.5px; font-weight: 700; color: #fff; text-align: center; line-height: 1.05; text-shadow: 0 1px 4px oklch(0 0 0 / 0.75); max-width: 84px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pl__inds { position: absolute; top: -7px; right: -9px; display: flex; flex-direction: column; gap: 3px; z-index: 2; }
 .ind { min-width: 17px; height: 17px; padding: 0 2px; border-radius: var(--r-pill); display: inline-grid; place-items: center; font-size: 10px; line-height: 1; background: var(--bg-elev); border: 1px solid var(--border); box-shadow: 0 1px 3px oklch(0 0 0 / 0.4); }

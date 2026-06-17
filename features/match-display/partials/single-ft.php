@@ -366,11 +366,24 @@ $match_label = $home_name . ' – ' . $away_name;
 								$start_xi  = isset( $lu['startXI'] ) && is_array( $lu['startXI'] ) ? $lu['startXI'] : array();
 								$subs      = isset( $lu['substitutes'] ) && is_array( $lu['substitutes'] ) ? $lu['substitutes'] : array();
 
-								// 3bi: realny trener + kolor koszulek z lineups (kontrakt importu 3bi).
+								// 3bi: realny trener + kolory koszulki/numeru z lineups (kontrakt importu).
 								$coach   = $lu['coach']['name'] ?? '';
 								$primary = $lu['colors']['player']['primary'] ?? '';
-								// Tylko poprawny hex (API daje bez „#"); inaczej pusto → CSS fallback (STUB).
-								$shirt = ( is_string( $primary ) && preg_match( '/^[0-9a-fA-F]{3,8}$/', $primary ) ) ? '#' . $primary : '';
+								$number  = $lu['colors']['player']['number'] ?? '';
+								// Tylko poprawny hex (API daje bez „#"); inaczej pusto → CSS fallback.
+								$hex     = static function ( $v ) {
+									return ( is_string( $v ) && preg_match( '/^[0-9a-fA-F]{3,8}$/', $v ) ) ? '#' . $v : '';
+								};
+								$shirt   = $hex( $primary );  // koszulka  → --team-{side}     (fallback: STUB akcent/neutral)
+								$numcol  = $hex( $number );   // numer     → --team-{side}-num (fallback: #fff)
+								$pitch_vars = array();
+								if ( '' !== $shirt ) {
+									$pitch_vars[] = '--team-' . $side . ': ' . $shirt;
+								}
+								if ( '' !== $numcol ) {
+									$pitch_vars[] = '--team-' . $side . '-num: ' . $numcol;
+								}
+								$pitch_style = $pitch_vars ? ' style="' . esc_attr( implode( '; ', $pitch_vars ) ) . '"' : '';
 								?>
 								<div class="lineup-split">
 									<div class="lineup-col">
@@ -380,7 +393,7 @@ $match_label = $home_name . ' – ' . $away_name;
 												<span>Trener: <b><?php echo esc_html( $coach ); ?></b></span>
 											<?php endif; ?>
 										</div>
-										<div class="half-pitch" data-team="<?php echo esc_attr( $side ); ?>"<?php echo '' !== $shirt ? ' style="--team-' . esc_attr( $side ) . ': ' . esc_attr( $shirt ) . '"' : ''; ?>>
+										<div class="half-pitch" data-team="<?php echo esc_attr( $side ); ?>"<?php echo $pitch_style; // już esc_attr (hex + side) ?>>
 											<?php foreach ( $pitch_rows( $start_xi ) as $row ) : ?>
 												<div class="hp-row">
 													<?php foreach ( $row as $p ) : ?>
