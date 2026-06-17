@@ -79,6 +79,27 @@ if ( ! $have ) {
 	echo "  (ŻADEN wpis nie ma wszedł/zszedł — indeks ich nie dostał)\n";
 }
 
+/* 4) JOIN lineups ↔ indeks — symulacja renderu (po player.id). */
+echo "\n# JOIN lineups ↔ indeks (jak render łączy po player.id):\n";
+$lineups = isset( $d['lineups'] ) && is_array( $d['lineups'] ) ? $d['lineups'] : array();
+foreach ( array( 'home', 'away' ) as $side ) {
+	$lu  = isset( $lineups[ $side ] ) && is_array( $lineups[ $side ] ) ? $lineups[ $side ] : array();
+	$sx  = isset( $lu['startXI'] ) && is_array( $lu['startXI'] ) ? $lu['startXI'] : array();
+	$sub = isset( $lu['substitutes'] ) && is_array( $lu['substitutes'] ) ? $lu['substitutes'] : array();
+	echo "\n## $side startXI (PŁYTA — oczekiwana strzałka gdy zszedł):\n";
+	foreach ( $sx as $p ) {
+		$pid = (int) ( $p['id'] ?? 0 );
+		$e   = $idx[ $pid ] ?? null;
+		printf( "   #%-7d %-22s in_idx=%s zszedł=%s wszedł=%s\n", $pid, (string) ( $p['name'] ?? '?' ), $e ? 'TAK' : 'NIE', $e ? var_export( $e['zszedl'], true ) : '-', $e ? var_export( $e['wszedl'], true ) : '-' );
+	}
+	echo "## $side substitutes (ŁAWKA — oczekiwana strzałka gdy wszedł):\n";
+	foreach ( $sub as $p ) {
+		$pid = (int) ( $p['id'] ?? 0 );
+		$e   = $idx[ $pid ] ?? null;
+		printf( "   #%-7d %-22s in_idx=%s wszedł=%s zszedł=%s\n", $pid, (string) ( $p['name'] ?? '?' ), $e ? 'TAK' : 'NIE', $e ? var_export( $e['wszedl'], true ) : '-', $e ? var_export( $e['zszedl'], true ) : '-' );
+	}
+}
+
 echo "\n# PODSUMOWANIE: subst_events=$subst_n | wpisy_z_wszedl_zszedl=$have | wpisy_indeksu=" . count( $idx ) . "\n";
 echo "# Interpretacja:\n";
 echo "#  subst_events=0            → DANE (import nie zapisał zmian) — fix w core/imporcie.\n";
