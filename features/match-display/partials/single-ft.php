@@ -356,15 +356,22 @@ $match_label = $home_name . ' – ' . $away_name;
 								$formation = $lu['formation'] ?? '';
 								$start_xi  = isset( $lu['startXI'] ) && is_array( $lu['startXI'] ) ? $lu['startXI'] : array();
 								$subs      = isset( $lu['substitutes'] ) && is_array( $lu['substitutes'] ) ? $lu['substitutes'] : array();
+
+								// 3bi: realny trener + kolor koszulek z lineups (kontrakt importu 3bi).
+								$coach   = $lu['coach']['name'] ?? '';
+								$primary = $lu['colors']['player']['primary'] ?? '';
+								// Tylko poprawny hex (API daje bez „#"); inaczej pusto → CSS fallback (STUB).
+								$shirt = ( is_string( $primary ) && preg_match( '/^[0-9a-fA-F]{3,8}$/', $primary ) ) ? '#' . $primary : '';
 								?>
 								<div class="lineup-split">
 									<div class="lineup-col">
 										<div class="lineup-meta">
 											<span>Ustawienie: <b><?php echo esc_html( '' !== $formation ? $formation : '—' ); ?></b></span>
-											<?php // STUB 3b: trener placeholder — realne dane po 3bi (kontrakt importu). ?>
-											<span>Trener: <b>—</b></span>
+											<?php if ( '' !== $coach ) : ?>
+												<span>Trener: <b><?php echo esc_html( $coach ); ?></b></span>
+											<?php endif; ?>
 										</div>
-										<div class="half-pitch" data-team="<?php echo esc_attr( $side ); ?>">
+										<div class="half-pitch" data-team="<?php echo esc_attr( $side ); ?>"<?php echo '' !== $shirt ? ' style="--team-' . esc_attr( $side ) . ': ' . esc_attr( $shirt ) . '"' : ''; ?>>
 											<?php foreach ( $pitch_rows( $start_xi ) as $row ) : ?>
 												<div class="hp-row">
 													<?php foreach ( $row as $p ) : ?>

@@ -238,7 +238,9 @@
 @media (min-width: 700px) { .lineup-split { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-lg); align-items: start; } }
 
 /* Połowa boiska — bramka + pole karne u góry, formacja schodzi w dół.
-   STUB 3b: --shirt home=akcent, away=neutral (realne barwy po 3bi). */
+   Kolor koszulek (--team-home/--team-away) wstrzykuje render z lineups.colors
+   (3bi). Gdy brak (NS / brak składów) — fallback przez var(): home=akcent,
+   away=neutral (świadomy STUB 3b). */
 .half-pitch { position: relative; aspect-ratio: 64 / 78; width: 100%;
   border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--border);
   background: repeating-linear-gradient(0deg, oklch(0.46 0.10 150 / 0.22) 0 9%, oklch(0.46 0.10 150 / 0.13) 9% 18%);
@@ -247,8 +249,8 @@
   width: 20%; height: 3.4%; border: 1.5px solid oklch(1 0 0 / 0.5); border-top: none; border-radius: 0 0 3px 3px; }
 .half-pitch::after { content: ""; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
   width: 56%; height: 19%; border: 1px solid oklch(1 0 0 / 0.2); border-top: none; border-radius: 0 0 10px 10px; }
-.half-pitch[data-team="home"] { --shirt: var(--accent); }
-.half-pitch[data-team="away"] { --shirt: var(--text-faint); }
+.half-pitch[data-team="home"] { --shirt: var(--team-home, var(--accent)); }
+.half-pitch[data-team="away"] { --shirt: var(--team-away, var(--text-faint)); }
 .hp-row { display: flex; align-items: center; justify-content: space-evenly; gap: 2px; position: relative; z-index: 1; }
 
 .pl { position: relative; display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 0; }
