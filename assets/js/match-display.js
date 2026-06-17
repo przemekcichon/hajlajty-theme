@@ -2,10 +2,10 @@
    HAJLAJTY — assets/js/match-display.js
    ------------------------------------------------------------
    Logika WIDOKU meczu (ładowana tylko na single „mecz"):
-   zakładki + animacja słupków statystyk + facade playera YouTube.
-   Przełącznik paneli składów (home/away) dochodzi w E5. NIE portuje
-   #followBtn (Faza 4) ani #favBtn (globalny, poza 3b). Reużywa
-   mechaniki 1:1 z monolitu. Wszystkie uchwyty null-safe.
+   zakładki + animacja słupków statystyk + przełącznik paneli składów
+   (home/away) + facade playera YouTube. NIE portuje #followBtn (Faza 4)
+   ani #favBtn (globalny, poza 3b). Reużywa mechaniki 1:1 z monolitu.
+   Wszystkie uchwyty null-safe.
 ============================================================ */
 (function () {
   "use strict";
