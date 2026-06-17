@@ -209,9 +209,10 @@ $match_label = $home_name . ' – ' . $away_name;
 											<?php if ( '' !== $tflag ) : ?><img class="country-flag" src="<?php echo esc_url( $tflag ); ?>" alt="" /><?php endif; ?>
 											<?php
 											if ( $is_sub ) {
-												// player=wchodzący, assist=schodzący (potwierdzone empirycznie).
-												$in  = $item['player'] ? $item['player'] : '—';
-												$out = $item['assist'] ? $item['assist'] : '—';
+												// KIERUNEK subst (jak derive.php, ground-truth ze składów):
+												// player=SCHODZĄCY, assist=WCHODZĄCY. „{wchodzący} za {schodzący}".
+												$in  = $item['assist'] ? $item['assist'] : '—';
+												$out = $item['player'] ? $item['player'] : '—';
 												echo esc_html( $in . ' za ' . $out );
 											} elseif ( $is_goal && ! empty( $item['assist'] ) ) {
 												echo esc_html( $tname . ' · asysta ' . $item['assist'] );
