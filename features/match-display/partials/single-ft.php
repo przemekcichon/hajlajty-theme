@@ -556,22 +556,20 @@ $match_label = $home_name . ' – ' . $away_name;
 				}
 			}
 
-			$api_flag = static function ( $api ) use ( $term_by_api ) {
-				if ( empty( $api ) || ! isset( $term_by_api[ $api ] ) ) {
-					return '';
-				}
-				$c = strtolower( (string) get_term_meta( $term_by_api[ $api ]->term_id, 'fifa_code', true ) );
-				return '' !== $c ? 'https://flagcdn.com/' . $c . '.svg' : '';
-			};
-			$api_code = static function ( $api ) use ( $term_by_api ) {
-				if ( empty( $api ) || ! isset( $term_by_api[ $api ] ) ) {
-					return '—';
-				}
-				$c = strtoupper( (string) get_term_meta( $term_by_api[ $api ]->term_id, 'fifa_code', true ) );
-				return '' !== $c ? $c : $term_by_api[ $api ]->name;
-			};
+			// Wiersz .rvideo pokazuje wynik w tytule (bez flag) — potrzebne tylko nazwy.
 			$api_name = static function ( $api ) use ( $term_by_api ) {
 				return ( ! empty( $api ) && isset( $term_by_api[ $api ] ) ) ? $term_by_api[ $api ]->name : '—';
+			};
+
+			// Data publikacji skrótu po polsku — data BEZWZGLĘDNA, niezależna od locale
+			// WP (naprawia „1 day temu"). Mały słownik miesięcy w kodzie dozwolony
+			// („Lokalizacja nazw", CLAUDE.md).
+			$pl_date = static function ( $ts ) {
+				if ( ! $ts ) {
+					return '';
+				}
+				$months = array( 1 => 'stycznia', 'lutego', 'marca', 'kwietnia', 'maja', 'czerwca', 'lipca', 'sierpnia', 'września', 'października', 'listopada', 'grudnia' );
+				return (int) gmdate( 'j', $ts ) . ' ' . $months[ (int) gmdate( 'n', $ts ) ] . ' ' . gmdate( 'Y', $ts );
 			};
 			?>
 			<aside class="watch__aside">
@@ -579,34 +577,32 @@ $match_label = $home_name . ' – ' . $away_name;
 					<h2 class="aside-sec__title"><span class="kicker-dot"></span> Inne skróty</h2>
 					<?php
 					foreach ( $cards as $card ) :
-						$rp        = $card['post'];
-						$hn        = $api_name( $card['h_api'] );
-						$an        = $api_name( $card['a_api'] );
-						$hf        = $api_flag( $card['h_api'] );
-						$af        = $api_flag( $card['a_api'] );
-						$gh        = null === $card['gh'] ? '–' : $card['gh'];
-						$ga        = null === $card['ga'] ? '–' : $card['ga'];
-						$dur       = function_exists( 'get_field' ) ? get_field( 'skrot_duration', $rp->ID ) : get_post_meta( $rp->ID, 'skrot_duration', true );
-						$chan_terms = get_the_terms( $rp->ID, 'kanal' );
-						$chan      = ( is_array( $chan_terms ) && ! is_wp_error( $chan_terms ) && ! empty( $chan_terms ) ) ? $chan_terms[0]->name : '';
-						$ago       = human_time_diff( (int) get_post_time( 'U', true, $rp ), (int) current_time( 'timestamp', true ) );
+						$rp  = $card['post'];
+						$hn  = $api_name( $card['h_api'] );
+						$an  = $api_name( $card['a_api'] );
+						$gh  = null === $card['gh'] ? '–' : $card['gh'];
+						$ga  = null === $card['ga'] ? '–' : $card['ga'];
+						$dur = function_exists( 'get_field' ) ? get_field( 'skrot_duration', $rp->ID ) : get_post_meta( $rp->ID, 'skrot_duration', true );
+
+						// Data publikacji skrótu = ACF skrot_published_at; fallback: data wpisu.
+						$pub    = function_exists( 'get_field' ) ? get_field( 'skrot_published_at', $rp->ID ) : get_post_meta( $rp->ID, 'skrot_published_at', true );
+						$pub_ts = ( is_string( $pub ) && '' !== $pub ) ? strtotime( $pub ) : false;
+						if ( ! $pub_ts ) {
+							$pub_ts = (int) get_post_time( 'U', true, $rp );
+						}
+						$date_pl = $pl_date( $pub_ts );
 						?>
-						<a class="card--highlight" href="<?php echo esc_url( get_permalink( $rp ) ); ?>" data-card-id="mecz-<?php echo (int) $rp->ID; ?>">
-							<div class="card__media">
-								<?php if ( ! empty( $dur ) ) : ?><span class="card__dur"><?php echo esc_html( $dur ); ?></span><?php endif; ?>
-								<?php if ( '' !== $chan ) : ?><span class="card__channel"><?php echo esc_html( $chan ); ?></span><?php endif; ?>
-								<span class="card__play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
+						<a class="rvideo card-video" href="<?php echo esc_url( get_permalink( $rp ) ); ?>">
+							<div class="thumb">
+								<?php if ( ! empty( $dur ) ) : ?><span class="thumb__dur"><?php echo esc_html( $dur ); ?></span><?php endif; ?>
+								<span class="thumb__play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
 							</div>
-							<div class="card__body">
-								<div class="card__result">
-									<span class="card__side"><?php if ( '' !== $hf ) : ?><img class="country-flag" src="<?php echo esc_url( $hf ); ?>" alt="" /><?php endif; ?> <?php echo esc_html( $api_code( $card['h_api'] ) ); ?></span>
-									<span class="card__final"><?php echo esc_html( $gh . ' : ' . $ga ); ?></span>
-									<span class="card__side card__side--away"><?php if ( '' !== $af ) : ?><img class="country-flag" src="<?php echo esc_url( $af ); ?>" alt="" /><?php endif; ?> <?php echo esc_html( $api_code( $card['a_api'] ) ); ?></span>
-								</div>
-								<h3 class="card__title"><?php echo esc_html( $hn . ' ' . $gh . '–' . $ga . ' ' . $an . ' · skrót' ); ?></h3>
-								<div class="card__meta">
-									<?php if ( '' !== $card['round'] ) : ?><span class="card__comp"><?php echo esc_html( $card['round'] ); ?></span><span class="card__dot"></span><?php endif; ?>
-									<?php echo esc_html( '' !== $ago ? $ago . ' temu' : '' ); ?>
+							<div class="rvideo__body">
+								<h3 class="rvideo__title"><?php echo esc_html( $hn . ' ' . $gh . '–' . $ga . ' ' . $an . ' · skrót' ); ?></h3>
+								<div class="rvideo__meta">
+									<?php if ( '' !== $card['round'] ) : ?><span class="rvideo__comp"><?php echo esc_html( $card['round'] ); ?></span><?php endif; ?>
+									<?php if ( '' !== $card['round'] && '' !== $date_pl ) : ?><span class="dot-sep"></span><?php endif; ?>
+									<?php echo esc_html( $date_pl ); ?>
 								</div>
 							</div>
 						</a>

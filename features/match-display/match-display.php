@@ -6,7 +6,7 @@
  *
  * Granica wobec slice'a layout: layout = globalna powłoka (tokens/base/shell);
  * match-display = wszystko, co znika razem z widokiem meczu (match-single.css/js,
- * karty card-highlight w prawym aside). Zgodnie z CLAUDE.md (vertical slice).
+ * w tym kompaktowe wiersze .rvideo prawego aside). Zgodnie z CLAUDE.md (vertical slice).
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -28,9 +28,9 @@ add_action( 'wp_enqueue_scripts', 'hajlajty_match_display_enqueue' );
 
 /**
  * Zasoby widoku meczu — TYLKO na single „mecz" (nie obciążają reszty serwisu).
- * Każdy plik ładowany warunkowo (is_readable): rdzeń CSS i JS dochodzą w E3,
- * karty card-highlight w E6 — do tego czasu enqueue po prostu ich nie dotyka.
- * Zależność CSS: match-single po layout (handle 'hajlajty-layout' z layout slice).
+ * Rdzeń single (z kompaktowym aside .rvideo) i JS w match-single.css/js. NIE
+ * ładujemy tu card-highlight.css — duża karta należy do home/list (3d), nie do
+ * pojedynczego meczu. Zależność CSS: match-single po layout ('hajlajty-layout').
  */
 function hajlajty_match_display_enqueue() {
 	if ( ! is_singular( 'mecz' ) ) {
@@ -38,8 +38,7 @@ function hajlajty_match_display_enqueue() {
 	}
 
 	$styles = array(
-		'hajlajty-card-highlight' => array( 'assets/styles/card-highlight.css', array( 'hajlajty-base' ) ),
-		'hajlajty-match-single'   => array( 'assets/styles/match-single.css', array( 'hajlajty-layout' ) ),
+		'hajlajty-match-single' => array( 'assets/styles/match-single.css', array( 'hajlajty-layout' ) ),
 	);
 	foreach ( $styles as $handle => $def ) {
 		$path = get_theme_file_path( $def[0] );
