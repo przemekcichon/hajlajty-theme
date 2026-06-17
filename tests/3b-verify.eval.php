@@ -38,9 +38,11 @@ foreach ( $timeline as $r ) {
 }
 $ft_h    = $data['score']['fulltime']['home'] ?? null;
 $ft_a    = $data['score']['fulltime']['away'] ?? null;
-$last_tx = $last ? ( $last['home'] . ':' . $last['away'] ) : '(brak goli)';
+// Brak liczących goli = 0:0 (mecz bezbramkowy nie może dawać „ROZJAZD").
+$eff     = is_array( $last ) ? $last : array( 'home' => 0, 'away' => 0 );
+$last_tx = $eff['home'] . ':' . $eff['away'];
 $ft_tx   = ( null === $ft_h && null === $ft_a ) ? '(brak)' : ( $ft_h . ':' . $ft_a );
-$ok      = ( $last && (int) $last['home'] === (int) $ft_h && (int) $last['away'] === (int) $ft_a );
+$ok      = ( (int) $eff['home'] === (int) $ft_h && (int) $eff['away'] === (int) $ft_a );
 echo "  ostatni narastajacy: $last_tx | goals.fulltime: $ft_tx | " . ( $ok ? 'ZGODNY' : 'ROZJAZD (sprawdz own_goal/VAR)' ) . "\n";
 
 /* ========================================================================
