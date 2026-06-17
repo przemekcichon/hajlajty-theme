@@ -370,18 +370,26 @@ $match_label = $home_name . ' – ' . $away_name;
 								$coach   = $lu['coach']['name'] ?? '';
 								$primary = $lu['colors']['player']['primary'] ?? '';
 								$number  = $lu['colors']['player']['number'] ?? '';
+								$border  = $lu['colors']['player']['border'] ?? '';
 								// Tylko poprawny hex (API daje bez „#"); inaczej pusto → CSS fallback.
 								$hex     = static function ( $v ) {
 									return ( is_string( $v ) && preg_match( '/^[0-9a-fA-F]{3,8}$/', $v ) ) ? '#' . $v : '';
 								};
-								$shirt   = $hex( $primary );  // koszulka  → --team-{side}     (fallback: STUB akcent/neutral)
-								$numcol  = $hex( $number );   // numer     → --team-{side}-num (fallback: #fff)
+								$shirt   = $hex( $primary );  // koszulka  → --team-{side}        (fallback: STUB akcent/neutral)
+								$numcol  = $hex( $number );   // numer     → --team-{side}-num    (fallback: #fff)
+								$bordcol = $hex( $border );   // obrys     → --team-{side}-border (fallback: brak obrysu)
 								$pitch_vars = array();
 								if ( '' !== $shirt ) {
 									$pitch_vars[] = '--team-' . $side . ': ' . $shirt;
 								}
 								if ( '' !== $numcol ) {
 									$pitch_vars[] = '--team-' . $side . '-num: ' . $numcol;
+								}
+								// Obrys WIERNIE z danych — bez fallbacka gdy border==primary (np.
+								// biała na białej, tak chce drużyna). var() niżej wchodzi WYŁĄCZNIE
+								// gdy pole border puste/brak (wtedy koszulka bez obrysu, jak w 3b).
+								if ( '' !== $bordcol ) {
+									$pitch_vars[] = '--team-' . $side . '-border: ' . $bordcol;
 								}
 								$pitch_style = $pitch_vars ? ' style="' . esc_attr( implode( '; ', $pitch_vars ) ) . '"' : '';
 								?>
