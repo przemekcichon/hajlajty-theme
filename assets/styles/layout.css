@@ -1,0 +1,200 @@
+/* ============================================================
+   HAJLAJTY — assets/styles/layout.css
+   ------------------------------------------------------------
+   GLOBALNA POWŁOKA (shell): topbar, sidebar off-canvas + scrim,
+   dyskretne scrollbary, app-shell (desktop) i stopka.
+   Wyekstrahowane 1:1 z monolitu „Hajlajty - Skrót Meczu.html"
+   (sekcje 3–5, 9 oraz STOPKA). Style WIDOKU pojedynczego meczu
+   (watch / player16 / ibar / zakładki) NIE są tutaj — żyją w
+   match-single.css (slice match-display). Tokeny i reset są w
+   tokens.css / base.css (ładowane przed tym plikiem).
+============================================================ */
+
+/* ============================================================
+   TOP BAR
+============================================================ */
+.topbar {
+  position: sticky; top: 0; z-index: 60;
+  height: var(--topbar-h);
+  display: flex; align-items: center;
+  background: var(--bg);
+}
+.topbar__inner {
+  display: grid;
+  /* Bez wyszukiwarki (strona pojedynczego meczu): dwie kolumny — logo | ikony */
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: var(--space-md);
+  height: 100%;
+  max-width: none;
+  padding-inline: var(--space-xs);
+}
+.topbar__left  { display: flex; align-items: center; gap: var(--space-sm); justify-self: start; }
+.topbar__right { display: flex; align-items: center; gap: var(--space-2xs); justify-self: end; }
+
+@media (max-width: 768px) {
+  .topbar__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0;
+    padding-inline: var(--gutter);
+  }
+  .topbar__left  { gap: var(--space-3xs); }
+  .topbar__left > .icon-btn:first-child { margin-left: -11px; }
+  .topbar__right { gap: var(--space-3xs); }
+  .topbar__right > .icon-btn:last-child { margin-right: -11px; }
+}
+
+.icon-btn {
+  width: 44px; height: 44px;
+  display: grid; place-items: center;
+  border-radius: var(--r-pill);
+  color: var(--text);
+  transition: background var(--t-fast), color var(--t-fast), transform var(--t-fast);
+}
+.icon-btn:hover  { background: var(--surface-2); }
+.icon-btn:active { transform: scale(0.92); }
+.icon-btn svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+.logo {
+  display: inline-flex; align-items: center; gap: var(--space-3xs);
+  padding-inline: 6px;
+  font-weight: 800; font-size: 25px; letter-spacing: -0.04em; line-height: 1;
+  color: var(--text);
+}
+.logo__text { display: inline-flex; }
+.logo__y { color: var(--accent); }
+.logo__play { flex: 0 0 auto; width: 20px; height: 20px; color: var(--accent); transition: transform var(--t-med); }
+.logo:hover .logo__play { transform: scale(1.12); }
+
+[data-theme="dark"]  .theme-toggle .sun  { display: block; }
+[data-theme="dark"]  .theme-toggle .moon { display: none; }
+[data-theme="light"] .theme-toggle .sun  { display: none; }
+[data-theme="light"] .theme-toggle .moon { display: block; }
+
+/* ============================================================
+   SIDEBAR (off-canvas) + SCRIM
+============================================================ */
+.scrim {
+  position: fixed; inset: 0; z-index: 70;
+  background: var(--scrim);
+  opacity: 0; visibility: hidden;
+  transition: opacity var(--t-med), visibility var(--t-med);
+}
+.scrim.is-open { opacity: 1; visibility: visible; }
+
+.sidebar {
+  position: fixed; top: 0; left: 0; z-index: 80;
+  width: var(--sidebar-w); max-width: 84vw; height: 100dvh;
+  background: var(--bg); box-shadow: var(--shadow);
+  transform: translateX(-100%);
+  transition: transform var(--t-med);
+  display: flex; flex-direction: column;
+  padding: var(--space-sm) var(--space-sm) var(--space-lg);
+  overflow-y: auto;
+}
+.sidebar.is-open { transform: translateX(0); }
+
+.sidebar__head {
+  display: flex; align-items: center; gap: var(--space-sm);
+  height: calc(var(--topbar-h) - 16px);
+  padding-inline: var(--space-2xs);
+  margin-bottom: var(--space-sm);
+}
+.sidebar__group { padding: var(--space-sm) 0; border-top: 1px solid var(--border); }
+.sidebar__group:first-of-type { border-top: none; padding-top: 0; }
+.sidebar__label {
+  font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--text-faint); padding: var(--space-2xs) var(--space-sm);
+}
+.nav-link {
+  display: flex; align-items: center; gap: var(--space-sm);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--r-sm);
+  color: var(--text); font-weight: 600; font-size: 15px;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+.nav-link svg { width: 21px; height: 21px; stroke: currentColor; fill: none; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; flex: 0 0 auto; }
+.nav-link:hover { background: var(--surface-2); }
+.nav-link.is-active { background: var(--accent-soft); color: var(--accent-strong); }
+[data-theme="dark"] .nav-link.is-active { color: var(--accent); }
+.nav-link .badge-live { margin-left: auto; font-size: 11px; font-weight: 800; letter-spacing: 0.06em; color: var(--live); }
+
+/* ============================================================
+   DYSKRETNE SCROLLBARY
+============================================================ */
+.sidebar, .content {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color var(--t-med);
+}
+.sidebar.is-scrolling, .content.is-scrolling { scrollbar-color: var(--scrollthumb) transparent; }
+.sidebar::-webkit-scrollbar, .content::-webkit-scrollbar { width: 8px; height: 8px; }
+.sidebar::-webkit-scrollbar-track, .content::-webkit-scrollbar-track { background: transparent; }
+.sidebar::-webkit-scrollbar-thumb, .content::-webkit-scrollbar-thumb {
+  background: transparent; border-radius: var(--r-pill);
+  border: 2px solid transparent; background-clip: padding-box;
+  transition: background var(--t-med);
+}
+.sidebar.is-scrolling::-webkit-scrollbar-thumb, .content.is-scrolling::-webkit-scrollbar-thumb {
+  background: var(--scrollthumb); background-clip: padding-box;
+}
+.sidebar::-webkit-scrollbar-button, .content::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
+
+/* ============================================================
+   APP SHELL (desktop ≥1100px)
+============================================================ */
+.shell { display: block; }
+.content { display: block; }
+
+@media (min-width: 1100px) {
+  html, body { height: 100%; }
+  body { height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
+  .topbar { position: static; flex: 0 0 auto; }
+
+  /* Treść headera zawężona do tego samego pasma co kolumny widoku poniżej.
+     Na pojedynczym meczu --watch-max definiuje match-single.css; na innych
+     widokach fallback do --container utrzymuje spójną szerokość. */
+  .topbar__inner {
+    max-width: var(--watch-max, var(--container));
+    margin-inline: auto;
+    padding-inline: var(--page-horizontal-margin, var(--gutter));
+  }
+
+  .shell { flex: 1 1 auto; min-height: 0; width: 100%; display: block; }
+  .content { height: 100%; overflow-y: auto; overflow-x: hidden; }
+
+  /* Stopka licuje z tym samym pasmem bezpieczeństwa co treść. */
+  .content .footer > .container {
+    max-width: var(--watch-max, var(--container));
+    margin-inline: auto;
+    padding-inline: var(--page-horizontal-margin, var(--gutter));
+  }
+}
+
+/* ============================================================
+   STOPKA
+============================================================ */
+.footer { border-top: 1px solid var(--border); background: var(--bg); padding-block: var(--space-xl); }
+.footer__grid { display: grid; grid-template-columns: 1.4fr repeat(3, 1fr); gap: var(--space-lg); }
+.footer__brand { display: flex; flex-direction: column; gap: var(--space-sm); max-width: 320px; }
+.footer__tag { color: var(--text-muted); font-size: 14px; }
+.footer__col h4 { font-size: 13px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-faint); margin-bottom: var(--space-sm); }
+.footer__col a { display: block; padding: 6px 0; color: var(--text-muted); font-weight: 600; font-size: 14px; transition: color var(--t-fast); }
+.footer__col a:hover { color: var(--accent); }
+.footer__bottom {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-md); flex-wrap: wrap;
+  margin-top: var(--space-xl); padding-top: var(--space-lg); border-top: 1px solid var(--border);
+  color: var(--text-faint); font-size: 13px; font-weight: 600;
+}
+
+@media (max-width: 860px) {
+  .footer__grid { grid-template-columns: 1fr 1fr; gap: var(--space-lg) var(--space-md); }
+  .footer__brand { grid-column: 1 / -1; }
+}
+@media (max-width: 620px) {
+  :root { --topbar-h: 64px; }
+  .logo { font-size: 22px; }
+  .footer__grid { grid-template-columns: 1fr; }
+}
