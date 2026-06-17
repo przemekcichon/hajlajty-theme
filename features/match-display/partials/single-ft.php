@@ -417,12 +417,14 @@ $match_label = $home_name . ' – ' . $away_name;
 														<li class="squad-row">
 															<span class="squad-row__num"><?php echo esc_html( $p['number'] ?? '' ); ?></span>
 															<span class="squad-row__name"><?php echo esc_html( $p['name'] ?? '' ); ?></span>
+															<?php $pos_pl = hajlajty_lookup_position( $p['pos'] ?? null ); ?>
 															<span class="squad-row__end">
 																<?php echo $marks_goal_card( $pid ); // phpcs:ignore — HTML markerów budowany z esc ?>
 																<?php if ( null !== $in_min ) : ?>
 																	<span class="squad-row__in"><svg viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg><?php echo esc_html( $in_min . "'" ); ?></span>
-																<?php else : ?>
-																	<span class="squad-row__pos"><?php echo esc_html( hajlajty_lookup_position( $p['pos'] ?? null ) ); ?></span>
+																<?php endif; ?>
+																<?php if ( '' !== $pos_pl ) : ?>
+																	<span class="squad-row__pos"><?php echo esc_html( $pos_pl ); ?></span>
 																<?php endif; ?>
 															</span>
 														</li>
