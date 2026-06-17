@@ -185,16 +185,21 @@ function hajlajty_player_event_index( $events ): array {
 		$minute = $ev['minute'] ?? null;
 		$pid    = isset( $ev['player_id'] ) ? (int) $ev['player_id'] : null;
 
-		// subst: player_id = WCHODZĄCY, assist_id = SCHODZĄCY (potwierdzone empirycznie).
+		// subst KIERUNEK — USTALONY z ground-truth rozkładu składów (mecz 11):
+		// player_id = SCHODZĄCY (jest w startXI → startował → schodzi),
+		// assist_id = WCHODZĄCY (jest w substitutes → z ławki → wchodzi).
+		// To ODWROTNIE niż api-mapping.md/transform.php „potwierdzone empirycznie"
+		// (player=wchodzący) — diagnostyka JOIN lineups↔indeks pokazała, że tamto
+		// było błędne: gracze z startXI dostawali „wszedł", a z ławki „zszedł".
 		if ( 'subst' === $type ) {
 			if ( null !== $pid ) {
 				$ensure( $idx, $pid );
-				$idx[ $pid ]['wszedl'] = $minute;
+				$idx[ $pid ]['zszedl'] = $minute;
 			}
 			$aid = isset( $ev['assist_id'] ) ? (int) $ev['assist_id'] : null;
 			if ( null !== $aid ) {
 				$ensure( $idx, $aid );
-				$idx[ $aid ]['zszedl'] = $minute;
+				$idx[ $aid ]['wszedl'] = $minute;
 			}
 			continue;
 		}

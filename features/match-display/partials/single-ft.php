@@ -209,9 +209,10 @@ $match_label = $home_name . ' – ' . $away_name;
 											<?php if ( '' !== $tflag ) : ?><img class="country-flag" src="<?php echo esc_url( $tflag ); ?>" alt="" /><?php endif; ?>
 											<?php
 											if ( $is_sub ) {
-												// player=wchodzący, assist=schodzący (potwierdzone empirycznie).
-												$in  = $item['player'] ? $item['player'] : '—';
-												$out = $item['assist'] ? $item['assist'] : '—';
+												// KIERUNEK subst (jak derive.php, ground-truth ze składów):
+												// player=SCHODZĄCY, assist=WCHODZĄCY. „{wchodzący} za {schodzący}".
+												$in  = $item['assist'] ? $item['assist'] : '—';
+												$out = $item['player'] ? $item['player'] : '—';
 												echo esc_html( $in . ' za ' . $out );
 											} elseif ( $is_goal && ! empty( $item['assist'] ) ) {
 												echo esc_html( $tname . ' · asysta ' . $item['assist'] );
@@ -233,14 +234,16 @@ $match_label = $home_name . ' – ' . $away_name;
 					$lineups   = isset( $data['lineups'] ) && is_array( $data['lineups'] ) ? $data['lineups'] : array();
 					$player_idx = hajlajty_player_event_index( $data['events'] ?? array() );
 
-					// Wskaźniki przy koszulce (z indeksu zdarzeń). Render dokleja ikony.
-					$player_inds = static function ( $pid ) use ( $player_idx ) {
+					// Markery gol/kartka z indeksu zdarzeń — WSPÓLNE dla boiska i ławki.
+					// Render dokleja ikony (lookups/derive ich nie znają). ⚽ ×liczba goli;
+					// samobóje pominięte (⚽ przy zawodniku = zdobyta bramka, nie samobój).
+					$marks_goal_card = static function ( $pid ) use ( $player_idx ) {
 						if ( null === $pid || ! isset( $player_idx[ $pid ] ) ) {
 							return '';
 						}
 						$e    = $player_idx[ $pid ];
 						$html = '';
-						if ( $e['gole'] > 0 ) {
+						for ( $i = 0; $i < (int) $e['gole']; $i++ ) {
 							$html .= '<span class="ind ind--goal">⚽</span>';
 						}
 						if ( $e['druga_zolta'] > 0 ) {
@@ -250,8 +253,14 @@ $match_label = $home_name . ' – ' . $away_name;
 						} elseif ( $e['zolta'] > 0 ) {
 							$html .= '<span class="ind ind--card yellow"></span>';
 						}
-						if ( null !== $e['zszedl'] ) {
-							$html .= '<span class="ind ind--sub" title="' . esc_attr( 'Zszedł z boiska, ' . $e['zszedl'] . "'" ) . '"><svg viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></svg></span>';
+						return $html;
+					};
+
+					// Wskaźniki przy koszulce (boisko): markery + strzałka zejścia.
+					$player_inds = static function ( $pid ) use ( $marks_goal_card, $player_idx ) {
+						$html = $marks_goal_card( $pid );
+						if ( null !== $pid && isset( $player_idx[ $pid ] ) && null !== $player_idx[ $pid ]['zszedl'] ) {
+							$html .= '<span class="ind ind--sub" title="' . esc_attr( 'Zszedł z boiska, ' . $player_idx[ $pid ]['zszedl'] . "'" ) . '"><svg viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></svg></span>';
 						}
 						return '' !== $html ? '<span class="pl__inds">' . $html . '</span>' : '';
 					};
@@ -356,15 +365,35 @@ $match_label = $home_name . ' – ' . $away_name;
 								$formation = $lu['formation'] ?? '';
 								$start_xi  = isset( $lu['startXI'] ) && is_array( $lu['startXI'] ) ? $lu['startXI'] : array();
 								$subs      = isset( $lu['substitutes'] ) && is_array( $lu['substitutes'] ) ? $lu['substitutes'] : array();
+
+								// 3bi: realny trener + kolory koszulki/numeru z lineups (kontrakt importu).
+								$coach   = $lu['coach']['name'] ?? '';
+								$primary = $lu['colors']['player']['primary'] ?? '';
+								$number  = $lu['colors']['player']['number'] ?? '';
+								// Tylko poprawny hex (API daje bez „#"); inaczej pusto → CSS fallback.
+								$hex     = static function ( $v ) {
+									return ( is_string( $v ) && preg_match( '/^[0-9a-fA-F]{3,8}$/', $v ) ) ? '#' . $v : '';
+								};
+								$shirt   = $hex( $primary );  // koszulka  → --team-{side}     (fallback: STUB akcent/neutral)
+								$numcol  = $hex( $number );   // numer     → --team-{side}-num (fallback: #fff)
+								$pitch_vars = array();
+								if ( '' !== $shirt ) {
+									$pitch_vars[] = '--team-' . $side . ': ' . $shirt;
+								}
+								if ( '' !== $numcol ) {
+									$pitch_vars[] = '--team-' . $side . '-num: ' . $numcol;
+								}
+								$pitch_style = $pitch_vars ? ' style="' . esc_attr( implode( '; ', $pitch_vars ) ) . '"' : '';
 								?>
 								<div class="lineup-split">
 									<div class="lineup-col">
 										<div class="lineup-meta">
 											<span>Ustawienie: <b><?php echo esc_html( '' !== $formation ? $formation : '—' ); ?></b></span>
-											<?php // STUB 3b: trener placeholder — realne dane po 3bi (kontrakt importu). ?>
-											<span>Trener: <b>—</b></span>
+											<?php if ( '' !== $coach ) : ?>
+												<span>Trener: <b><?php echo esc_html( $coach ); ?></b></span>
+											<?php endif; ?>
 										</div>
-										<div class="half-pitch" data-team="<?php echo esc_attr( $side ); ?>">
+										<div class="half-pitch" data-team="<?php echo esc_attr( $side ); ?>"<?php echo $pitch_style; // już esc_attr (hex + side) ?>>
 											<?php foreach ( $pitch_rows( $start_xi ) as $row ) : ?>
 												<div class="hp-row">
 													<?php foreach ( $row as $p ) : ?>
@@ -388,11 +417,16 @@ $match_label = $home_name . ' – ' . $away_name;
 														<li class="squad-row">
 															<span class="squad-row__num"><?php echo esc_html( $p['number'] ?? '' ); ?></span>
 															<span class="squad-row__name"><?php echo esc_html( $p['name'] ?? '' ); ?></span>
-															<?php if ( null !== $in_min ) : ?>
-																<span class="squad-row__in"><svg viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg><?php echo esc_html( $in_min . "'" ); ?></span>
-															<?php else : ?>
-																<span class="squad-row__pos"><?php echo esc_html( hajlajty_lookup_position( $p['pos'] ?? null ) ); ?></span>
-															<?php endif; ?>
+															<?php $pos_pl = hajlajty_lookup_position( $p['pos'] ?? null ); ?>
+															<span class="squad-row__end">
+																<?php echo $marks_goal_card( $pid ); // phpcs:ignore — HTML markerów budowany z esc ?>
+																<?php if ( null !== $in_min ) : ?>
+																	<span class="squad-row__in"><svg viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg><?php echo esc_html( $in_min . "'" ); ?></span>
+																<?php endif; ?>
+																<?php if ( '' !== $pos_pl ) : ?>
+																	<span class="squad-row__pos"><?php echo esc_html( $pos_pl ); ?></span>
+																<?php endif; ?>
+															</span>
 														</li>
 													<?php endforeach; ?>
 												</ul>
