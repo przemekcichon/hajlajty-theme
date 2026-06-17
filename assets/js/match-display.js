@@ -3,9 +3,10 @@
    ------------------------------------------------------------
    Logika WIDOKU meczu (ładowana tylko na single „mecz"):
    zakładki + animacja słupków statystyk + przełącznik paneli składów
-   (home/away) + facade playera YouTube. NIE portuje #followBtn (Faza 4)
-   ani #favBtn (globalny, poza 3b). Reużywa mechaniki 1:1 z monolitu.
-   Wszystkie uchwyty null-safe.
+   (home/away) + facade playera YouTube + odliczanie ZAPOWIEDZI (hero + mini).
+   NIE portuje: #followBtn/#favBtn (Faza 4 hajlajty-user), symulacji zdarzeń
+   LIVE, podbijania minuty ani przycisków demo (minuta LIVE jest statyczna,
+   z PHP — odświeża się przy F5; auto-refresh = 3e). Wszystkie uchwyty null-safe.
 ============================================================ */
 (function () {
   "use strict";
@@ -40,6 +41,11 @@
   if (!statsAnimated && $(".tabpanel.is-active[data-tab='stats']")) {
     statsAnimated = true; requestAnimationFrame(animateStats);
   }
+  // LIVE/NS: statystyki poza systemem zakładek (aside) — brak .tabs, więc
+  // activateTab nigdy nie odpali. Statystyki są od razu widoczne → animuj na starcie.
+  if (!statsAnimated && !tabs.length && stats.length) {
+    statsAnimated = true; requestAnimationFrame(animateStats);
+  }
 
   /* ---------- SKŁADY: przełącznik paneli home/away ---------- */
   var lineupTabs = $$("#lineupTabs .lineup-tab");
@@ -51,6 +57,54 @@
         $$(".lineup-pane").forEach(function (p) { p.classList.toggle("is-active", p.dataset.pane === pane); });
       });
     });
+  }
+
+  /* ---------- ODLICZANIE (ZAPOWIEDŹ): hero + mini-liczniki ----------
+     Logika 1:1 z designu zapowiedzi (poprawna pod ABSOLUTNY instant: data-kickoff
+     to ISO z offsetem, np. „2026-06-15T18:00:00+00:00"). Wszystko guardowane:
+     uruchamiamy interwał tylko gdy na stronie jest licznik (LIVE/skrót go nie ma). */
+  function pad(n) { return n < 10 ? "0" + n : "" + n; }
+
+  var heroBox = $("[data-countdown]");
+  var hero = heroBox ? {
+    target: new Date(heroBox.dataset.kickoff).getTime(), box: heroBox,
+    d: $("[data-d]", heroBox), h: $("[data-h]", heroBox), m: $("[data-m]", heroBox), s: $("[data-s]", heroBox)
+  } : null;
+
+  var minis = $$("[data-mini]").map(function (el) {
+    return { target: new Date(el.dataset.kickoff).getTime(), el: el, val: $("[data-mini-val]", el) };
+  });
+
+  function fmtMini(diff) {
+    var sec = Math.floor(diff / 1000);
+    var days = Math.floor(sec / 86400);
+    var hrs  = Math.floor((sec % 86400) / 3600);
+    var min  = Math.floor((sec % 3600) / 60);
+    if (days >= 1) return "za " + days + (days === 1 ? " dzień" : " dni");
+    return pad(hrs) + ":" + pad(min) + " h";
+  }
+
+  function tickCountdown() {
+    var now = Date.now();
+    if (hero) {
+      var diff = Math.max(0, hero.target - now); // diff<=0 → hero zatrzymany na 00:00:00.
+      var sec = Math.floor(diff / 1000);
+      if (hero.d) hero.d.textContent = pad(Math.floor(sec / 86400));
+      if (hero.h) hero.h.textContent = pad(Math.floor((sec % 86400) / 3600));
+      if (hero.m) hero.m.textContent = pad(Math.floor((sec % 3600) / 60));
+      if (hero.s) hero.s.textContent = pad(sec % 60);
+      hero.box.classList.toggle("is-soon", diff > 0 && diff < 86400000);
+    }
+    minis.forEach(function (c) {
+      if (!c.val) return;
+      var diff = Math.max(0, c.target - now);
+      c.val.textContent = diff <= 0 ? "trwa" : fmtMini(diff); // diff<=0 → „trwa".
+      c.el.classList.toggle("is-soon", diff > 0 && diff < 86400000);
+    });
+  }
+  if (hero || minis.length) {
+    tickCountdown();
+    setInterval(tickCountdown, 1000);
   }
 
   /* ---------- PLAYER: facade → osadzony iframe YouTube ---------- */
