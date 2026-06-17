@@ -16,13 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 // Logika slice'a — czyste funkcje, bez efektów ubocznych przy require.
 require_once __DIR__ . '/helpers.php';
 require_once __DIR__ . '/lookups.php';
-
-// derive.php dochodzi w E4/E5 (oś czasu + indeks zdarzeń zawodnika). Require
-// warunkowy, żeby slice ładował się spójnie zanim plik powstanie.
-$hajlajty_derive = __DIR__ . '/derive.php';
-if ( is_readable( $hajlajty_derive ) ) {
-	require_once $hajlajty_derive;
-}
+require_once __DIR__ . '/derive.php';
 
 add_action( 'wp_enqueue_scripts', 'hajlajty_match_display_enqueue' );
 
