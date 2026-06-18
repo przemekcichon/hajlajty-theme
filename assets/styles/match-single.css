@@ -385,6 +385,30 @@
 .match-facts svg { width: 18px; height: 18px; stroke: var(--text-faint); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: 0 0 auto; }
 .match-facts b { color: var(--text); font-weight: 700; }
 
+/* ---- AKCJE KIBICA (fav / „Przypomnij mi") ----
+   Skopiowane 1:1 z designowego hajlajty-fav.js (tylko istniejące tokeny).
+   STOPGAP 3c: warstwa zachowania (hajlajty-fav.js) należy do hajlajty-user
+   (Faza 4) i jeszcze NIE istnieje — w 3c renderujemy sam markup data-*, więc
+   te reguły dają przyciskom poprawny wygląd (są bezczynne do Fazy 4). Gdy plugin
+   wstrzyknie własny CSS, zdublowane reguły są nieszkodliwe (identyczne). Stany
+   .is-on (zapisany/włączony) przełączy dopiero JS Fazy 4. */
+.hf-actions { display: flex; flex-wrap: wrap; gap: var(--space-2xs); margin-top: var(--space-md); }
+.hf-btn {
+  flex: 1 1 auto; display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+  height: 48px; padding: 0 20px; border-radius: var(--r-pill);
+  background: var(--surface-2); border: 1px solid var(--border); color: var(--text);
+  font-weight: 700; font-size: 14.5px; font-family: inherit; cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
+}
+.hf-btn svg { width: 19px; height: 19px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.hf-btn:hover { border-color: var(--border-strong); background: var(--surface-hover); }
+.hf-btn:active { transform: scale(0.98); }
+.hf-btn--fav.is-on { background: var(--accent-soft); border-color: transparent; color: var(--live); }
+.hf-btn--fav.is-on svg { fill: currentColor; }
+.hf-btn--remind.is-on { background: var(--accent-soft); border-color: transparent; color: var(--accent-strong); }
+[data-theme="dark"] .hf-btn--remind.is-on { color: var(--accent); }
+.hf-btn--remind.is-on svg { fill: currentColor; }
+
 /* ---- PANELE (stos kart w kolumnie głównej dla NS/LIVE) ---- */
 .panels { display: grid; gap: var(--space-md); margin-top: var(--space-xl); }
 .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: var(--space-md); }
