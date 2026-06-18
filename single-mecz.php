@@ -5,10 +5,10 @@
  * otwiera powłokę (slice layout), USTALA STAN meczu i deleguje render do
  * właściwego wariantu w slice match-display, domyka powłokę.
  *
- * Rozgałęzienie wg 4 stanów (D3.1). 3b implementuje TYLKO ZAKOŃCZONY (→ E3);
- * ZAPOWIEDŹ/LIVE/ODWOŁANY to jawne TODO dla 3c (pusty placeholder, zero renderu).
- * Stan liczony 1:1 z lookups.php (3a): status.short → state, z bezpiecznym
- * fallbackiem ZAPOWIEDŹ dla nieznanego/null kodu.
+ * Rozgałęzienie wg 4 stanów (D3.1). Każdy stan deleguje do własnego partiala
+ * w slice match-display TYM SAMYM wzorcem (get_template_part z $args). Stan
+ * liczony 1:1 z lookups.php (3a): status.short → state, z bezpiecznym
+ * fallbackiem ZAPOWIEDŹ dla nieznanego/null kodu (→ single-ns).
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -37,20 +37,42 @@ while ( have_posts() ) :
 			);
 			break;
 
-		case 'ZAPOWIEDZ':
 		case 'LIVE':
+			// Telebim + składy/oś/statystyki (statyczne, bez auto-refresh — 3e).
+			get_template_part(
+				'features/match-display/partials/single-live',
+				null,
+				array(
+					'post_id' => $post_id,
+					'data'    => $data,
+				)
+			);
+			break;
+
 		case 'ODWOLANY':
+			// Stan terminalny — minimalny szkielet z badge „Odwołany".
+			get_template_part(
+				'features/match-display/partials/single-canc',
+				null,
+				array(
+					'post_id' => $post_id,
+					'data'    => $data,
+				)
+			);
+			break;
+
+		case 'ZAPOWIEDZ':
 		default:
-			// TODO 3c: warianty ZAPOWIEDŹ (odliczanie), LIVE (telebim), ODWOŁANY
-			// (oznaczenie). NIE implementowane w 3b — patrz plan §3c. Pusty,
-			// neutralny placeholder zamiast renderu (i dla nieznanego stanu).
-			?>
-			<main class="watch container">
-				<p style="padding: var(--space-xl) 0; color: var(--text-muted);">
-					Ten widok meczu pojawi się wkrótce.
-				</p>
-			</main>
-			<?php
+			// Odliczanie do pierwszego gwizdka. Także bezpieczny fallback dla
+			// nieznanego/null kodu statusu (lookups.php → ZAPOWIEDZ).
+			get_template_part(
+				'features/match-display/partials/single-ns',
+				null,
+				array(
+					'post_id' => $post_id,
+					'data'    => $data,
+				)
+			);
 			break;
 	}
 
