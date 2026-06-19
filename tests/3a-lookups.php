@@ -59,6 +59,27 @@ check( 'status LIVE → Na żywo', array( 'state' => 'LIVE', 'show_minute' => fa
 check( 'status ZZZ → fallback ZAPOWIEDZ', array( 'state' => 'ZAPOWIEDZ', 'show_minute' => false, 'live_label' => null ), hajlajty_lookup_status( 'ZZZ' ) );
 check( 'status null → fallback ZAPOWIEDZ', array( 'state' => 'ZAPOWIEDZ', 'show_minute' => false, 'live_label' => null ), hajlajty_lookup_status( null ) );
 
+echo "\n=== KODY LIVE (3e-i: hajlajty_status_live_codes) ===\n";
+// Filtr list „Na żywo" (status IN …) zależy WYŁĄCZNIE od tego zbioru. Musi być
+// dokładnie grupą „In Play" z mapy — ani mniej (mecz live znika z listy), ani
+// więcej (np. FT wisiałby jako live). Porównanie po posortowaniu = niezależne
+// od kolejności iteracji mapy.
+$live_codes = hajlajty_status_live_codes();
+sort( $live_codes );
+$expected_live = array( '1H', '2H', 'BT', 'ET', 'HT', 'INT', 'LIVE', 'P', 'SUSP' );
+sort( $expected_live );
+check( 'live codes = dokładnie grupa „In Play"', $expected_live, $live_codes );
+
+// Spójność derywacji z mapą: każdy zwrócony kod faktycznie ma stan LIVE w
+// hajlajty_lookup_status (gdyby derywacja rozjechała się z mapą — FAIL).
+$all_live = true;
+foreach ( hajlajty_status_live_codes() as $code ) {
+	if ( 'LIVE' !== hajlajty_lookup_status( $code )['state'] ) {
+		$all_live = false;
+	}
+}
+check( 'każdy kod live → stan LIVE w lookup', true, $all_live );
+
 echo "\n=== POZYCJE ===\n";
 check( 'pos G → Br', 'Br', hajlajty_lookup_position( 'G' ) );
 check( 'pos D → O', 'O', hajlajty_lookup_position( 'D' ) );
