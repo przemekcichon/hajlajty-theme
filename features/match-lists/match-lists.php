@@ -51,7 +51,9 @@ add_action( 'init', 'hajlajty_match_lists_rewrite_rules' );
  * Trzy ładne URL-e listy → archiwum CPT „mecz" z wariantem w `hajlajty_lista`.
  * `post_type=mecz` wymusza is_post_type_archive('mecz') (CPT ma has_archive),
  * więc szablon archive-mecz.php obsłuży wszystkie trzy. Domyślne /mecz/ (bez var)
- * potraktujemy w pre_get_posts jako „skroty".
+ * potraktujemy w pre_get_posts jako „skroty". Dla KAŻDEGO slug-a rejestrujemy też
+ * regułę stronicowania (/slug/page/N/ → paged=N), bo bazowa reguła ma kotwicę `$`
+ * i nie złapałaby 2. strony listy.
  */
 function hajlajty_match_lists_rewrite_rules() {
 	$map = array(
@@ -60,6 +62,14 @@ function hajlajty_match_lists_rewrite_rules() {
 		'skroty'     => 'skroty',
 	);
 	foreach ( $map as $slug => $lista ) {
+		// Reguła STRONICOWANIA pierwsza (bardziej szczegółowa): /slug/page/N/ →
+		// paged=N. Bez niej WP nie zna tego URL-a → 404 na 2. stronie listy
+		// (the_posts_pagination buduje linki w formacie .../page/N/).
+		add_rewrite_rule(
+			'^' . $slug . '/page/([0-9]+)/?$',
+			'index.php?post_type=mecz&hajlajty_lista=' . $lista . '&paged=$matches[1]',
+			'top'
+		);
 		add_rewrite_rule(
 			'^' . $slug . '/?$',
 			'index.php?post_type=mecz&hajlajty_lista=' . $lista,
