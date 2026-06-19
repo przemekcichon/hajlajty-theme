@@ -9,8 +9,8 @@
  * archiwum świadomie (VSA); warstwa danych (resolver + lookups) reużywana.
  *
  * Stany zapytań spójne ze slice match-lists (pre_get_posts): te same meta_query/
- * orderby, tylko z limitem i no_found_rows dla podglądu na home. Okno LIVE to
- * placeholder 3e (przybliżenie po kickoff).
+ * orderby, tylko z limitem i no_found_rows dla podglądu na home. Sekcja LIVE
+ * filtruje po REALNYM statusie (`status IN (kody live)`, 3e-i), jak archiwum.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -19,8 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 get_template_part( 'features/layout/partials/header' );
 
-$now        = gmdate( 'Y-m-d H:i:s' );
-$live_start = gmdate( 'Y-m-d H:i:s', time() - HAJLAJTY_LISTS_LIVE_WINDOW_MIN * 60 );
+$now = gmdate( 'Y-m-d H:i:s' );
 
 /**
  * Renderuje jedną sekcję strony głównej: nagłówek + lista kart. Resolwuje drużyny
@@ -73,7 +72,7 @@ $render_section = static function ( $head, $query, $partial, $container ) {
 <main class="container">
 
 	<?php
-	// ===== SEKCJA 1: LIVE (okno czasowe — placeholder 3e) =====
+	// ===== SEKCJA 1: LIVE (realny status — status IN kody live, 3e-i) =====
 	$render_section(
 		array(
 			'id'          => 'live',
@@ -88,11 +87,15 @@ $render_section = static function ( $head, $query, $partial, $container ) {
 				'posts_per_page' => 4,
 				'no_found_rows'  => true,
 				'meta_query'     => array(
-					'kick' => array(
+					'relation' => 'AND',
+					'stat'     => array(
+						'key'     => 'status',
+						'value'   => hajlajty_status_live_codes(),
+						'compare' => 'IN',
+					),
+					'kick'     => array(
 						'key'     => 'kickoff',
-						'value'   => array( $live_start, $now ),
-						'compare' => 'BETWEEN',
-						'type'    => 'CHAR',
+						'compare' => 'EXISTS',
 					),
 				),
 				'orderby'        => array( 'kick' => 'ASC' ),

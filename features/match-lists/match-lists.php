@@ -11,8 +11,9 @@
  * renderuje LISTY (karty). Warstwa danych (helpers/lookups/derive z match-display)
  * jest REUŻYWANA bez modyfikacji — markup kart jest tu zduplikowany świadomie (VSA).
  *
- * Stan listy LIVE to PLACEHOLDER 3e: brak płaskiego pola statusu, więc okno czasowe
- * po `kickoff` to przybliżenie — do zastąpienia realnym statusem w 3e.
+ * Stan listy LIVE (3e-i): filtr po REALNYM statusie meczu (płaska meta `status`
+ * z importu) — `status IN (kody live)`. Zastąpił dawne okno czasowe wokół
+ * `kickoff` (placeholder 3d). Świeżość statusu zależy od importu; pętla live to 3e-ii.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -20,13 +21,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 require_once __DIR__ . '/terms.php';
-
-/**
- * Okno LIVE (minuty wstecz od kickoffu): mecz traktujemy jako „trwający", gdy
- * kickoff mieści się między (teraz − OKNO) a teraz. ~2,5h pokrywa grę + przerwę
- * + doliczony + zapas. Świadome przybliżenie do czasu 3e (realny status).
- */
-const HAJLAJTY_LISTS_LIVE_WINDOW_MIN = 150;
 
 /* ============================================================
    1a. ROUTING — ładne URL-e → archiwum CPT „mecz" + query var.
@@ -123,16 +117,21 @@ function hajlajty_match_lists_pre_get_posts( $q ) {
 			break;
 
 		case 'live':
-			// PLACEHOLDER 3e: brak płaskiego statusu → okno czasowe wokół kickoffu.
-			$start = gmdate( 'Y-m-d H:i:s', time() - HAJLAJTY_LISTS_LIVE_WINDOW_MIN * 60 );
+			// REALNY status (3e-i): mecz „na żywo" = status IN (kody live). Kody
+			// wywiedzione z jedynej mapy statusu (lookups.php). Wymagamy też kickoffa
+			// — sortujemy po nim (najwcześniej rozpoczęte u góry).
 			$q->set(
 				'meta_query',
 				array(
-					'kick' => array(
+					'relation' => 'AND',
+					'stat'     => array(
+						'key'     => 'status',
+						'value'   => hajlajty_status_live_codes(),
+						'compare' => 'IN',
+					),
+					'kick'     => array(
 						'key'     => 'kickoff',
-						'value'   => array( $start, $now ),
-						'compare' => 'BETWEEN',
-						'type'    => 'CHAR',
+						'compare' => 'EXISTS',
 					),
 				)
 			);
