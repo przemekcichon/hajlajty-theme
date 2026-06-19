@@ -184,11 +184,22 @@
    zmian. Mobile (<1100px) bez zmian — wszędzie ten sam drawer pod hamburgerem.
 ============================================================ */
 @media (min-width: 1100px) {
+  /* Dwie kolumny FLUID — sidebar przy lewej krawędzi, treść wypełnia RESZTĘ
+     szerokości ekranu (minmax(0,1fr) pozwala kolumnie się kurczyć i rozlewać
+     siatkę kart na całą dostępną powierzchnię, nie tylko do --container). */
   body.home .shell,
   body.post-type-archive .shell {
     display: grid;
-    grid-template-columns: var(--sidebar-w) 1fr;
+    grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
+    transition: grid-template-columns var(--t-med);
   }
+
+  /* Hamburger zwija kolumnę sidebara do 0 (klasę body.nav-collapsed nadaje
+     layout.js). Treść przejmuje całą szerokość. */
+  body.home.nav-collapsed .shell,
+  body.post-type-archive.nav-collapsed .shell { grid-template-columns: 0 minmax(0, 1fr); }
+  body.home.nav-collapsed .sidebar,
+  body.post-type-archive.nav-collapsed .sidebar { opacity: 0; pointer-events: none; }
 
   /* Topbar pełnej szerokości — logo licuje z lewą krawędzią, nad sidebarem
      (na single topbar pozostaje zawężony do pasma widoku). */
@@ -199,23 +210,39 @@
     padding-inline: var(--space-sm);
   }
 
-  /* Sidebar STAŁY: nie fixed, nie wysuwany, widoczny bez .is-open. */
+  /* Sidebar STAŁY: statyczna kolumna z własnym scrollem (nie drawer). */
   body.home .sidebar,
   body.post-type-archive .sidebar {
-    position: relative;
-    height: 100%;
-    max-width: none;
+    position: static;
     transform: none;
+    width: auto;
+    max-width: none;
+    height: 100%;
     box-shadow: none;
-    z-index: 1;
+    overflow-y: auto;
     border-right: 1px solid var(--border);
+    transition: opacity var(--t-med);
   }
 
-  /* Logo żyje w topbarze; nagłówek sidebara (z „zamknij") i hamburger zbędne. */
+  /* Logo żyje w topbarze; nagłówek sidebara (z „zamknij") zbędny. Hamburger
+     ZOSTAJE widoczny — służy do zwijania/rozwijania stałego menu. */
   body.home .sidebar__head,
-  body.post-type-archive .sidebar__head,
-  body.home #menuBtn,
-  body.post-type-archive #menuBtn { display: none; }
+  body.post-type-archive .sidebar__head { display: none; }
+
+  /* Treść WYPEŁNIA kolumnę: zdejmujemy max-width/centrowanie .container w .content
+     (inaczej lista zostaje w pasie --container = ~3 karty mimo szerokiego ekranu). */
+  body.home .content main.container,
+  body.post-type-archive .content main.container,
+  body.home .content .footer > .container,
+  body.post-type-archive .content .footer > .container {
+    max-width: none;
+    margin-inline: 0;
+    padding-inline: var(--gutter);
+  }
+
+  /* Scrim niepotrzebny przy stałym menu (zwijanie idzie przez grid, nie drawer). */
+  body.home .scrim,
+  body.post-type-archive .scrim { display: none !important; }
 }
 
 /* ============================================================
