@@ -98,8 +98,16 @@
 
 .sidebar__head {
   display: flex; align-items: center; gap: var(--space-sm);
-  height: calc(var(--topbar-h) - 16px);
-  padding-inline: var(--space-2xs);
+  /* Logo w drawerze (single/mobile) ma siedzieć DOKŁADNIE tam, gdzie logo
+     topbara na stronie głównej/archiwum. Stąd: ta sama wysokość co topbar
+     (pionowe centrowanie logo na tej samej osi), start od górnej krawędzi
+     (kasujemy górny padding sidebara ujemnym marginesem) i brak dodatkowego
+     wcięcia bocznego (logo flush do lewej grupy, jak hamburger+logo w topbarze).
+     Na stronie głównej/archiwum ten head i tak jest display:none — zmiana
+     dotyczy wyłącznie drawera. */
+  height: var(--topbar-h);
+  margin-top: calc(-1 * var(--space-sm));
+  padding-inline: 0;
   margin-bottom: var(--space-sm);
 }
 .sidebar__group { padding: var(--space-sm) 0; border-top: 1px solid var(--border); }
