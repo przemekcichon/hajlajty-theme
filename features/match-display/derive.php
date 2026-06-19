@@ -141,6 +141,42 @@ function hajlajty_build_timeline( $events ): array {
 }
 
 /**
+ * Wiersze statystyk do renderu: wybiera USTALONY podzbiór `statistics` (ten sam
+ * zestaw kluczy i kolejność co render single-ft/live), tłumaczy etykietę przez
+ * `hajlajty_lookup_stat_label` i zachowuje SUROWE wartości stron. Pomija klucz,
+ * którego nie ma po ŻADNEJ stronie. Jedno źródło LISTY kluczy statystyk —
+ * używane i przez render (partial), i przez warunek widoczności aside w
+ * single-live (czy w ogóle są statystyki). Format wartości / słupki = render.
+ *
+ * @param array $data Zdekodowane match_data.
+ * @return array<int,array{label:string,vh:mixed,va:mixed}> Pusta tablica, gdy
+ *   żadnego z wybranych kluczy nie ma w danych (zapowiedź / brak statystyk).
+ */
+function hajlajty_build_stat_rows( array $data ): array {
+	$stats_home = ( isset( $data['statistics']['home'] ) && is_array( $data['statistics']['home'] ) ) ? $data['statistics']['home'] : array();
+	$stats_away = ( isset( $data['statistics']['away'] ) && is_array( $data['statistics']['away'] ) ) ? $data['statistics']['away'] : array();
+
+	// TEN SAM podzbiór i kolejność co render (single-ft/live).
+	$stat_keys = array( 'Ball Possession', 'Total Shots', 'Shots on Goal', 'Fouls', 'Corner Kicks', 'Offsides', 'Total passes' );
+
+	$rows = array();
+	foreach ( $stat_keys as $key ) {
+		$sh = array_key_exists( $key, $stats_home );
+		$sa = array_key_exists( $key, $stats_away );
+		if ( ! $sh && ! $sa ) {
+			continue;
+		}
+		$rows[] = array(
+			'label' => hajlajty_lookup_stat_label( $key ),
+			'vh'    => $sh ? $stats_home[ $key ] : null,
+			'va'    => $sa ? $stats_away[ $key ] : null,
+		);
+	}
+
+	return $rows;
+}
+
+/**
  * Indeks zdarzeń zawodnika: `events[]` → mapa `player_id` → agregat zdarzeń.
  * Łącznik events↔lineups po `player_id` (i `assist_id` dla schodzących w subst).
  * Zasila wskaźniki przy koszulce (boisko) i „↑ minuta" na ławce (wchodzący).

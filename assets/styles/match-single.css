@@ -362,6 +362,13 @@
    bump wyniku (scoreBump) — to teatr LIVE, nieużywany w 3c.
 ============================================================ */
 
+/* ---- KOTWICE AUTO-REFRESHU LIVE (3e-iii) ----
+   Wrappery podmieniane przez poller (telebim/oś/statystyki). `display: contents`
+   znika z layoutu — dziecko (.board/.panel/.aside-sec) uczestniczy w siatce
+   `.panels`/kolumnach jak przed owinięciem, a PUSTY wrapper nie zostawia pudełka
+   ani marginesu. Dzięki temu owinięcie nie zmienia układu single. */
+.hajlajty-live { display: contents; }
+
 /* ---- WSPÓLNE METADANE MECZU (pod playerem/telebimem) ---- */
 .match-head { margin-top: var(--space-md); }
 .match-phase {
