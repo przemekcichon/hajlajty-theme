@@ -85,4 +85,11 @@
   }
 
   timer = setInterval(tick, INTERVAL_MS);
+
+  // Po powrocie do karty odśwież OD RAZU (nie czekaj do końca interwału). W tle
+  // tick() i tak pomija żądanie, a przeglądarka dławi interwał — bez tego wejście
+  // na kartę pokazywałoby stan sprzed nawet ~30 s.
+  document.addEventListener("visibilitychange", function () {
+    if (!document.hidden && timer) tick();
+  });
 })();
