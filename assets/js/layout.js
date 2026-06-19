@@ -40,7 +40,22 @@
       menuBtn.setAttribute("aria-expanded", "false"); document.body.style.overflow = "";
       setTimeout(function () { if (!scrim.classList.contains("is-open")) scrim.hidden = true; }, 260);
     };
-    menuBtn.addEventListener("click", openSidebar);
+    // Hamburger ma dwa tryby zależne od widoku:
+    //  - strona główna / archiwum przy ≥1100px → menu jest STAŁE: hamburger
+    //    zwija/rozwija kolumnę sidebara (body.nav-collapsed; layout w CSS),
+    //  - single i mobile → klasyczny drawer off-canvas (open/close ze scrimem).
+    var isPersistentNav = function () {
+      return window.matchMedia("(min-width: 1100px)").matches &&
+        ( document.body.classList.contains("home") || document.body.classList.contains("post-type-archive") );
+    };
+    menuBtn.addEventListener("click", function () {
+      if (isPersistentNav()) {
+        var collapsed = document.body.classList.toggle("nav-collapsed");
+        menuBtn.setAttribute("aria-expanded", collapsed ? "false" : "true");
+        return;
+      }
+      if (sidebar.classList.contains("is-open")) closeSidebar(); else openSidebar();
+    });
     var closeBtn = $("#sidebarClose");
     if (closeBtn) closeBtn.addEventListener("click", closeSidebar);
     scrim.addEventListener("click", closeSidebar);

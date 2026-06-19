@@ -1,0 +1,67 @@
+/* ============================================================
+   HAJLAJTY — assets/styles/pagination.css
+   ------------------------------------------------------------
+   Paginacja archiwum list. Wygląd sportowany z design/components/pagination.css,
+   ale SELEKTORY dopasowane do realnego markupu the_posts_pagination() WP:
+     <nav class="navigation pagination"><div class="nav-links">
+        <a class="prev page-numbers">…</a>
+        <a class="page-numbers">2</a>
+        <span aria-current="page" class="page-numbers current">1</span>
+        <span class="page-numbers dots">…</span>
+        <a class="next page-numbers">…</a>
+     </div></nav>
+   Aktywna strona = akcent (.current). Strzałki prev/next = pigułki.
+============================================================ */
+
+.pagination { --pg-item-h: 40px; --pg-radius: var(--r-pill); }
+
+.pagination .nav-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: var(--space-md);
+}
+
+/* Numery i strzałki dzielą bazowy wygląd pigułki. */
+.pagination .page-numbers {
+  min-width: var(--pg-item-h);
+  height: var(--pg-item-h);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  border-radius: var(--pg-radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 13.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+}
+a.page-numbers:hover { background: var(--surface-hover); color: var(--text); border-color: var(--border-strong); }
+
+/* Aktywna strona. */
+.pagination .page-numbers.current {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 800;
+}
+
+/* Wielokropek — bez tła/ramki, sam znak. */
+.pagination .page-numbers.dots {
+  background: none;
+  border: none;
+  color: var(--text-faint);
+  min-width: 28px;
+  padding: 0;
+}
+
+/* Strzałki Poprzednia / Następna. */
+.pagination .page-numbers.prev,
+.pagination .page-numbers.next { gap: 7px; padding: 0 16px; }

@@ -98,8 +98,16 @@
 
 .sidebar__head {
   display: flex; align-items: center; gap: var(--space-sm);
-  height: calc(var(--topbar-h) - 16px);
-  padding-inline: var(--space-2xs);
+  /* Logo w drawerze (single/mobile) ma siedzieć DOKŁADNIE tam, gdzie logo
+     topbara na stronie głównej/archiwum. Stąd: ta sama wysokość co topbar
+     (pionowe centrowanie logo na tej samej osi), start od górnej krawędzi
+     (kasujemy górny padding sidebara ujemnym marginesem) i brak dodatkowego
+     wcięcia bocznego (logo flush do lewej grupy, jak hamburger+logo w topbarze).
+     Na stronie głównej/archiwum ten head i tak jest display:none — zmiana
+     dotyczy wyłącznie drawera. */
+  height: var(--topbar-h);
+  margin-top: calc(-1 * var(--space-sm));
+  padding-inline: 0;
   margin-bottom: var(--space-sm);
 }
 .sidebar__group { padding: var(--space-sm) 0; border-top: 1px solid var(--border); }
@@ -171,6 +179,78 @@
     margin-inline: auto;
     padding-inline: var(--page-horizontal-margin, var(--gutter));
   }
+}
+
+/* ============================================================
+   WIDOKI Z TRWAŁYM MENU (strona główna + archiwa list)
+   ------------------------------------------------------------
+   Sidebar off-canvas (drawer, sekcja wyżej) jest domyślny dla single „mecz"
+   (skupiony widok watch — menu chowane). Na STRONIE GŁÓWNEJ i ARCHIWACH LIST
+   menu ma być STAŁE (jak w projekcie). Przy ≥1100px shell staje się dwukolumnowy
+   (sidebar | treść), a sidebar przestaje być wysuwany. Bramkowane klasami body
+   (.home / .post-type-archive z body_class()), więc single (.single-mecz) bez
+   zmian. Mobile (<1100px) bez zmian — wszędzie ten sam drawer pod hamburgerem.
+============================================================ */
+@media (min-width: 1100px) {
+  /* Dwie kolumny FLUID — sidebar przy lewej krawędzi, treść wypełnia RESZTĘ
+     szerokości ekranu (minmax(0,1fr) pozwala kolumnie się kurczyć i rozlewać
+     siatkę kart na całą dostępną powierzchnię, nie tylko do --container). */
+  body.home .shell,
+  body.post-type-archive .shell {
+    display: grid;
+    grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
+    transition: grid-template-columns var(--t-med);
+  }
+
+  /* Hamburger zwija kolumnę sidebara do 0 (klasę body.nav-collapsed nadaje
+     layout.js). Treść przejmuje całą szerokość. */
+  body.home.nav-collapsed .shell,
+  body.post-type-archive.nav-collapsed .shell { grid-template-columns: 0 minmax(0, 1fr); }
+  body.home.nav-collapsed .sidebar,
+  body.post-type-archive.nav-collapsed .sidebar { opacity: 0; pointer-events: none; }
+
+  /* Topbar pełnej szerokości — logo licuje z lewą krawędzią, nad sidebarem
+     (na single topbar pozostaje zawężony do pasma widoku). */
+  body.home .topbar__inner,
+  body.post-type-archive .topbar__inner {
+    max-width: none;
+    margin-inline: 0;
+    padding-inline: var(--space-sm);
+  }
+
+  /* Sidebar STAŁY: statyczna kolumna z własnym scrollem (nie drawer). */
+  body.home .sidebar,
+  body.post-type-archive .sidebar {
+    position: static;
+    transform: none;
+    width: auto;
+    max-width: none;
+    height: 100%;
+    box-shadow: none;
+    overflow-y: auto;
+    border-right: 1px solid var(--border);
+    transition: opacity var(--t-med);
+  }
+
+  /* Logo żyje w topbarze; nagłówek sidebara (z „zamknij") zbędny. Hamburger
+     ZOSTAJE widoczny — służy do zwijania/rozwijania stałego menu. */
+  body.home .sidebar__head,
+  body.post-type-archive .sidebar__head { display: none; }
+
+  /* Treść WYPEŁNIA kolumnę: zdejmujemy max-width/centrowanie .container w .content
+     (inaczej lista zostaje w pasie --container = ~3 karty mimo szerokiego ekranu). */
+  body.home .content main.container,
+  body.post-type-archive .content main.container,
+  body.home .content .footer > .container,
+  body.post-type-archive .content .footer > .container {
+    max-width: none;
+    margin-inline: 0;
+    padding-inline: var(--gutter);
+  }
+
+  /* Scrim niepotrzebny przy stałym menu (zwijanie idzie przez grid, nie drawer). */
+  body.home .scrim,
+  body.post-type-archive .scrim { display: none !important; }
 }
 
 /* ============================================================

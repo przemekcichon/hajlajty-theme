@@ -1,0 +1,241 @@
+/* ============================================================
+   HAJLAJTY — assets/styles/match-lists.css
+   ------------------------------------------------------------
+   WIDOK LIST meczów: sekcje strony głównej + archiwum kategorii. Sportowany z
+   inline CSS designu (Strona Główna / kategorie) do motywu. Obejmuje: rytm
+   sekcji (.section / .section__head / .section__more), siatki (.row-scroll /
+   .grid-videos), wspólne miniatury (.thumb*), KARTĘ LIVE (.live-card) i KARTĘ
+   SKRÓTU (.vcard). Karta ZAPOWIEDZI ma własny moduł (card-preview.css).
+
+   Karty list to ANCHORY (cała karta linkuje do meczu) — reset dekoracji linku.
+   data-filterable / chipsbar NIE są tu (Faza 4A).
+============================================================ */
+
+/* ============================================================
+   1. SEKCJE
+============================================================ */
+main { padding-block: var(--space-xl) var(--space-2xl); }
+
+.section { margin-bottom: var(--space-2xl); }
+.section:last-child { margin-bottom: 0; }
+
+.section__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0;
+  margin-bottom: var(--space-sm);
+}
+@media (max-width: 768px) {
+  .section__head {
+    flex-direction: column;
+    justify-content: space-evenly;
+    margin-bottom: var(--space-xs);
+  }
+}
+.section__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: clamp(20px, 3vw, 26px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+.section__title .kicker-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--accent);
+  flex: 0 0 auto;
+}
+.section__title.live .kicker-dot { background: var(--live); animation: pulse 1.6s var(--ease) infinite; }
+.section__more {
+  flex: 0 0 auto;
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 14px; font-weight: 700;
+  color: var(--text-muted);
+  padding: 8px 22px;
+  border-radius: var(--r-sm);
+  text-decoration: none;
+  transition: color var(--t-fast);
+}
+.section__more:hover { color: var(--accent); }
+.section__more svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+@media (max-width: 768px) { .section__more { font-size: 13px; } }
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 var(--live-soft); }
+  50%      { box-shadow: 0 0 0 7px transparent; }
+}
+
+/* ============================================================
+   2. SIATKI
+============================================================ */
+.row-scroll,
+.grid-videos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-lg) var(--space-md);
+}
+
+/* ============================================================
+   3. KARTY — wspólne miniatury
+============================================================ */
+.thumb {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  background:
+    repeating-linear-gradient(135deg, var(--thumb-a) 0 14px, var(--thumb-b) 14px 28px);
+}
+/* Poster YouTube wypełnia miniaturę (brak postera → tło-placeholder powyżej). */
+.thumb__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.thumb__dur {
+  position: absolute;
+  right: 10px; bottom: 10px;
+  z-index: 2;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: oklch(0 0 0 / 0.72);
+  color: #fff;
+  font-size: 12px; font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.thumb__play {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  z-index: 2;
+  width: 60px; height: 60px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: oklch(0 0 0 / 0.45);
+  backdrop-filter: blur(2px);
+  border: 1.5px solid oklch(1 0 0 / 0.5);
+  transition: transform var(--t-med), background var(--t-med);
+}
+.thumb__play svg { width: 24px; height: 24px; fill: #fff; transform: translateX(1px); }
+
+/* Badge kanału wydawniczego (lewy dolny róg miniatury). */
+.card__channel {
+  position: absolute;
+  left: 10px; bottom: 10px;
+  z-index: 2;
+  max-width: 55%;
+  padding: 3px 9px;
+  border-radius: var(--r-pill);
+  background: oklch(0 0 0 / 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: 1px solid oklch(1 0 0 / 0.12);
+  color: oklch(0.86 0.003 250);
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.card-video { display: block; }
+.card-video:hover .thumb__play { transform: scale(1.08); background: var(--accent); }
+.card-video:hover .thumb__play svg { fill: var(--accent-ink); }
+
+/* ============================================================
+   4. KARTA LIVE (.live-card) — anchor, bez .live-events
+============================================================ */
+.live-card {
+  display: block;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--space-sm);
+  color: inherit;
+  text-decoration: none;
+  transition: transform var(--t-med), border-color var(--t-med), box-shadow var(--t-med);
+}
+.live-card:hover { transform: translateY(-4px); border-color: var(--border-strong); box-shadow: var(--shadow); }
+
+.live-card .thumb {
+  background:
+    radial-gradient(120% 120% at 50% -10%, var(--accent-soft), transparent 55%),
+    repeating-linear-gradient(135deg, var(--thumb-a) 0 14px, var(--thumb-b) 14px 28px);
+}
+.live-badge {
+  position: absolute;
+  left: 12px; top: 12px;
+  z-index: 2;
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 5px 11px 5px 9px;
+  border-radius: var(--r-pill);
+  background: var(--live);
+  color: #fff;
+  font-size: 12px; font-weight: 800; letter-spacing: 0.08em;
+}
+.live-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #fff; animation: pulse-live 1.4s ease-in-out infinite; }
+@keyframes pulse-live { 0%,100%{opacity:1;} 50%{opacity:0.35;} }
+
+.live-minute {
+  position: absolute;
+  right: 12px; top: 12px;
+  z-index: 2;
+  padding: 5px 10px;
+  border-radius: var(--r-pill);
+  background: oklch(0 0 0 / 0.62);
+  color: #fff;
+  font-size: 12px; font-weight: 800;
+}
+.live-score {
+  position: absolute;
+  inset: auto 0 0 0;
+  z-index: 2;
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  padding: 16px;
+  background: linear-gradient(0deg, oklch(0 0 0 / 0.78), transparent);
+  color: #fff;
+}
+.live-score .team { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; }
+.live-score .team.away { flex-direction: row-reverse; }
+.live-score .country-flag { height: 18px; vertical-align: -0.18em; }
+.live-score .num {
+  font-size: 26px; font-weight: 800; letter-spacing: 0.02em;
+  min-width: 26px; text-align: center;
+}
+.live-score .sep { opacity: 0.6; font-weight: 700; }
+
+/* ============================================================
+   5. KARTA SKRÓTU (.vcard) — anchor (cała linkuje do meczu)
+============================================================ */
+.vcard { display: flex; flex-direction: column; gap: var(--space-sm); color: inherit; text-decoration: none; }
+.vcard .thumb { transition: transform var(--t-med); }
+.vcard:hover .thumb { transform: translateY(-3px); }
+.vcard__body { display: flex; flex-direction: column; gap: 8px; }
+.vcard__title {
+  font-size: 16px; font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+  text-wrap: pretty;
+}
+.vcard__meta {
+  display: flex; align-items: center; gap: 8px;
+  flex-wrap: wrap;
+  font-size: 13px; color: var(--text-muted); font-weight: 600;
+}
+.vcard__comp {
+  display: inline-flex; align-items: center;
+  padding: 3px 10px;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-size: 12px; font-weight: 700;
+}
+.vcard__meta .dot-sep { width: 3px; height: 3px; border-radius: 50%; background: var(--text-faint); }
+
+/* ============================================================
+   6. PUSTY STAN (archiwum bez wyników)
+============================================================ */
+.empty-state {
+  display: none;
+  text-align: center;
+  padding: var(--space-xl) var(--space-md);
+  color: var(--text-muted);
+}
+.empty-state.is-visible { display: block; }
+.empty-state h3 { font-size: 18px; font-weight: 800; color: var(--text); margin-bottom: 8px; }

@@ -37,12 +37,10 @@ $time_label  = $kickoff_ts ? wp_date( 'H:i', $kickoff_ts ) : '';
 $mini_label  = $kickoff_ts ? wp_date( 'j M · H:i', $kickoff_ts ) : '';
 
 // --- Lokalne helpery renderu (closures, jak w single-ft.php) ---
+// Flaga przez współdzielony helper (flags.php): mapuje fifa_code (3-lit. FIFA)
+// na slug flagcdn (ISO alpha-2). Wcześniej strtolower(fifa_code) dawał 404.
 $flag_url = static function ( $term ) {
-	if ( ! ( $term instanceof WP_Term ) ) {
-		return '';
-	}
-	$code = strtolower( (string) get_term_meta( $term->term_id, 'fifa_code', true ) );
-	return '' !== $code ? 'https://flagcdn.com/' . $code . '.svg' : '';
+	return hajlajty_flag_url( $term );
 };
 $team_name = static function ( $term ) {
 	return ( $term instanceof WP_Term ) ? $term->name : '—'; // degraduj: drużyna niewysiana.
