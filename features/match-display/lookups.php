@@ -25,9 +25,16 @@ if ( ! defined( 'ABSPATH' ) ) {
  *   - live_label = etykieta pauzy/trybu LIVE (Przerwa/Karne/...) albo null.
  * Fallback (kod nieznany / null): ZAPOWIEDZ, show_minute=false, live_label=null.
  */
-function hajlajty_lookup_status( ?string $short ): array {
-	// Mapa 1:1 z api-mapping.md „Mapowanie statusu".
-	$map = array(
+/**
+ * Mapa statusu meczu: kod `fixture.status.short` → [state, show_minute, live_label].
+ * JEDYNE źródło tej mapy w projekcie (1:1 z api-mapping.md „Mapowanie statusu").
+ * Wszystko, co potrzebuje wiedzy „co znaczy ten kod" (render single, etykiety,
+ * zbiór kodów LIVE dla filtra list 3e-i), wywodzi się STĄD — bez drugiej kopii.
+ *
+ * @return array<string,array{0:string,1:bool,2:?string}>
+ */
+function hajlajty_status_map(): array {
+	return array(
 		'TBD'  => array( 'ZAPOWIEDZ', false, null ),
 		'NS'   => array( 'ZAPOWIEDZ', false, null ),
 		'1H'   => array( 'LIVE', true, null ),
@@ -48,6 +55,10 @@ function hajlajty_lookup_status( ?string $short ): array {
 		'AWD'  => array( 'ODWOLANY', false, null ),
 		'WO'   => array( 'ODWOLANY', false, null ),
 	);
+}
+
+function hajlajty_lookup_status( ?string $short ): array {
+	$map = hajlajty_status_map();
 
 	$row = ( null !== $short && isset( $map[ $short ] ) )
 		? $map[ $short ]
@@ -58,6 +69,23 @@ function hajlajty_lookup_status( ?string $short ): array {
 		'show_minute' => $row[1],
 		'live_label'  => $row[2],
 	);
+}
+
+/**
+ * Surowe kody `status.short` o stanie LIVE — zbiór do filtra list „Na żywo"
+ * (`meta_query status IN …`, 3e-i). Wywiedziony z `hajlajty_status_map()`, więc
+ * nowy kod LIVE w mapie automatycznie wpada do filtra (jedno źródło prawdy).
+ *
+ * @return string[] Kody (np. 1H, HT, 2H, ET, BT, P, SUSP, INT, LIVE).
+ */
+function hajlajty_status_live_codes(): array {
+	$codes = array();
+	foreach ( hajlajty_status_map() as $short => $row ) {
+		if ( 'LIVE' === $row[0] ) {
+			$codes[] = $short;
+		}
+	}
+	return $codes;
 }
 
 /**
