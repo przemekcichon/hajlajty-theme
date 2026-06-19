@@ -30,8 +30,8 @@ $terms   = isset( $args['terms'] ) && is_array( $args['terms'] ) ? $args['terms'
 $data = isset( $args['data'] ) && is_array( $args['data'] ) ? $args['data'] : hajlajty_get_match_data( $post_id );
 
 $round_pl  = hajlajty_lookup_round( $data['round'] ?? null );
-$home_flag = hajlajty_match_lists_flag_url( $terms['home'] );
-$away_flag = hajlajty_match_lists_flag_url( $terms['away'] );
+$home_flag = hajlajty_flag_url( $terms['home'] );
+$away_flag = hajlajty_flag_url( $terms['away'] );
 $home_name = hajlajty_match_lists_team_name( $terms['home'] );
 $away_name = hajlajty_match_lists_team_name( $terms['away'] );
 

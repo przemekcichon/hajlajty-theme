@@ -29,8 +29,8 @@ $terms   = isset( $args['terms'] ) && is_array( $args['terms'] ) ? $args['terms'
 );
 $data = isset( $args['data'] ) && is_array( $args['data'] ) ? $args['data'] : hajlajty_get_match_data( $post_id );
 
-$home_flag = hajlajty_match_lists_flag_url( $terms['home'] );
-$away_flag = hajlajty_match_lists_flag_url( $terms['away'] );
+$home_flag = hajlajty_flag_url( $terms['home'] );
+$away_flag = hajlajty_flag_url( $terms['away'] );
 $home_code = hajlajty_match_lists_team_code( $terms['home'] );
 $away_code = hajlajty_match_lists_team_code( $terms['away'] );
 

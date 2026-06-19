@@ -94,20 +94,6 @@ function hajlajty_match_lists_resolve_terms( array $post_ids ): array {
 }
 
 /**
- * URL flagi drużyny z kodu FIFA (term meta `fifa_code`) → flagcdn.
- *
- * @param ?WP_Term $term Term drużyny albo null.
- * @return string URL svg flagi albo "" (brak termu / pusty kod → render pomija img).
- */
-function hajlajty_match_lists_flag_url( $term ): string {
-	if ( ! ( $term instanceof WP_Term ) ) {
-		return '';
-	}
-	$code = strtolower( (string) get_term_meta( $term->term_id, 'fifa_code', true ) );
-	return '' !== $code ? 'https://flagcdn.com/' . $code . '.svg' : '';
-}
-
-/**
  * Krótki kod drużyny na kartę (POL/BRA…) z term meta `fifa_code`; fallback nazwa.
  *
  * @param ?WP_Term $term Term drużyny albo null.

@@ -17,6 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 require_once __DIR__ . '/helpers.php';
 require_once __DIR__ . '/lookups.php';
 require_once __DIR__ . '/derive.php';
+require_once __DIR__ . '/flags.php';
 
 add_action( 'wp_enqueue_scripts', 'hajlajty_match_display_enqueue' );
 
