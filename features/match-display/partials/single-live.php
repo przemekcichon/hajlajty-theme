@@ -3,12 +3,13 @@
  * Wariant LIVE (1H/HT/2H/ET/BT/P/SUSP/INT/LIVE) — render single CPT „mecz".
  * Wywoływany przez single-mecz.php (get_template_part z $args: post_id, data).
  *
- * Render READ-ONLY z match_data. Telebim z wynikiem (goals) + linia statusu
- * liczona z hajlajty_lookup_status; składy/oś/statystyki zwykle obecne (każdy
- * blok renderowany TYLKO gdy klucz istnieje). BEZ teatru: bez overlayów zdarzeń,
- * bez przycisków demo, bez podbijania minuty — minuta jest STATYCZNA z elapsed
- * (odświeży się przy F5; auto-refresh = przyszły slice 3e). Warstwa DANYCH
- * reużywana z 3a/3b; markup zduplikowany z designu „na żywo" i single-ft.php.
+ * Render READ-ONLY z match_data. Sekcje ŻYWE (telebim, oś czasu, statystyki)
+ * renderuje WSPÓLNY partial `live-fragment.php` — to samo źródło znacznika, którym
+ * karmi się REST endpoint odświeżania (3e-iii). Tu wołamy go po jednej sekcji
+ * (`part`), żeby każda trafiła do swojej kolumny BEZ zmiany układu (kotwica
+ * `display: contents`). Sekcje STATYCZNE (nagłówek, składy, aside „Inne mecze")
+ * zostają inline tutaj — poller ich nie dotyka (zmiany zawodników i tak widać w
+ * osi; D-A/D-D). Minuta w faktach nagłówka jest statyczna (odświeża telebim).
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -29,9 +30,7 @@ $kickoff_dt  = ( is_string( $kickoff_raw ) && '' !== $kickoff_raw )
 	: false;
 $date_label  = $kickoff_dt ? wp_date( 'l, j F Y', $kickoff_dt->getTimestamp() ) : '';
 
-// --- Linia statusu LIVE (WSPÓLNA dla telebimu i faktów). ---
-// Mapa połów LOKALNA w tym partialu (lookups.php nietknięte). Minuta = elapsed
-// (+„+extra" gdy extra!=null), pokazywana tylko gdy show_minute (1H/2H/ET).
+// --- Linia statusu LIVE dla FAKTÓW nagłówka (statyczna — telebim ją odświeża). ---
 $short       = $data['status']['short'] ?? null;
 $elapsed     = $data['status']['elapsed'] ?? null;
 $extra       = $data['status']['extra'] ?? null;
@@ -44,24 +43,15 @@ $minute_txt = '';
 if ( $status['show_minute'] && null !== $elapsed ) {
 	$minute_txt = $elapsed . ( ( null !== $extra && '' !== $extra ) ? '+' . $extra : '' ) . "'";
 }
-$half_label  = ( $status['show_minute'] && isset( $half_labels[ $short ] ) ) ? $half_labels[ $short ] : '';
-$live_label  = $status['live_label']; // Przerwa/Karne/... albo null (gdy show_minute).
+$half_label = ( $status['show_minute'] && isset( $half_labels[ $short ] ) ) ? $half_labels[ $short ] : '';
+$live_label = $status['live_label'];
 
 // --- Lokalne helpery renderu (closures, jak w single-ft.php) ---
-// Flaga przez współdzielony helper (flags.php): mapuje fifa_code (3-lit. FIFA)
-// na slug flagcdn (ISO alpha-2). Wcześniej strtolower(fifa_code) dawał 404.
-$flag_url = static function ( $term ) {
+$flag_url  = static function ( $term ) {
 	return hajlajty_flag_url( $term );
 };
 $team_name = static function ( $term ) {
 	return ( $term instanceof WP_Term ) ? $term->name : '—';
-};
-$team_code = static function ( $term ) {
-	if ( ! ( $term instanceof WP_Term ) ) {
-		return '—';
-	}
-	$code = strtoupper( (string) get_term_meta( $term->term_id, 'fifa_code', true ) );
-	return '' !== $code ? $code : $term->name;
 };
 
 $home_name   = $team_name( $terms['home'] );
@@ -69,9 +59,6 @@ $away_name   = $team_name( $terms['away'] );
 $home_flag   = $flag_url( $terms['home'] );
 $away_flag   = $flag_url( $terms['away'] );
 $match_label = $home_name . ' – ' . $away_name;
-
-$goals_home = $data['goals']['home'] ?? null;
-$goals_away = $data['goals']['away'] ?? null;
 
 $match_slug = get_post_field( 'post_name', $post_id );
 ?>
@@ -89,37 +76,18 @@ $match_slug = get_post_field( 'post_name', $post_id );
 	<div class="watch__grid">
 		<div class="watch__main">
 
-			<!-- ===== TELEBIM / SCOREBOARD (statyczny — minuta z elapsed) ===== -->
-			<section class="board reveal" aria-label="<?php echo esc_attr( 'Tablica wyników na żywo: ' . $match_label ); ?>">
-				<div class="board__top">
-					<span class="board__live"><span class="dot"></span> LIVE</span>
-					<?php if ( $status['show_minute'] && '' !== $minute_txt ) : ?>
-						<span class="board__min"><span class="pip"></span><?php echo esc_html( $minute_txt ); ?></span>
-					<?php elseif ( '' !== (string) $live_label ) : ?>
-						<span class="board__min"><span class="pip"></span><?php echo esc_html( $live_label ); ?></span>
-					<?php endif; ?>
-				</div>
-
-				<div class="board__score">
-					<div class="board__team">
-						<?php if ( '' !== $home_flag ) : ?><img class="country-flag" src="<?php echo esc_url( $home_flag ); ?>" alt="" /><?php endif; ?>
-						<span class="nm"><?php echo esc_html( $home_name ); ?></span>
-					</div>
-					<div class="board__nums">
-						<span class="n"><?php echo esc_html( null === $goals_home ? '–' : $goals_home ); ?></span>
-						<span class="sep">:</span>
-						<span class="n"><?php echo esc_html( null === $goals_away ? '–' : $goals_away ); ?></span>
-					</div>
-					<div class="board__team">
-						<?php if ( '' !== $away_flag ) : ?><img class="country-flag" src="<?php echo esc_url( $away_flag ); ?>" alt="" /><?php endif; ?>
-						<span class="nm"><?php echo esc_html( $away_name ); ?></span>
-					</div>
-				</div>
-
-				<?php if ( '' !== $half_label ) : ?>
-					<span class="board__half"><?php echo esc_html( $half_label ); ?></span>
-				<?php endif; ?>
-			</section>
+			<?php
+			// ===== TELEBIM ===== (żywy — wspólny partial, kotwica #hajlajty-live-board)
+			get_template_part(
+				'features/match-display/partials/live-fragment',
+				null,
+				array(
+					'post_id' => $post_id,
+					'data'    => $data,
+					'part'    => 'board',
+				)
+			);
+			?>
 
 			<!-- ===== AKCJE KIBICA (LIVE: tylko fav; markup data-* dla Fazy 4) ===== -->
 			<div class="hf-actions">
@@ -129,7 +97,7 @@ $match_slug = get_post_field( 'post_name', $post_id );
 				</button>
 			</div>
 
-			<!-- ===== METADANE MECZU (LIVE) ===== -->
+			<!-- ===== METADANE MECZU (LIVE) — statyczne ===== -->
 			<div class="match-head">
 				<?php if ( '' !== $round_pl ) : ?>
 					<span class="match-phase">⚽ <?php echo esc_html( $round_pl ); ?></span>
@@ -148,24 +116,23 @@ $match_slug = get_post_field( 'post_name', $post_id );
 			</div>
 
 			<?php
-			// ===== PANELE: Składy (gdy lineups) + Oś czasu (gdy events). =====
+			// ===== PANELE: Składy (statyczne, gdy lineups) + Oś czasu (żywa). =====
 			$lineups    = isset( $data['lineups'] ) && is_array( $data['lineups'] ) ? $data['lineups'] : array();
 			$has_home   = isset( $lineups['home'] ) && is_array( $lineups['home'] );
 			$has_away   = isset( $lineups['away'] ) && is_array( $lineups['away'] );
 			$has_lineup = $has_home || $has_away;
 
 			$player_idx = hajlajty_player_event_index( $data['events'] ?? array() );
-			$timeline   = hajlajty_build_timeline( $data['events'] ?? array() );
 
-			// Oś czasu: najnowsze u góry, eventy Var pominięte (jak w single-ft.php).
-			$timeline_desc = array_reverse( $timeline );
-			$visible       = array_filter(
-				$timeline_desc,
+			// Czy są widoczne zdarzenia osi (Var pominięte) — decyduje o `.panels`,
+			// żeby panel nie pojawiał się pusty. Sam markup osi renderuje partial.
+			$timeline_visible = array_filter(
+				hajlajty_build_timeline( $data['events'] ?? array() ),
 				static function ( $it ) {
 					return 'var' !== $it['key'];
 				}
 			);
-			$has_timeline = ! empty( $visible );
+			$has_timeline = ! empty( $timeline_visible );
 
 			if ( $has_lineup || $has_timeline ) :
 				?>
@@ -363,87 +330,18 @@ $match_slug = get_post_field( 'post_name', $post_id );
 						</section>
 					<?php endif; ?>
 
-					<?php if ( $has_timeline ) : ?>
-						<section class="panel reveal">
-							<h2 class="panel__title"><span class="kicker-dot"></span> Oś czasu</h2>
-							<?php
-							$event_icon = static function ( $key ) {
-								switch ( $key ) {
-									case 'goal':
-									case 'penalty_goal':
-									case 'own_goal':
-										return '⚽';
-									case 'yellow':
-										return '🟨';
-									case 'red':
-									case 'second_yellow':
-										return '🟥';
-									case 'subst':
-										return '⇄';
-									case 'missed_penalty':
-										return '❌';
-									default:
-										return '•';
-								}
-							};
-							$min_txt = static function ( $item ) {
-								$min = $item['minute'];
-								if ( null === $min ) {
-									return '';
-								}
-								$ex = $item['extra'];
-								return ( null !== $ex && '' !== $ex ) ? ( $min . '+' . $ex . "'" ) : ( $min . "'" );
-							};
-							?>
-							<div class="timeline">
-								<?php
-								foreach ( $visible as $item ) :
-									$side    = $item['side'];
-									$term    = $terms[ $side ];
-									$tflag   = $flag_url( $term );
-									$tname   = $team_name( $term );
-									$is_goal = in_array( $item['key'], array( 'goal', 'penalty_goal', 'own_goal', 'missed_penalty' ), true );
-									$is_sub  = ( 'subst' === $item['key'] );
-
-									if ( $is_sub ) {
-										$title = $item['label'] . ' — ' . $tname;
-									} elseif ( ! empty( $item['player'] ) ) {
-										$title = $item['label'] . ' — ' . $item['player'];
-									} else {
-										$title = $item['label'];
-									}
-									?>
-									<div class="tl-item">
-										<span class="tl-min"><?php echo esc_html( $min_txt( $item ) ); ?></span>
-										<span class="tl-rail"><span class="tl-node<?php echo $item['counts'] ? ' is-goal' : ''; ?>"><?php echo $event_icon( $item['key'] ); // phpcs:ignore — statyczne emoji ?></span></span>
-										<div class="tl-content">
-											<div class="tl-row">
-												<span class="tl-title"><?php echo esc_html( $title ); ?></span>
-												<?php if ( is_array( $item['score'] ) ) : ?>
-													<span class="tl-score"><?php echo esc_html( $item['score']['home'] . ':' . $item['score']['away'] ); ?></span>
-												<?php endif; ?>
-											</div>
-											<span class="tl-sub">
-												<?php if ( '' !== $tflag ) : ?><img class="country-flag" src="<?php echo esc_url( $tflag ); ?>" alt="" /><?php endif; ?>
-												<?php
-												if ( $is_sub ) {
-													// player=schodzący, assist=wchodzący → „{wchodzący} za {schodzący}".
-													$in  = $item['assist'] ? $item['assist'] : '—';
-													$out = $item['player'] ? $item['player'] : '—';
-													echo esc_html( $in . ' za ' . $out );
-												} elseif ( $is_goal && ! empty( $item['assist'] ) ) {
-													echo esc_html( $tname . ' · asysta ' . $item['assist'] );
-												} else {
-													echo esc_html( $tname );
-												}
-												?>
-											</span>
-										</div>
-									</div>
-								<?php endforeach; ?>
-							</div>
-						</section>
-					<?php endif; ?>
+					<?php
+					// ===== OŚ CZASU ===== (żywa — wspólny partial, kotwica #hajlajty-live-timeline)
+					get_template_part(
+						'features/match-display/partials/live-fragment',
+						null,
+						array(
+							'post_id' => $post_id,
+							'data'    => $data,
+							'part'    => 'timeline',
+						)
+					);
+					?>
 
 				</div>
 			<?php endif; ?>
@@ -451,31 +349,9 @@ $match_slug = get_post_field( 'post_name', $post_id );
 		</div><!-- /.watch__main -->
 
 		<?php
-		// ===== PRAWY ASIDE: Statystyki (gdy są) + „Inne mecze". =====
-		$stats_home = ( isset( $data['statistics']['home'] ) && is_array( $data['statistics']['home'] ) ) ? $data['statistics']['home'] : array();
-		$stats_away = ( isset( $data['statistics']['away'] ) && is_array( $data['statistics']['away'] ) ) ? $data['statistics']['away'] : array();
-
-		// TEN SAM podzbiór, kolejność i format wartości co single-ft.php.
-		$stat_keys = array( 'Ball Possession', 'Total Shots', 'Shots on Goal', 'Fouls', 'Corner Kicks', 'Offsides', 'Total passes' );
-		$stat_disp = static function ( $v ) {
-			if ( null === $v ) {
-				return '0';
-			}
-			return is_string( $v ) ? $v : (string) $v;
-		};
-		$stat_rows = array();
-		foreach ( $stat_keys as $key ) {
-			$sh = array_key_exists( $key, $stats_home );
-			$sa = array_key_exists( $key, $stats_away );
-			if ( ! $sh && ! $sa ) {
-				continue;
-			}
-			$stat_rows[] = array(
-				'label' => hajlajty_lookup_stat_label( $key ),
-				'vh'    => $sh ? $stats_home[ $key ] : null,
-				'va'    => $sa ? $stats_away[ $key ] : null,
-			);
-		}
+		// ===== PRAWY ASIDE: Statystyki (żywe, partial) + „Inne mecze" (statyczne). =====
+		$stat_rows = hajlajty_build_stat_rows( $data );
+		$has_stats = ! empty( $stat_rows );
 
 		// „Inne mecze" w tych samych rozgrywkach (kickoff >= teraz), bez bieżącego.
 		$roz     = get_the_terms( $post_id, 'rozgrywki' );
@@ -507,37 +383,24 @@ $match_slug = get_post_field( 'post_name', $post_id );
 		}
 		$other        = new WP_Query( $other_args );
 		$has_other    = $other->have_posts();
-		$has_anything = ! empty( $stat_rows ) || $has_other;
+		$has_anything = $has_stats || $has_other;
 
 		if ( $has_anything ) :
 			?>
 			<aside class="watch__aside">
 
-				<?php if ( ! empty( $stat_rows ) ) : ?>
-					<section class="aside-sec">
-						<h2 class="aside-sec__title"><span class="kicker-dot"></span> Statystyki na żywo</h2>
-						<div class="panel" style="padding: var(--space-md)">
-							<div class="stats-head">
-								<span class="side home"><span class="swatch home"></span><?php if ( '' !== $home_flag ) : ?><img class="country-flag" src="<?php echo esc_url( $home_flag ); ?>" alt="" /><?php endif; ?> <?php echo esc_html( $team_code( $terms['home'] ) ); ?></span>
-								<span class="side away"><?php echo esc_html( $team_code( $terms['away'] ) ); ?> <?php if ( '' !== $away_flag ) : ?><img class="country-flag" src="<?php echo esc_url( $away_flag ); ?>" alt="" /><?php endif; ?><span class="swatch away"></span></span>
-							</div>
-							<?php
-							foreach ( $stat_rows as $row ) :
-								$nh = ( null === $row['vh'] ) ? 0 : (float) $row['vh'];
-								$na = ( null === $row['va'] ) ? 0 : (float) $row['va'];
-								?>
-								<div class="stat" data-h="<?php echo esc_attr( $nh ); ?>" data-a="<?php echo esc_attr( $na ); ?>">
-									<div class="stat__top">
-										<span class="vh"><?php echo esc_html( $stat_disp( $row['vh'] ) ); ?></span>
-										<span class="lab"><?php echo esc_html( $row['label'] ); ?></span>
-										<span class="va"><?php echo esc_html( $stat_disp( $row['va'] ) ); ?></span>
-									</div>
-									<div class="stat__bar"><span class="stat__fill home"></span><span class="stat__fill away"></span></div>
-								</div>
-							<?php endforeach; ?>
-						</div>
-					</section>
-				<?php endif; ?>
+				<?php
+				// ===== STATYSTYKI ===== (żywe — wspólny partial, kotwica #hajlajty-live-stats)
+				get_template_part(
+					'features/match-display/partials/live-fragment',
+					null,
+					array(
+						'post_id' => $post_id,
+						'data'    => $data,
+						'part'    => 'stats',
+					)
+				);
+				?>
 
 				<?php
 				if ( $has_other ) :

@@ -15,9 +15,9 @@
   var $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
 
   /* ---------- ZAKŁADKI (Oś czasu / Składy / Statystyki) ---------- */
-  var stats = $$(".stat");
+  // Re-query .stat za każdym wywołaniem: po auto-refreshu (3e-iii) węzły są nowe.
   function animateStats() {
-    stats.forEach(function (st) {
+    $$(".stat").forEach(function (st) {
       var h = parseFloat(st.dataset.h) || 0, a = parseFloat(st.dataset.a) || 0;
       var total = h + a || 1, hp = Math.round((h / total) * 100), ap = 100 - hp;
       var fills = $$(".stat__fill", st);
@@ -43,9 +43,15 @@
   }
   // LIVE/NS: statystyki poza systemem zakładek (aside) — brak .tabs, więc
   // activateTab nigdy nie odpali. Statystyki są od razu widoczne → animuj na starcie.
-  if (!statsAnimated && !tabs.length && stats.length) {
+  if (!statsAnimated && !tabs.length && $$(".stat").length) {
     statsAnimated = true; requestAnimationFrame(animateStats);
   }
+
+  // Auto-refresh (3e-iii): po podmianie fragmentu live przez poller słupki są nowe
+  // (width:0 z CSS) — przeanimuj je ponownie. Jedno źródło logiki animacji.
+  document.addEventListener("hajlajty:live-updated", function () {
+    requestAnimationFrame(animateStats);
+  });
 
   /* ---------- SKŁADY: przełącznik paneli home/away ---------- */
   var lineupTabs = $$("#lineupTabs .lineup-tab");
