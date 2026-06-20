@@ -48,6 +48,12 @@ $config = array(
 $cfg = isset( $config[ $lista ] ) ? $config[ $lista ] : $config['skroty'];
 
 get_template_part( 'features/layout/partials/header' );
+
+// Pasek filtra (slice filters) — pod headerem, w `.content` przed `<main>`. Tylko
+// na listach: single-mecz.php tej funkcji nie woła. Guard, gdyby slice zniknął.
+if ( function_exists( 'hajlajty_filters_render_bar' ) ) {
+	hajlajty_filters_render_bar();
+}
 ?>
 <main class="container">
 	<section class="section">
@@ -61,7 +67,7 @@ get_template_part( 'features/layout/partials/header' );
 			$post_ids = wp_list_pluck( $GLOBALS['wp_query']->posts, 'ID' );
 			$resolved = hajlajty_match_lists_resolve_terms( $post_ids );
 			?>
-			<div class="grid-videos">
+			<div class="grid-videos" data-filterable>
 				<?php
 				while ( have_posts() ) :
 					the_post();
@@ -81,16 +87,7 @@ get_template_part( 'features/layout/partials/header' );
 				endwhile;
 				?>
 			</div>
-
-			<?php
-			the_posts_pagination(
-				array(
-					'mid_size'  => 1,
-					'prev_text' => '‹ Poprzednia',
-					'next_text' => 'Następna ›',
-				)
-			);
-			?>
+			<?php // Pełna lista stanu na jednej stronie (filtr kliencki 4A) — bez stronicowania. ?>
 		<?php else : ?>
 			<div class="empty-state is-visible">
 				<h3><?php echo esc_html( $cfg['empty_head'] ); ?></h3>

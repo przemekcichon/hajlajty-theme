@@ -19,6 +19,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 get_template_part( 'features/layout/partials/header' );
 
+// Pasek filtra (slice filters) — pod headerem, w `.content` przed `<main>`. Spójnie
+// z archiwum; widoki single go nie wołają. Guard, gdyby slice zniknął.
+if ( function_exists( 'hajlajty_filters_render_bar' ) ) {
+	hajlajty_filters_render_bar();
+}
+
 $now = gmdate( 'Y-m-d H:i:s' );
 
 /**
@@ -44,7 +50,7 @@ $render_section = static function ( $head, $query, $partial, $container ) {
 			<h2 class="section__title<?php echo esc_attr( $head['title_class'] ); ?>"><span class="kicker-dot"></span> <?php echo esc_html( $head['title'] ); ?></h2>
 			<a class="section__more" href="<?php echo esc_url( $head['more_url'] ); ?>"><?php echo esc_html( $head['more_text'] ); ?> <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
 		</div>
-		<div class="<?php echo esc_attr( $container ); ?>">
+		<div class="<?php echo esc_attr( $container ); ?>" data-filterable>
 			<?php
 			while ( $query->have_posts() ) :
 				$query->the_post();

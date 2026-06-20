@@ -37,6 +37,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 				</a>
 			</div>
 
+			<?php
+			/**
+			 * Środkowa kolumna topbara — punkt rozszerzenia powłoki. Slice filters
+			 * wstrzykuje tu wyszukiwarkę drużyn na widokach LIST (grid 1fr|search|1fr,
+			 * patrz body.hajlajty-has-search). Brak wpięcia = pusta kolumna (single).
+			 */
+			do_action( 'hajlajty_topbar_center' );
+			?>
+
 			<div class="topbar__right">
 				<button class="icon-btn theme-toggle" id="themeBtn" aria-label="Przełącz motyw jasny/ciemny">
 					<svg class="sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></svg>

@@ -19,6 +19,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 $post_id = isset( $args['post_id'] ) ? (int) $args['post_id'] : get_the_ID();
+// Termy z batch-resolvera (home/away + slugi taksonomii) — tu używane WYŁĄCZNIE do
+// `data-*` filtra 4A (kontener karty). Dane do wyświetlenia karta czyta osobno niżej.
+$terms = isset( $args['terms'] ) && is_array( $args['terms'] ) ? $args['terms'] : array(
+	'home' => null,
+	'away' => null,
+);
 
 // ACF skrótu (get_field gdy ACF aktywny; fallback na surowe meta) — jak single-ft.
 $skrot_url = function_exists( 'get_field' ) ? get_field( 'skrot_url', $post_id ) : get_post_meta( $post_id, 'skrot_url', true );
@@ -44,7 +50,7 @@ $ago = $pub_ts ? human_time_diff( $pub_ts, time() ) . ' temu' : '';
 
 $title = get_the_title( $post_id );
 ?>
-<a class="vcard card-video" href="<?php echo esc_url( get_permalink( $post_id ) ); ?>">
+<a class="vcard card-video" href="<?php echo esc_url( get_permalink( $post_id ) ); ?>"<?php echo hajlajty_match_lists_card_filter_attrs( $terms ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped — atrybuty escapowane w helperze. ?>>
 	<div class="thumb<?php echo '' !== $poster ? ' has-poster' : ''; ?>">
 		<?php if ( '' !== $poster ) : ?>
 			<img class="thumb__img" src="<?php echo esc_url( $poster ); ?>" alt="" loading="lazy" />

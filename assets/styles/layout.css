@@ -96,6 +96,20 @@
 }
 .sidebar.is-open { transform: translateX(0); }
 
+/* Pasek admina WP zepycha treść (w tym topbar) w dół przez margin-top na <html>,
+   ale drawer .sidebar jest position:fixed i to przesunięcie IGNORUJE — przez co
+   jego logo siedzi wyżej niż logo topbara. Offsetujemy drawer o wysokość paska
+   admina (46px na wąskich, 32px od 783px) i skracamy wysokość, by dół menu nie
+   wychodził poza ekran. Dotyczy TYLKO trybu drawera (<1100px); od 1100px sidebar
+   jest position:static i przesunięcie go nie dotyczy. Na froncie bez paska admina
+   (publiczny użytkownik) reguła nie działa — tam oba logo są równo z natury. */
+@media (max-width: 1099px) {
+  .admin-bar .sidebar { top: 46px; height: calc(100dvh - 46px); }
+}
+@media (min-width: 783px) and (max-width: 1099px) {
+  .admin-bar .sidebar { top: 32px; height: calc(100dvh - 32px); }
+}
+
 .sidebar__head {
   display: flex; align-items: center; gap: var(--space-sm);
   /* Logo w drawerze (single/mobile) ma siedzieć DOKŁADNIE tam, gdzie logo
@@ -106,7 +120,7 @@
      Na stronie głównej/archiwum ten head i tak jest display:none — zmiana
      dotyczy wyłącznie drawera. */
   height: var(--topbar-h);
-  margin-top: calc(-1 * var(--space-sm));
+  margin-top: calc(-1 * var(--space-2xs));
   padding-inline: 0;
   margin-bottom: var(--space-sm);
 }
