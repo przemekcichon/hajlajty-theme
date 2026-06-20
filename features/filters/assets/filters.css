@@ -22,6 +22,18 @@
   gap: var(--space-xs);
   padding-block: var(--space-sm);
 }
+/* Pełna szerokość kolumny — jak main na home/archiwum. layout.css zdejmuje
+   centrowanie/max-width `.container` TYLKO z main.container i .footer (≥1100px);
+   pasek filtra musi iść tak samo, inaczej zostaje w wąskim pasie --container,
+   wycentrowany i przesunięty względem pełnoszerokiej listy kart. Padding-inline
+   wraca tu ręcznie (tracony razem z centrowaniem .container). */
+@media (min-width: 1100px) {
+  .chipsbar__inner.container {
+    max-width: none;
+    margin-inline: 0;
+    padding-inline: var(--gutter);
+  }
+}
 
 /* ---- Pole szukania (po drużynach) ---- */
 .filters-search {
