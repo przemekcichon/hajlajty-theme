@@ -61,7 +61,7 @@ get_template_part( 'features/layout/partials/header' );
 			$post_ids = wp_list_pluck( $GLOBALS['wp_query']->posts, 'ID' );
 			$resolved = hajlajty_match_lists_resolve_terms( $post_ids );
 			?>
-			<div class="grid-videos">
+			<div class="grid-videos" data-filterable>
 				<?php
 				while ( have_posts() ) :
 					the_post();

@@ -48,7 +48,7 @@ if ( $status['show_minute'] && null !== $elapsed ) {
 	$minute_txt = $status['live_label'];
 }
 ?>
-<a class="live-card" href="<?php echo esc_url( get_permalink( $post_id ) ); ?>">
+<a class="live-card" href="<?php echo esc_url( get_permalink( $post_id ) ); ?>"<?php echo hajlajty_match_lists_card_filter_attrs( $terms ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped — atrybuty escapowane w helperze. ?>>
 	<div class="thumb">
 		<span class="live-badge"><span class="dot"></span> LIVE</span>
 		<?php if ( '' !== $minute_txt ) : ?>
