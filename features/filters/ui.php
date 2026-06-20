@@ -24,7 +24,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 function hajlajty_filters_render_bar() {
 	?>
-	<div class="chipsbar" data-filters>
+	<div data-filters>
+	<div class="chipsbar">
 		<div class="chipsbar__inner container">
 
 			<form class="search filters-search" role="search" onsubmit="return false">
@@ -53,11 +54,13 @@ function hajlajty_filters_render_bar() {
 			</button>
 
 		</div>
+	</div>
 
-		<p class="filters-empty container" data-filter-empty hidden>
-			Brak meczów pasujących do wybranego filtra. Zmień wybór lub
-			<button type="button" class="filters-empty__reset" data-filter-reset>wyczyść filtry</button>.
-		</p>
+	<?php // Komunikat pustego wyniku — POZA lepkim paskiem, w normalnym przepływie treści. ?>
+	<p class="filters-empty container" data-filter-empty hidden>
+		Brak meczów pasujących do wybranego filtra. Zmień wybór lub
+		<button type="button" class="filters-empty__reset" data-filter-reset>wyczyść filtry</button>.
+	</p>
 	</div>
 	<?php
 }
