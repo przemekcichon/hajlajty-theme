@@ -25,6 +25,26 @@ if ( ! defined( 'ABSPATH' ) ) {
 require_once __DIR__ . '/normalize.php';
 require_once __DIR__ . '/ui.php';
 
+// Wyszukiwarka drużyn w ŚRODKU topbara (powłoka wystawia hook; render self-gated
+// do widoków list). Pasek chipów wstrzykują szablony list osobno (ui.php).
+add_action( 'hajlajty_topbar_center', 'hajlajty_filters_render_search' );
+
+add_filter( 'body_class', 'hajlajty_filters_body_class' );
+/**
+ * Znacznik „topbar ma wyszukiwarkę" — przełącza grid topbara na 1fr|search|1fr
+ * (CSS), tylko na widokach list. Bez niego środkowa kolumna zostawiłaby pustą
+ * szczelinę na widokach bez pola (np. single).
+ *
+ * @param string[] $classes Klasy body.
+ * @return string[] Klasy body (z `hajlajty-has-search` na listach).
+ */
+function hajlajty_filters_body_class( $classes ) {
+	if ( hajlajty_filters_is_list_view() ) {
+		$classes[] = 'hajlajty-has-search';
+	}
+	return $classes;
+}
+
 add_action( 'wp_enqueue_scripts', 'hajlajty_filters_enqueue' );
 /**
  * Zasoby filtra — TYLKO na widokach LIST (archiwum „mecz" + strona główna),

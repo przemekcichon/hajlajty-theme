@@ -74,8 +74,9 @@
 
   /* ----------------------- ELEMENTY UI -------------------------- */
   var chips = Array.prototype.slice.call(bar.querySelectorAll(".chip[data-filter-tax]"));
-  var input = bar.querySelector("[data-filter-search]");
-  var clearTextBtn = bar.querySelector("[data-filter-clear-text]");
+  // Pole szukania żyje w topbarze (poza [data-filters]) — bierzemy z document.
+  var input = document.querySelector("[data-filter-search]");
+  var clearTextBtn = document.querySelector("[data-filter-clear-text]");
   var resetBtns = Array.prototype.slice.call(bar.querySelectorAll("[data-filter-reset]"));
   var emptyMsg = bar.querySelector("[data-filter-empty]");
   var emptyMsgReset = emptyMsg ? emptyMsg.querySelector("[data-filter-reset]") : null;

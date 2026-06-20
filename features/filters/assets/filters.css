@@ -35,10 +35,24 @@
   }
 }
 
+/* ---- Wyszukiwarka w topbarze ----
+   Środkowa kolumna topbara (logo | search | ikony) na widokach list. Topbar to
+   grid 1fr 1fr (logo|ikony); z polem przełączamy na 1fr|search|1fr, więc pole
+   jest wypośrodkowane na poziomie logo. Szerokość bierze ze środkowej kolumny. */
+body.hajlajty-has-search .topbar__inner {
+  /* Logo w pasie sidebara | pole w kolumnie treści | ikony. Dzięki temu pole jest
+     wypośrodkowane w MAIN (nie w viewport), a logo licuje z lewą krawędzią. */
+  grid-template-columns: var(--sidebar-w) minmax(0, 1fr) auto;
+}
+.topbar .filters-search { justify-self: center; max-width: 560px; }
+@media (max-width: 768px) {
+  /* Topbar mobilny to flex (space-between) — pole wchodzi między menu a ikony. */
+  .topbar .filters-search { flex: 1 1 auto; min-width: 0; height: 42px; }
+}
+
 /* ---- Pole szukania (po drużynach) ---- */
 .filters-search {
   width: 100%;
-  max-width: 460px;
   display: flex;
   align-items: center;
   gap: var(--space-2xs);
@@ -212,5 +226,4 @@
 /* ---- Mobile: strzałki bezużyteczne przy dotyku/dragu ---- */
 @media (max-width: 768px) {
   .chips-arrow { display: none; }
-  .filters-search { max-width: none; }
 }
