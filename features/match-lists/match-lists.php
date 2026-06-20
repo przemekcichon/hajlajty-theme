@@ -78,9 +78,19 @@ function hajlajty_match_lists_rewrite_rules() {
 
 add_action( 'pre_get_posts', 'hajlajty_match_lists_pre_get_posts' );
 /**
- * Ustawia meta_query + orderby głównego zapytania archiwum „mecz" wg stanu listy.
- * NIE ustawia no_found_rows — archiwum paginuje (the_posts_pagination potrzebuje
- * found_rows).
+ * Ustawia meta_query + orderby głównego zapytania archiwum „mecz" wg stanu listy
+ * ORAZ wymusza render CAŁEJ listy stanu na jednej stronie (bez stronicowania).
+ *
+ * DLACZEGO bez stronicowania (4A): publiczny filtr (slice filters) jest KLIENCKI —
+ * zawęża tylko karty obecne w DOM. Przy stronicowaniu widziałby wyłącznie bieżącą
+ * stronę, więc trafienia ze strony 2+ byłyby nieosiągalne. `posts_per_page = -1`
+ * sprawia, że serwer renderuje KOMPLET stanu, a JS filtruje całość. Świadomie NIE
+ * dajemy capa: cap po przekroczeniu po cichu przywróciłby ten sam problem.
+ * REWIZJA NA PRZYSZŁOŚĆ: gdy publiczne listy bardzo urosną (piłka klubowa po
+ * Mundialu), wrócić do stronicowania + filtra serwerowego/Algolii (4B). Dla
+ * Mundialu (≲104 mecze/lista) komplet w DOM jest tani.
+ *
+ * Skoro nie paginujemy — `no_found_rows` (zero zbędnego SQL COUNT).
  *
  * KONWENCJA CZASU: `kickoff` to płaska meta `Y-m-d H:i:s` w UTC, zero-padded —
  * porównania i sortowanie LEKSYKALNE (type CHAR) są chronologiczne. NIGDY _num.
@@ -96,6 +106,10 @@ function hajlajty_match_lists_pre_get_posts( $q ) {
 	if ( '' === $lista ) {
 		$lista = 'skroty'; // Domyślnie (gołe /mecz/) — najczęstszy widok.
 	}
+
+	// Cała lista stanu na jednej stronie — patrz docblock (filtr kliencki 4A).
+	$q->set( 'posts_per_page', -1 );
+	$q->set( 'no_found_rows', true );
 
 	$now = gmdate( 'Y-m-d H:i:s' );
 
@@ -173,20 +187,17 @@ add_action( 'wp_enqueue_scripts', 'hajlajty_match_lists_enqueue' );
  * CSS sportowany z designu do assets/styles/ motywu (NIE ładujemy z design/).
  */
 function hajlajty_match_lists_enqueue() {
-	$is_archive = is_post_type_archive( 'mecz' );
-	if ( ! $is_archive && ! is_front_page() ) {
+	if ( ! is_post_type_archive( 'mecz' ) && ! is_front_page() ) {
 		return;
 	}
 
-	// CSS współdzielony przez archiwum i stronę główną.
+	// CSS współdzielony przez archiwum i stronę główną. Stylu paginacji NIE
+	// ładujemy — archiwum nie stronicuje (cała lista stanu na jednej stronie,
+	// pod kliencki filtr 4A; patrz hajlajty_match_lists_pre_get_posts).
 	$styles = array(
 		'hajlajty-card-preview' => array( 'assets/styles/card-preview.css', array( 'hajlajty-layout' ) ),
 		'hajlajty-match-lists'  => array( 'assets/styles/match-lists.css', array( 'hajlajty-layout' ) ),
 	);
-	// Paginacja tylko na archiwum (strona główna nie paginuje sekcji).
-	if ( $is_archive ) {
-		$styles['hajlajty-pagination'] = array( 'assets/styles/pagination.css', array( 'hajlajty-layout' ) );
-	}
 
 	foreach ( $styles as $handle => $def ) {
 		$path = get_theme_file_path( $def[0] );

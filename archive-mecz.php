@@ -87,16 +87,7 @@ if ( function_exists( 'hajlajty_filters_render_bar' ) ) {
 				endwhile;
 				?>
 			</div>
-
-			<?php
-			the_posts_pagination(
-				array(
-					'mid_size'  => 1,
-					'prev_text' => '‹ Poprzednia',
-					'next_text' => 'Następna ›',
-				)
-			);
-			?>
+			<?php // Pełna lista stanu na jednej stronie (filtr kliencki 4A) — bez stronicowania. ?>
 		<?php else : ?>
 			<div class="empty-state is-visible">
 				<h3><?php echo esc_html( $cfg['empty_head'] ); ?></h3>
