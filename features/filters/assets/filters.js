@@ -25,7 +25,9 @@
   if (!bar) return; // Nie ten widok (single nie renderuje paska).
 
   var STORE_KEY = "hajlajty:filters";
-  var TAXES = ["druzyna", "rozgrywki", "sezon", "kanal"];
+  // 4A: filtrujemy TYLKO po drużynach. Rozgrywki i sezon wrócą w Fazie 5 (dopisać
+  // je tu i do chipsbara); kanał świadomie nie jest filtrem publicznym.
+  var TAXES = ["druzyna"];
   var CARD_KEY = { druzyna: "teams", rozgrywki: "rozgrywki", sezon: "sezon", kanal: "kanal" };
 
   /* ---- normalizacja: jawny słownik 1:1 z PHP (hajlajty_filters_normalize_pl) ---- */
@@ -47,9 +49,6 @@
 
   function anyActive() {
     if (state.q !== "") return true;
-    return TAXES.some(function (t) { return Object.keys(state.tax[t]).length > 0; });
-  }
-  function anyChipActive() {
     return TAXES.some(function (t) { return Object.keys(state.tax[t]).length > 0; });
   }
 

@@ -197,28 +197,6 @@ body.hajlajty-has-search .topbar__inner {
 .chips-arrow.next { right: -40px; }
 .chips-arrow svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 
-/* ---- Zbiorczy reset ---- */
-.filters-reset {
-  align-self: flex-start;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  height: 32px;
-  padding: 0 8px 0 14px;
-  border-radius: var(--r-pill);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  color: var(--text);
-  font-size: 13.5px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background var(--t-fast), color var(--t-fast), transform var(--t-fast);
-}
-.filters-reset:hover { background: var(--surface-hover); }
-.filters-reset:active { transform: scale(0.97); }
-.filters-reset[hidden] { display: none; }
-.filters-reset svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.4; stroke-linecap: round; }
-
 /* ---- Komunikat pustego wyniku ---- */
 .filters-empty {
   margin-block: var(--space-md);
@@ -252,14 +230,28 @@ body.hajlajty-has-search .topbar__inner {
 }
 
 /* ============================================================
-   MOBILE: pigułka aktywnego filtra + pełnoekranowy modal wyszukiwania.
-   Na desktopie pigułka i modal nie istnieją wizualnie (chipsbar + pole inline
-   przejmują rolę). Markup/wygląd sportowane z designu (.filter-pill,
-   .search-overlay).
+   Pigułka aktywnego filtra (desktop + mobile) + pełnoekranowy modal (mobile).
+   Pigułka zastąpiła przycisk „Wyczyść filtry": pokazuje nazwy filtrowanych drużyn
+   i czyści filtr. Markup/wygląd z designu (.filter-pill, .search-overlay).
 ============================================================ */
 
-/* ---- Pigułka aktywnego filtra (mobile) ---- */
-.filter-pill { display: none; }
+/* ---- Pigułka aktywnego filtra ---- */
+.filter-pill {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  width: max-content;
+  max-width: calc(100% - 2 * var(--gutter));
+  margin: var(--space-sm) var(--gutter) 0;
+  padding: 6px 8px 6px 16px;
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+.filter-pill[hidden] { display: none; }
 .filter-pill__txt { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .filter-pill__txt b { color: var(--accent); font-weight: 700; }
 .filter-pill__clear {
@@ -275,24 +267,6 @@ body.hajlajty-has-search .topbar__inner {
 .filter-pill__clear:hover { background: var(--surface-hover); color: var(--text); }
 .filter-pill__clear:active { transform: scale(0.92); }
 .filter-pill__clear svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.4; stroke-linecap: round; }
-
-@media (max-width: 768px) {
-  .filter-pill:not([hidden]) {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2xs);
-    width: max-content;
-    max-width: calc(100% - 2 * var(--gutter));
-    margin: var(--space-sm) var(--gutter) 0;
-    padding: 6px 8px 6px 16px;
-    border-radius: var(--r-pill);
-    background: var(--surface);
-    border: 1px solid var(--border);
-    font-size: 13.5px;
-    font-weight: 600;
-    color: var(--text);
-  }
-}
 
 /* ---- Pełnoekranowy modal wyszukiwania (mobile) ---- */
 .search-overlay {

@@ -61,15 +61,7 @@ function hajlajty_filters_render_bar() {
 	?>
 	<div data-filters>
 
-		<?php // PIGUŁKA aktywnego filtra — tylko mobile (CSS), widoczna gdy coś aktywne. ?>
-		<div class="filter-pill" data-filter-pill hidden>
-			<span class="filter-pill__txt">Filtrujesz: <b data-filter-pill-text></b></span>
-			<button type="button" class="filter-pill__clear" data-filter-reset aria-label="Wyczyść filtry">
-				<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
-			</button>
-		</div>
-
-		<?php // CHIPSBAR — tylko desktop (CSS). ?>
+		<?php // CHIPSBAR (chipy drużyn) — tylko desktop (CSS); mobile ma modal. ?>
 		<div class="chipsbar">
 			<div class="chipsbar__inner container">
 				<div class="chips-wrap">
@@ -83,12 +75,15 @@ function hajlajty_filters_render_bar() {
 						<svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg>
 					</button>
 				</div>
-
-				<button type="button" class="filters-reset" data-filter-reset hidden>
-					<span class="filters-reset__txt">Wyczyść filtry</span>
-					<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
-				</button>
 			</div>
+		</div>
+
+		<?php // PIGUŁKA aktywnego filtra (nazwy drużyn) + czyszczenie — desktop i mobile. ?>
+		<div class="filter-pill" data-filter-pill hidden>
+			<span class="filter-pill__txt">Filtrujesz: <b data-filter-pill-text></b></span>
+			<button type="button" class="filter-pill__clear" data-filter-reset aria-label="Wyczyść filtry">
+				<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+			</button>
 		</div>
 
 		<?php // Komunikat pustego wyniku — w normalnym przepływie treści. ?>
