@@ -19,6 +19,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 get_template_part( 'features/layout/partials/header' );
 
+// Pasek filtra (slice filters) — pod headerem, w `.content` przed `<main>`. Spójnie
+// z archiwum; widoki single go nie wołają. Guard, gdyby slice zniknął.
+if ( function_exists( 'hajlajty_filters_render_bar' ) ) {
+	hajlajty_filters_render_bar();
+}
+
 $now = gmdate( 'Y-m-d H:i:s' );
 
 /**

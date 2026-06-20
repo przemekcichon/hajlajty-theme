@@ -48,6 +48,12 @@ $config = array(
 $cfg = isset( $config[ $lista ] ) ? $config[ $lista ] : $config['skroty'];
 
 get_template_part( 'features/layout/partials/header' );
+
+// Pasek filtra (slice filters) — pod headerem, w `.content` przed `<main>`. Tylko
+// na listach: single-mecz.php tej funkcji nie woła. Guard, gdyby slice zniknął.
+if ( function_exists( 'hajlajty_filters_render_bar' ) ) {
+	hajlajty_filters_render_bar();
+}
 ?>
 <main class="container">
 	<section class="section">
