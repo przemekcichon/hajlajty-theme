@@ -33,6 +33,11 @@
     margin-inline: 0;
     padding-inline: var(--gutter);
   }
+  /* Desktop: `.content` ma WŁASNY scroll i zaczyna się pod statycznym topbarem,
+     więc pasek przykleja się do top:0 kolumny. top:var(--topbar-h) (z designu,
+     gdzie topbar i pasek dzieliły scroll okna) powodował, że gdy [data-filters]
+     rośnie o komunikat „brak wyników", sticky zjeżdżał w dół o wysokość topbara. */
+  .chipsbar { top: 0; }
 }
 
 /* ---- Wyszukiwarka w topbarze ----
