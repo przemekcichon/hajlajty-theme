@@ -132,19 +132,6 @@ body.hajlajty-has-search .topbar__inner {
 .chips-scroll.is-grabbing { cursor: grabbing; user-select: none; scroll-behavior: auto; }
 .chips-scroll.is-grabbing .chip { pointer-events: none; }
 
-/* Etykieta grupy taksonomii — niemy separator wewnątrz paska */
-.chips-group-label {
-  flex: 0 0 auto;
-  padding-inline: 6px;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--text-faint);
-  white-space: nowrap;
-}
-.chips-group-label:not(:first-child) { margin-left: var(--space-2xs); }
-
 /* ---- Chip ---- */
 .chip {
   flex: 0 0 auto;
@@ -220,9 +207,8 @@ body.hajlajty-has-search .topbar__inner {
 .is-hidden-by-filter { display: none !important; }
 .section.is-empty-by-filter { display: none; }
 /* Zawężanie chipów drużyn wpisanym tekstem (żeby szukana drużyna była od razu
-   widoczna, bez scrollowania paska). Etykieta grupy znika, gdy nic nie pasuje. */
-.chip.is-hidden,
-.chips-group-label.is-hidden { display: none; }
+   widoczna, bez scrollowania paska). */
+.chip.is-hidden { display: none; }
 
 /* ---- Mobile: strzałki bezużyteczne przy dotyku/dragu ---- */
 @media (max-width: 768px) {
@@ -313,7 +299,6 @@ body.hajlajty-has-search .topbar__inner {
   align-content: start;
   padding-block: var(--space-3xs) var(--space-2xs);
 }
-.search-overlay__grid .chips-group-label { grid-column: 1 / -1; padding-top: var(--space-2xs); }
 .search-overlay__grid .chip { width: 100%; height: 48px; justify-content: flex-start; }
 .search-overlay__grid .chip__check { margin-left: auto; }
 .search-overlay__foot {

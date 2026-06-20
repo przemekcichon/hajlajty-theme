@@ -79,7 +79,6 @@
   var inputs = Array.prototype.slice.call(document.querySelectorAll("[data-filter-search]"));
   var clearTextBtns = Array.prototype.slice.call(document.querySelectorAll("[data-filter-clear-text]"));
   var resetBtns = Array.prototype.slice.call(bar.querySelectorAll("[data-filter-reset]"));
-  var teamLabels = Array.prototype.slice.call(bar.querySelectorAll('[data-filter-group="druzyna"]'));
   var emptyMsg = bar.querySelector("[data-filter-empty]");
   var emptyMsgReset = emptyMsg ? emptyMsg.querySelector("[data-filter-reset]") : null;
   var pill = bar.querySelector("[data-filter-pill]");
@@ -127,16 +126,13 @@
 
   function applyChipSearch() {
     var q = norm(state.q);
-    var anyVisible = false;
     chips.forEach(function (chip) {
       if (chip.getAttribute("data-filter-tax") !== "druzyna") return;
       // Aktywny chip zostaje widoczny mimo niedopasowania — by dało się go odznaczyć.
       var active = !!state.tax.druzyna[chip.getAttribute("data-filter-val")];
       var hide = q !== "" && !active && norm(label(chip)).indexOf(q) === -1;
       chip.classList.toggle("is-hidden", hide);
-      if (!hide) anyVisible = true;
     });
-    teamLabels.forEach(function (el) { el.classList.toggle("is-hidden", q !== "" && !anyVisible); });
     if (q !== "" && scroller) scroller.scrollLeft = 0;
   }
 
