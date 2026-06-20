@@ -68,7 +68,7 @@ foreach ( $hajlajty_filter_groups as $hajlajty_tax => $hajlajty_label ) {
 		continue;
 	}
 	?>
-	<span class="chips-group-label" aria-hidden="true"><?php echo esc_html( $hajlajty_label ); ?></span>
+	<span class="chips-group-label" data-filter-group="<?php echo esc_attr( $hajlajty_tax ); ?>" aria-hidden="true"><?php echo esc_html( $hajlajty_label ); ?></span>
 	<?php
 	foreach ( $hajlajty_rows as $hajlajty_row ) {
 		?>

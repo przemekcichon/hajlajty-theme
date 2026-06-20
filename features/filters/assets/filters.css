@@ -227,6 +227,10 @@ body.hajlajty-has-search .topbar__inner {
 /* ---- Stany filtra (nadawane przez JS) ---- */
 .is-hidden-by-filter { display: none !important; }
 .section.is-empty-by-filter { display: none; }
+/* Zawężanie chipów drużyn wpisanym tekstem (żeby szukana drużyna była od razu
+   widoczna, bez scrollowania paska). Etykieta grupy znika, gdy nic nie pasuje. */
+.chip.is-hidden,
+.chips-group-label.is-hidden { display: none; }
 
 /* ---- Mobile: strzałki bezużyteczne przy dotyku/dragu ---- */
 @media (max-width: 768px) {

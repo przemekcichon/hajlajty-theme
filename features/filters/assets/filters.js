@@ -144,9 +144,32 @@
     if (emptyMsg) emptyMsg.hidden = !(active && totalVisible === 0);
   }
 
+  // Zawężanie chipów DRUŻYN wpisanym tekstem — żeby szukana drużyna była od razu
+  // widoczna do kliknięcia (zabezpieczenia filtra), bez scrollowania paska. Chipy
+  // pozostałych taksonomii zostają (szukamy po drużynach). Ukrywanie jest czysto
+  // wizualne — stan aktywny chipa (filtr) trwa niezależnie.
+  var teamLabel = bar.querySelector('[data-filter-group="druzyna"]');
+  function applyChipSearch() {
+    var q = norm(state.q);
+    var anyVisible = false;
+    chips.forEach(function (chip) {
+      if (chip.getAttribute("data-filter-tax") !== "druzyna") return;
+      // Aktywny chip zostaje widoczny mimo niedopasowania — by zawsze dało się
+      // go odznaczyć (inaczej aktywny filtr „znika" pod wpisanym tekstem).
+      var active = !!state.tax.druzyna[chip.getAttribute("data-filter-val")];
+      var hide = q !== "" && !active && norm(chip.textContent).indexOf(q) === -1;
+      chip.classList.toggle("is-hidden", hide);
+      if (!hide) anyVisible = true;
+    });
+    if (teamLabel) teamLabel.classList.toggle("is-hidden", q !== "" && !anyVisible);
+    // Po zawężeniu pokaż początek paska (dopasowania są od lewej).
+    if (q !== "" && scroller) scroller.scrollLeft = 0;
+  }
+
   function apply() {
     syncChips();
     syncControls();
+    applyChipSearch();
     applyFilter();
   }
 
@@ -169,6 +192,7 @@
       state.q = input.value;
       persist();
       syncControls();
+      applyChipSearch();
       applyFilter();
     });
   }
@@ -179,6 +203,7 @@
       if (input) { input.value = ""; input.focus(); }
       persist();
       syncControls();
+      applyChipSearch();
       applyFilter();
     });
   }
