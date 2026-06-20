@@ -40,19 +40,28 @@
   .chipsbar { top: 0; }
 }
 
-/* ---- Wyszukiwarka w topbarze ----
-   Środkowa kolumna topbara (logo | search | ikony) na widokach list. Topbar to
-   grid 1fr 1fr (logo|ikony); z polem przełączamy na 1fr|search|1fr, więc pole
-   jest wypośrodkowane na poziomie logo. Szerokość bierze ze środkowej kolumny. */
+/* ---- Środkowa kolumna topbara: pole (desktop) / lupa (mobile) ----
+   Topbar to grid 1fr 1fr (logo|ikony); z filtrem przełączamy na
+   var(--sidebar-w)|1fr|auto, więc pole jest wypośrodkowane w kolumnie treści
+   (MAIN), a logo licuje z lewą krawędzią nad sidebarem. */
 body.hajlajty-has-search .topbar__inner {
-  /* Logo w pasie sidebara | pole w kolumnie treści | ikony. Dzięki temu pole jest
-     wypośrodkowane w MAIN (nie w viewport), a logo licuje z lewą krawędzią. */
   grid-template-columns: var(--sidebar-w) minmax(0, 1fr) auto;
 }
-.topbar .filters-search { justify-self: center; max-width: 560px; }
+.topbar__center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
+.topbar .filters-search { max-width: 560px; }
+.filters-search__open { display: none; } /* lupa: domyślnie ukryta (desktop) */
+
 @media (max-width: 768px) {
-  /* Topbar mobilny to flex (space-between) — pole wchodzi między menu a ikony. */
-  .topbar .filters-search { flex: 1 1 auto; min-width: 0; height: 42px; }
+  /* Mobile: pole inline znika, lupa otwiera modal; dosuwamy ją do prawych ikon. */
+  .topbar__center { margin-left: auto; }
+  .topbar .filters-search { display: none; }
+  .filters-search__open { display: grid; }
+  .chipsbar { display: none; }            /* pasek chipów zastępuje modal */
 }
 
 /* ---- Pole szukania (po drużynach) ---- */
@@ -241,3 +250,121 @@ body.hajlajty-has-search .topbar__inner {
 @media (max-width: 768px) {
   .chips-arrow { display: none; }
 }
+
+/* ============================================================
+   MOBILE: pigułka aktywnego filtra + pełnoekranowy modal wyszukiwania.
+   Na desktopie pigułka i modal nie istnieją wizualnie (chipsbar + pole inline
+   przejmują rolę). Markup/wygląd sportowane z designu (.filter-pill,
+   .search-overlay).
+============================================================ */
+
+/* ---- Pigułka aktywnego filtra (mobile) ---- */
+.filter-pill { display: none; }
+.filter-pill__txt { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.filter-pill__txt b { color: var(--accent); font-weight: 700; }
+.filter-pill__clear {
+  flex: 0 0 auto;
+  width: 28px; height: 28px;
+  display: grid; place-items: center;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast), transform var(--t-fast);
+}
+.filter-pill__clear:hover { background: var(--surface-hover); color: var(--text); }
+.filter-pill__clear:active { transform: scale(0.92); }
+.filter-pill__clear svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.4; stroke-linecap: round; }
+
+@media (max-width: 768px) {
+  .filter-pill:not([hidden]) {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2xs);
+    width: max-content;
+    max-width: calc(100% - 2 * var(--gutter));
+    margin: var(--space-sm) var(--gutter) 0;
+    padding: 6px 8px 6px 16px;
+    border-radius: var(--r-pill);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text);
+  }
+}
+
+/* ---- Pełnoekranowy modal wyszukiwania (mobile) ---- */
+.search-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: var(--space-xs) var(--gutter) 0;
+  background: var(--bg);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(14px);
+  transition: opacity var(--t-med), visibility var(--t-med), transform var(--t-med);
+}
+.search-overlay.is-open { opacity: 1; visibility: visible; transform: none; }
+.search-overlay__head { display: flex; align-items: center; gap: var(--space-2xs); min-height: var(--topbar-h); }
+.search-overlay__back { flex: 0 0 auto; }
+.search-overlay__head .search {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  align-items: center;
+  gap: var(--space-2xs);
+  height: 46px;
+  padding-inline: var(--space-sm) 5px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  transition: border-color var(--t-fast), background var(--t-fast);
+}
+.search-overlay__head .search:focus-within { border-color: var(--accent); background: var(--bg-elev); }
+.search-overlay__head .search > svg {
+  width: 20px; height: 20px; flex: 0 0 auto;
+  stroke: var(--text-muted); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+}
+.search-overlay__body { flex: 1 1 auto; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; }
+.search-overlay__grid {
+  flex: 1 0 auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2xs);
+  align-content: start;
+  padding-block: var(--space-3xs) var(--space-2xs);
+}
+.search-overlay__grid .chips-group-label { grid-column: 1 / -1; padding-top: var(--space-2xs); }
+.search-overlay__grid .chip { width: 100%; height: 48px; justify-content: flex-start; }
+.search-overlay__grid .chip__check { margin-left: auto; }
+.search-overlay__foot {
+  position: sticky;
+  bottom: 0;
+  margin-top: auto;
+  padding: var(--space-2xs) 0 max(var(--space-xs), env(safe-area-inset-bottom));
+  background: var(--bg);
+}
+.search-overlay__apply {
+  width: 100%;
+  height: 52px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-pill);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 15.5px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition: filter var(--t-fast), transform var(--t-fast);
+}
+.search-overlay__apply:hover { filter: brightness(1.05); }
+.search-overlay__apply:active { transform: scale(0.985); }
+/* Modal to wyłącznie tryb mobilny — na desktopie nie istnieje. */
+@media (min-width: 769px) { .search-overlay { display: none; } }

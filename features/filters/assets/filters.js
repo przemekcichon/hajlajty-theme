@@ -5,13 +5,18 @@
    pełną listę stanu; ten skrypt TYLKO zawęża już wyrenderowane karty:
 
      • pole tekstowe — szuka po DRUŻYNACH (data-team-names, znormalizowane PL),
+       zawęża też chipy drużyn (by szukana była od razu pod ręką),
      • chipy — filtr po natywnych taksonomiach (drużyna=FIFA, reszta=slug),
-       OR w obrębie jednej taksonomii, AND między taksonomiami; tekst AND z chipami,
-     • wybór TRWA w sessionStorage — przy wejściu na inną listę filtr jest
-       stosowany dalej, aż go odznaczysz (znika dopiero po zamknięciu karty).
+       OR w obrębie taksonomii, AND między taksonomiami; tekst AND z chipami,
+     • wybór TRWA w sessionStorage między listami, aż go odznaczysz.
+
+   Desktop: pasek chipów + pole w topbarze. Mobile: lupa → pełnoekranowy MODAL
+   (to samo pole + siatka tych samych chipów) + pigułka aktywnego filtra. Chipy i
+   pola istnieją w obu miejscach jako REALNY DOM (bez klonowania) i sterują tym
+   samym stanem; CSS pokazuje właściwy tryb.
 
    Wzorzec jak match-lists.js: vanilla IIFE, null-safe, dane przez data-*. Brak
-   paska/kart = brak efektów (early return). Zero zależności, zero AJAX.
+   paska = brak efektów (early return). Zero zależności, zero AJAX.
 ============================================================ */
 (function () {
   "use strict";
@@ -21,13 +26,9 @@
 
   var STORE_KEY = "hajlajty:filters";
   var TAXES = ["druzyna", "rozgrywki", "sezon", "kanal"];
-  // Mapa: taksonomia chipa → atrybut data-* karty.
   var CARD_KEY = { druzyna: "teams", rozgrywki: "rozgrywki", sezon: "sezon", kanal: "kanal" };
 
-  /* ---- normalizacja: jawny słownik 1:1 z PHP (hajlajty_filters_normalize_pl) ----
-     lowercase + sprowadzenie polskich/łacińskich diakrytyków do ASCII. Karty mają
-     nazwy już znormalizowane z serwera; tu normalizujemy wpisany tekst tak samo,
-     więc obie strony porównania dają identyczny wynik (kontrakt PHP↔JS). */
+  /* ---- normalizacja: jawny słownik 1:1 z PHP (hajlajty_filters_normalize_pl) ---- */
   var DIACRITICS = {
     "ą": "a", "ć": "c", "ę": "e", "ł": "l", "ń": "n", "ó": "o", "ś": "s", "ź": "z", "ż": "z",
     "ç": "c", "á": "a", "à": "a", "ã": "a", "â": "a", "é": "e", "è": "e", "ê": "e",
@@ -38,6 +39,7 @@
       return Object.prototype.hasOwnProperty.call(DIACRITICS, ch) ? DIACRITICS[ch] : ch;
     });
   }
+  function label(chip) { return chip.textContent.replace(/\s+/g, " ").trim(); }
 
   /* ---------------------------- STAN ---------------------------- */
   var state = { q: "", tax: {} };
@@ -45,6 +47,9 @@
 
   function anyActive() {
     if (state.q !== "") return true;
+    return TAXES.some(function (t) { return Object.keys(state.tax[t]).length > 0; });
+  }
+  function anyChipActive() {
     return TAXES.some(function (t) { return Object.keys(state.tax[t]).length > 0; });
   }
 
@@ -56,14 +61,11 @@
       if (data && typeof data.q === "string") state.q = data.q;
       if (data && data.tax) {
         TAXES.forEach(function (t) {
-          (Array.isArray(data.tax[t]) ? data.tax[t] : []).forEach(function (v) {
-            state.tax[t][v] = true;
-          });
+          (Array.isArray(data.tax[t]) ? data.tax[t] : []).forEach(function (v) { state.tax[t][v] = true; });
         });
       }
     } catch (e) {}
   }
-
   function persist() {
     try {
       var out = { q: state.q, tax: {} };
@@ -74,42 +76,75 @@
 
   /* ----------------------- ELEMENTY UI -------------------------- */
   var chips = Array.prototype.slice.call(bar.querySelectorAll(".chip[data-filter-tax]"));
-  // Pole szukania żyje w topbarze (poza [data-filters]) — bierzemy z document.
-  var input = document.querySelector("[data-filter-search]");
-  var clearTextBtn = document.querySelector("[data-filter-clear-text]");
+  // Pole + lupa żyją w topbarze (poza [data-filters]) — z document. Reszta w barze.
+  var inputs = Array.prototype.slice.call(document.querySelectorAll("[data-filter-search]"));
+  var clearTextBtns = Array.prototype.slice.call(document.querySelectorAll("[data-filter-clear-text]"));
   var resetBtns = Array.prototype.slice.call(bar.querySelectorAll("[data-filter-reset]"));
+  var teamLabels = Array.prototype.slice.call(bar.querySelectorAll('[data-filter-group="druzyna"]'));
   var emptyMsg = bar.querySelector("[data-filter-empty]");
   var emptyMsgReset = emptyMsg ? emptyMsg.querySelector("[data-filter-reset]") : null;
+  var pill = bar.querySelector("[data-filter-pill]");
+  var pillText = bar.querySelector("[data-filter-pill-text]");
+  var scroller = bar.querySelector("[data-filter-chips]"); // pasek desktop (pierwszy)
+  var modal = bar.querySelector("[data-filter-modal]");
   var containers = Array.prototype.slice.call(document.querySelectorAll("[data-filterable]"));
 
   /* --------------------- RENDER STANU → DOM --------------------- */
   function syncChips() {
     chips.forEach(function (chip) {
-      var t = chip.getAttribute("data-filter-tax");
-      var v = chip.getAttribute("data-filter-val");
-      var on = !!(state.tax[t] && state.tax[t][v]);
+      var on = !!(state.tax[chip.getAttribute("data-filter-tax")] || {})[chip.getAttribute("data-filter-val")];
       chip.classList.toggle("is-active", on);
       chip.setAttribute("aria-pressed", on ? "true" : "false");
     });
   }
 
   function syncControls() {
-    if (clearTextBtn) clearTextBtn.hidden = state.q === "";
+    clearTextBtns.forEach(function (b) { b.hidden = state.q === ""; });
     var active = anyActive();
     resetBtns.forEach(function (b) {
-      // Reset wewnątrz komunikatu pustego wyniku chowa/odsłania razem z komunikatem.
-      if (b === emptyMsgReset) return;
+      if (b === emptyMsgReset) return; // chowany razem z komunikatem
       b.hidden = !active;
     });
+    updatePill();
+  }
+
+  function updatePill() {
+    if (!pill) return;
+    var labels = [];
+    var seen = Object.create(null);
+    chips.forEach(function (chip) {
+      var t = chip.getAttribute("data-filter-tax"), v = chip.getAttribute("data-filter-val");
+      if (!(state.tax[t] && state.tax[t][v])) return;
+      var key = t + "|" + v;
+      if (seen[key]) return;
+      seen[key] = 1;
+      labels.push(label(chip));
+    });
+    if (state.q !== "") labels.unshift("„" + state.q + "”");
+    pill.hidden = labels.length === 0;
+    if (pillText) pillText.textContent = labels.join(", ");
+  }
+
+  function applyChipSearch() {
+    var q = norm(state.q);
+    var anyVisible = false;
+    chips.forEach(function (chip) {
+      if (chip.getAttribute("data-filter-tax") !== "druzyna") return;
+      // Aktywny chip zostaje widoczny mimo niedopasowania — by dało się go odznaczyć.
+      var active = !!state.tax.druzyna[chip.getAttribute("data-filter-val")];
+      var hide = q !== "" && !active && norm(label(chip)).indexOf(q) === -1;
+      chip.classList.toggle("is-hidden", hide);
+      if (!hide) anyVisible = true;
+    });
+    teamLabels.forEach(function (el) { el.classList.toggle("is-hidden", q !== "" && !anyVisible); });
+    if (q !== "" && scroller) scroller.scrollLeft = 0;
   }
 
   function cardMatches(card) {
-    // Tekst (po drużynach) — substring na znormalizowanych nazwach.
     if (state.q !== "") {
       var hay = card.getAttribute("data-team-names") || "";
       if (hay.indexOf(norm(state.q)) === -1) return false;
     }
-    // Taksonomie — AND między taksonomiami, OR w obrębie taksonomii.
     for (var i = 0; i < TAXES.length; i++) {
       var t = TAXES[i];
       var active = Object.keys(state.tax[t]);
@@ -124,7 +159,6 @@
   function applyFilter() {
     var active = anyActive();
     var totalVisible = 0;
-
     containers.forEach(function (container) {
       var cards = Array.prototype.slice.call(container.querySelectorAll("[data-team-names]"));
       var visible = 0;
@@ -134,36 +168,10 @@
         if (show) visible++;
       });
       totalVisible += visible;
-      // Ukryj całą sekcję, gdy filtr aktywny i nic w niej nie zostało (np. na
-      // home sekcja LIVE bez trafień nie świeci pustym nagłówkiem).
       var section = container.closest(".section");
       if (section) section.classList.toggle("is-empty-by-filter", active && visible === 0);
     });
-
-    // Globalny komunikat: filtr aktywny, ale NIGDZIE nic nie pasuje.
     if (emptyMsg) emptyMsg.hidden = !(active && totalVisible === 0);
-  }
-
-  // Zawężanie chipów DRUŻYN wpisanym tekstem — żeby szukana drużyna była od razu
-  // widoczna do kliknięcia (zabezpieczenia filtra), bez scrollowania paska. Chipy
-  // pozostałych taksonomii zostają (szukamy po drużynach). Ukrywanie jest czysto
-  // wizualne — stan aktywny chipa (filtr) trwa niezależnie.
-  var teamLabel = bar.querySelector('[data-filter-group="druzyna"]');
-  function applyChipSearch() {
-    var q = norm(state.q);
-    var anyVisible = false;
-    chips.forEach(function (chip) {
-      if (chip.getAttribute("data-filter-tax") !== "druzyna") return;
-      // Aktywny chip zostaje widoczny mimo niedopasowania — by zawsze dało się
-      // go odznaczyć (inaczej aktywny filtr „znika" pod wpisanym tekstem).
-      var active = !!state.tax.druzyna[chip.getAttribute("data-filter-val")];
-      var hide = q !== "" && !active && norm(chip.textContent).indexOf(q) === -1;
-      chip.classList.toggle("is-hidden", hide);
-      if (!hide) anyVisible = true;
-    });
-    if (teamLabel) teamLabel.classList.toggle("is-hidden", q !== "" && !anyVisible);
-    // Po zawężeniu pokaż początek paska (dopasowania są od lewej).
-    if (q !== "" && scroller) scroller.scrollLeft = 0;
   }
 
   function apply() {
@@ -176,8 +184,7 @@
   /* ----------------------- INTERAKCJE --------------------------- */
   chips.forEach(function (chip) {
     chip.addEventListener("click", function () {
-      var t = chip.getAttribute("data-filter-tax");
-      var v = chip.getAttribute("data-filter-val");
+      var t = chip.getAttribute("data-filter-tax"), v = chip.getAttribute("data-filter-val");
       if (!state.tax[t]) return;
       if (state.tax[t][v]) delete state.tax[t][v];
       else state.tax[t][v] = true;
@@ -186,40 +193,60 @@
     });
   });
 
-  if (input) {
-    input.value = state.q;
-    input.addEventListener("input", function () {
-      state.q = input.value;
-      persist();
-      syncControls();
-      applyChipSearch();
-      applyFilter();
-    });
+  function setQuery(value) {
+    state.q = value;
+    inputs.forEach(function (inp) { if (inp.value !== value) inp.value = value; });
+    persist();
+    syncControls();
+    applyChipSearch();
+    applyFilter();
   }
-
-  if (clearTextBtn) {
-    clearTextBtn.addEventListener("click", function () {
-      state.q = "";
-      if (input) { input.value = ""; input.focus(); }
-      persist();
-      syncControls();
-      applyChipSearch();
-      applyFilter();
+  inputs.forEach(function (inp) {
+    inp.value = state.q;
+    inp.addEventListener("input", function () { setQuery(inp.value); });
+  });
+  clearTextBtns.forEach(function (b) {
+    b.addEventListener("click", function () {
+      setQuery("");
+      var inp = b.parentNode ? b.parentNode.querySelector("[data-filter-search]") : null;
+      if (inp) inp.focus();
     });
-  }
+  });
 
   function resetAll() {
     state.q = "";
     TAXES.forEach(function (t) { state.tax[t] = Object.create(null); });
-    if (input) input.value = "";
+    inputs.forEach(function (inp) { inp.value = ""; });
     persist();
     apply();
   }
   resetBtns.forEach(function (b) { b.addEventListener("click", resetAll); });
 
-  /* ----------------- CHIPSY: strzałki + drag-scroll -------------
-     Port z design/components/chips-drag.js, zwężony do jednego paska. */
-  var scroller = bar.querySelector("[data-filter-chips]");
+  /* ----------------------- MODAL (mobile) ----------------------- */
+  if (modal) {
+    var openModal = function () {
+      modal.classList.add("is-open");
+      document.body.style.overflow = "hidden";
+      var inp = modal.querySelector("[data-filter-search]");
+      if (inp) setTimeout(function () { inp.focus(); }, 60);
+    };
+    var closeModal = function () {
+      modal.classList.remove("is-open");
+      document.body.style.overflow = "";
+    };
+    // Lupa otwierająca modal jest w topbarze (poza [data-filters]) — z document.
+    Array.prototype.slice.call(document.querySelectorAll("[data-filter-open]")).forEach(function (b) {
+      b.addEventListener("click", openModal);
+    });
+    Array.prototype.slice.call(bar.querySelectorAll("[data-filter-close],[data-filter-apply]")).forEach(function (b) {
+      b.addEventListener("click", closeModal);
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && modal.classList.contains("is-open")) closeModal();
+    });
+  }
+
+  /* ----------------- CHIPSY: strzałki + drag-scroll ------------- */
   if (scroller) {
     var arrows = Array.prototype.slice.call(bar.querySelectorAll("[data-filter-arrow]"));
     var syncArrows = function () {
@@ -240,7 +267,6 @@
     window.addEventListener("resize", syncArrows);
     syncArrows();
 
-    // Drag-to-scroll (desktop): chwyć i przesuń; klik tłumiony po realnym dragu.
     var DRAG = 6, down = false, dragged = false, startX = 0, startScroll = 0;
     scroller.addEventListener("mousedown", function (e) {
       if (e.button !== 0) return;
