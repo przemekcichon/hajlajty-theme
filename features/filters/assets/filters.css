@@ -84,12 +84,17 @@ body.hajlajty-has-search .topbar__inner {
 }
 .filters-search__input::placeholder { color: var(--text-faint); }
 .filters-search__input:focus { outline: none; }
+/* Precz z natywnym krzyżykiem czyszczenia <input type="search"> (biały, nie do
+   ostylowania, niespójny z frontem) — mamy własny .filters-search__clear. */
+.filters-search__input::-webkit-search-cancel-button,
+.filters-search__input::-webkit-search-decoration { -webkit-appearance: none; appearance: none; }
 .filters-search__clear {
   flex: 0 0 auto;
   width: 30px; height: 30px;
   display: grid; place-items: center;
   border-radius: var(--r-pill);
   color: var(--text-muted);
+  cursor: pointer;
   transition: background var(--t-fast), color var(--t-fast);
 }
 .filters-search__clear:hover { background: var(--surface-2); color: var(--text); }
