@@ -218,9 +218,22 @@
   }
   resetBtns.forEach(function (b) { b.addEventListener("click", resetAll); });
 
-  /* ----------------------- MODAL (mobile) ----------------------- */
+  /* ----------------------- MODAL (mobile) -----------------------
+     Pełnoekranowy dialog → pełny focus-trap: zapamiętujemy element, z którego
+     otwarto (lupa), uwięziamy Tab/Shift+Tab w modalu i przywracamy fokus przy
+     zamknięciu. Lista focusable liczona NA ŻYWO przy każdym Tab — ukryte chipy
+     (`.is-hidden`, display:none) i ukryty „×" tekstu (`[hidden]`) mają
+     offsetParent === null, więc same wypadają. */
   if (modal) {
+    var lastFocus = null;
+    var FOCUSABLE = 'a[href],button:not([disabled]),input,[tabindex]:not([tabindex="-1"])';
+    var focusables = function () {
+      return Array.prototype.slice.call(modal.querySelectorAll(FOCUSABLE)).filter(function (el) {
+        return el.offsetParent !== null; // tylko widoczne
+      });
+    };
     var openModal = function () {
+      lastFocus = document.activeElement;
       modal.classList.add("is-open");
       document.body.style.overflow = "hidden";
       var inp = modal.querySelector("[data-filter-search]");
@@ -229,6 +242,8 @@
     var closeModal = function () {
       modal.classList.remove("is-open");
       document.body.style.overflow = "";
+      if (lastFocus && typeof lastFocus.focus === "function") lastFocus.focus();
+      lastFocus = null;
     };
     // Lupa otwierająca modal jest w topbarze (poza [data-filters]) — z document.
     Array.prototype.slice.call(document.querySelectorAll("[data-filter-open]")).forEach(function (b) {
@@ -237,8 +252,17 @@
     Array.prototype.slice.call(bar.querySelectorAll("[data-filter-close],[data-filter-apply]")).forEach(function (b) {
       b.addEventListener("click", closeModal);
     });
-    document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape" && modal.classList.contains("is-open")) closeModal();
+    // Klawiatura uwięziona w modalu: Escape zamyka, Tab cyklicznie po widocznych.
+    // Listener na modalu — przy uwięzionym fokusie keydown zawsze bąbelkuje tutaj.
+    modal.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") { closeModal(); return; }
+      if (e.key !== "Tab") return;
+      var f = focusables();
+      if (!f.length) { e.preventDefault(); return; }
+      var first = f[0], last = f[f.length - 1], active = document.activeElement;
+      if (e.shiftKey && active === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && active === last) { e.preventDefault(); first.focus(); }
+      else if (f.indexOf(active) === -1) { e.preventDefault(); first.focus(); }
     });
   }
 
