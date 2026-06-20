@@ -24,3 +24,29 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 require_once __DIR__ . '/normalize.php';
 require_once __DIR__ . '/ui.php';
+
+add_action( 'wp_enqueue_scripts', 'hajlajty_filters_enqueue' );
+/**
+ * Zasoby filtra — TYLKO na widokach LIST (archiwum „mecz" + strona główna),
+ * dokładnie jak slice match-lists. Ten sam warunek z natury wyklucza single
+ * (`is_singular('mecz')`), więc na meczu paska/JS nie ma. Wzorzec 1:1 z
+ * match-lists.php: filemtime jako wersja, CSS zależny od „hajlajty-layout", JS
+ * w stopce (DOM gotowy — karty i pasek istnieją).
+ */
+function hajlajty_filters_enqueue() {
+	if ( ! is_post_type_archive( 'mecz' ) && ! is_front_page() ) {
+		return;
+	}
+
+	$css  = 'features/filters/assets/filters.css';
+	$path = get_theme_file_path( $css );
+	if ( is_readable( $path ) ) {
+		wp_enqueue_style( 'hajlajty-filters', get_theme_file_uri( $css ), array( 'hajlajty-layout' ), (string) filemtime( $path ) );
+	}
+
+	$js   = 'features/filters/assets/filters.js';
+	$path = get_theme_file_path( $js );
+	if ( is_readable( $path ) ) {
+		wp_enqueue_script( 'hajlajty-filters', get_theme_file_uri( $js ), array(), (string) filemtime( $path ), true );
+	}
+}

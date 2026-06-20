@@ -1,0 +1,204 @@
+/* ============================================================
+   HAJLAJTY — features/filters/assets/filters.css
+   ------------------------------------------------------------
+   Pasek filtra pod headerem (slice filters): pole szukania + chipsbar + reset +
+   komunikat pustego wyniku. Wygląd sportowany z designu (.chipsbar/.chips-scroll/
+   .chip/.search/.chips-arrow/.filter-pill), na tych samych tokenach co reszta
+   motywu. Zależny od hajlajty-layout (po nim w kolejce). Zero stanu w CSS — stan
+   nadaje filters.js klasami (.is-active, .is-hidden-by-filter, .is-empty-by-filter).
+============================================================ */
+
+/* ---- Pasek: lepki tuż pod topbarem, na tle strony ---- */
+.chipsbar {
+  position: sticky;
+  top: var(--topbar-h);
+  z-index: 50;
+  background: var(--bg);
+}
+.chipsbar__inner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  padding-block: var(--space-sm);
+}
+
+/* ---- Pole szukania (po drużynach) ---- */
+.filters-search {
+  width: 100%;
+  max-width: 460px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  height: 46px;
+  padding-inline: var(--space-sm) 5px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  transition: border-color var(--t-fast), background var(--t-fast);
+}
+.filters-search:focus-within { border-color: var(--accent); background: var(--bg-elev); }
+.filters-search > svg {
+  width: 20px; height: 20px; flex: 0 0 auto;
+  stroke: var(--text-muted); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+}
+.filters-search__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: none;
+  background: none;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 500;
+}
+.filters-search__input::placeholder { color: var(--text-faint); }
+.filters-search__input:focus { outline: none; }
+.filters-search__clear {
+  flex: 0 0 auto;
+  width: 30px; height: 30px;
+  display: grid; place-items: center;
+  border-radius: var(--r-pill);
+  color: var(--text-muted);
+  transition: background var(--t-fast), color var(--t-fast);
+}
+.filters-search__clear:hover { background: var(--surface-2); color: var(--text); }
+.filters-search__clear svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2.4; stroke-linecap: round; }
+.filters-search__clear[hidden] { display: none; }
+
+/* ---- Chipsbar: strzałki + przewijany pasek chipów ---- */
+.chips-wrap { position: relative; }
+.chips-scroll {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding-block: 2px;
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 28px, #000 calc(100% - 28px), transparent 100%);
+          mask-image: linear-gradient(90deg, transparent 0, #000 28px, #000 calc(100% - 28px), transparent 100%);
+}
+.chips-scroll::-webkit-scrollbar { height: 8px; }
+.chips-scroll::-webkit-scrollbar-track { background: transparent; }
+.chips-scroll::-webkit-scrollbar-thumb { background: transparent; }
+.chips-scroll:hover { scrollbar-color: var(--scrollthumb) transparent; }
+.chips-scroll:hover::-webkit-scrollbar-thumb { background: var(--scrollthumb); border-radius: var(--r-pill); }
+.chips-scroll.is-grabbing { cursor: grabbing; user-select: none; scroll-behavior: auto; }
+.chips-scroll.is-grabbing .chip { pointer-events: none; }
+
+/* Etykieta grupy taksonomii — niemy separator wewnątrz paska */
+.chips-group-label {
+  flex: 0 0 auto;
+  padding-inline: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+.chips-group-label:not(:first-child) { margin-left: var(--space-2xs); }
+
+/* ---- Chip ---- */
+.chip {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  height: 40px;
+  padding: 0 16px;
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast), transform var(--t-fast);
+}
+.chip:hover { background: var(--surface-hover); border-color: var(--border-strong); }
+.chip:active { transform: scale(0.96); }
+.chip .country-flag { flex: 0 0 auto; height: 18px; width: auto; border-radius: 2px; box-shadow: 0 0 0 0.5px rgba(0,0,0,0.10), 0 1px 2px rgba(0,0,0,0.22); }
+.chip__check {
+  width: 0; height: 16px; overflow: hidden;
+  display: inline-flex; align-items: center; opacity: 0;
+  transition: width var(--t-fast), opacity var(--t-fast);
+}
+.chip__check svg { width: 16px; height: 16px; stroke: var(--accent-ink); fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.chip.is-active { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.chip.is-active .chip__check { width: 16px; opacity: 1; }
+
+/* ---- Strzałki przewijania (desktop) ---- */
+.chips-arrow {
+  position: absolute;
+  top: 50%; transform: translateY(-50%);
+  width: 38px; height: 38px;
+  display: grid; place-items: center;
+  border-radius: var(--r-pill);
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  color: var(--text);
+  z-index: 2;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--t-fast);
+}
+.chips-arrow.is-visible { opacity: 1; pointer-events: auto; }
+.chips-arrow:hover { background: var(--surface-2); }
+.chips-arrow.prev { left: 0; }
+.chips-arrow.next { right: 0; }
+.chips-arrow svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ---- Zbiorczy reset ---- */
+.filters-reset {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 32px;
+  padding: 0 8px 0 14px;
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast), transform var(--t-fast);
+}
+.filters-reset:hover { background: var(--surface-hover); }
+.filters-reset:active { transform: scale(0.97); }
+.filters-reset[hidden] { display: none; }
+.filters-reset svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.4; stroke-linecap: round; }
+
+/* ---- Komunikat pustego wyniku ---- */
+.filters-empty {
+  margin-block: var(--space-md);
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 15px;
+}
+.filters-empty[hidden] { display: none; }
+.filters-empty__reset {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* ---- Stany filtra (nadawane przez JS) ---- */
+.is-hidden-by-filter { display: none !important; }
+.section.is-empty-by-filter { display: none; }
+
+/* ---- Mobile: strzałki bezużyteczne przy dotyku/dragu ---- */
+@media (max-width: 768px) {
+  .chips-arrow { display: none; }
+  .filters-search { max-width: none; }
+}
