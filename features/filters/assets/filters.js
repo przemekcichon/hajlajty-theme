@@ -120,7 +120,8 @@
       seen[key] = 1;
       labels.push(label(chip));
     });
-    if (state.q !== "") labels.unshift("„" + state.q + "”");
+    // Pigułka podsumowuje WYBRANE drużyny/chipy. Wpisany tekst to tylko pomoc w
+    // znalezieniu chipa — nie wchodzi do pigułki (filtrujemy po nazwach drużyn).
     pill.hidden = labels.length === 0;
     if (pillText) pillText.textContent = labels.join(", ");
   }
