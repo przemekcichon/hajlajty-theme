@@ -120,7 +120,7 @@
      Na stronie głównej/archiwum ten head i tak jest display:none — zmiana
      dotyczy wyłącznie drawera. */
   height: var(--topbar-h);
-  margin-top: calc(-1 * var(--space-sm));
+  margin-top: calc(-1 * var(--space-2xs));
   padding-inline: 0;
   margin-bottom: var(--space-sm);
 }
