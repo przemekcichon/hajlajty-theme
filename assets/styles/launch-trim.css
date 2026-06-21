@@ -1,0 +1,63 @@
+/* ============================================================
+   HAJLAJTY — assets/styles/launch-trim.css
+   ------------------------------------------------------------
+   Trim launchowy (MVP-a): kosmetyka pod launch BEZ konta/edytora.
+   CAŁY plik jest TYMCZASOWY — znika, gdy ruszy wtyczka hajlajty-user.
+   Tylko reguły ukrycia (display:none) + styl boksu-teasera „wkrótce".
+   Markup pozostaje nietknięty (afordancje wracają bez przepisywania).
+   Wszystko na tokenach motywu (tokens.css), spójnie z layout.css.
+============================================================ */
+
+/* (2) Schowane afordancje konta — ikona „Profil" w topbarze + akcje kibica
+   (fav/„Przypomnij mi") na single. SCHOWANE, nie usunięte: wracają z
+   hajlajty-user przez samo skasowanie tych reguł.
+   `.hf-actions` przez przodka `.shell` — match-single.css ma `.hf-actions{
+   display:flex}` o RÓWNEJ specyficzności i ładuje się PO tym pliku (slice
+   match-display po layout), więc `.shell` podbija kaskadę bez `!important`. */
+.topbar__right .icon-btn[aria-label="Profil"],
+.shell .hf-actions {
+  display: none;
+}
+
+/* (3) Boks-teaser „wkrótce" — sekcja „Twoje" do czasu hajlajty-user.
+   Markup: features/layout/partials/coming-soon.php. */
+.coming-soon {
+  margin: 0 var(--space-sm);
+  padding: var(--space-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+}
+
+.coming-soon__badge {
+  align-self: flex-start;
+  padding: var(--space-3xs) var(--space-2xs);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  border-radius: var(--r-pill);
+}
+
+[data-theme="dark"] .coming-soon__badge {
+  color: var(--accent);
+}
+
+.coming-soon__title {
+  margin: var(--space-3xs) 0 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.coming-soon__text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}

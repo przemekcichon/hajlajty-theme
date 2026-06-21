@@ -50,10 +50,10 @@ $hajlajty_nav_active = static function ( $match ) use ( $hajlajty_is_archive, $h
 		<a class="nav-link" href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3a14 14 0 0 0 0 18M12 3a14 14 0 0 1 0 18M3 12h18"/></svg> Reprezentacje</a>
 	</nav>
 
-	<nav class="sidebar__group">
-		<p class="sidebar__label">Twoje</p>
-		<a class="nav-link" href="#"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg> Obserwowane</a>
-		<a class="nav-link" href="#"><svg viewBox="0 0 24 24"><path d="M12 20.5 4.2 12.7a4.7 4.7 0 0 1 6.6-6.6l1.2 1.2 1.2-1.2a4.7 4.7 0 0 1 6.6 6.6z"/></svg> Ulubione</a>
-		<a class="nav-link" href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 12a7.4 7.4 0 0 0-.1-1.2l2-1.5-2-3.4-2.3 1a7.3 7.3 0 0 0-2-1.2L16.6 2h-4l-.4 2.5a7.3 7.3 0 0 0-2 1.2l-2.3-1-2 3.4 2 1.5a7.4 7.4 0 0 0 0 2.4l-2 1.5 2 3.4 2.3-1a7.3 7.3 0 0 0 2 1.2l.4 2.5h4l.4-2.5a7.3 7.3 0 0 0 2-1.2l2.3 1 2-3.4-2-1.5c.07-.4.1-.8.1-1.2z"/></svg> Ustawienia</a>
-	</nav>
+	<?php
+	// Grupa „Twoje" (Obserwowane/Ulubione/Ustawienia) zastąpiona boksem-teaserem
+	// „wkrótce" do czasu hajlajty-user (MVP-a, trim launchowy). Linki wracają, gdy
+	// powstanie konto — wtedy ten partial znika.
+	get_template_part( 'features/layout/partials/coming-soon' );
+	?>
 </aside>

@@ -35,6 +35,9 @@ function hajlajty_layout_enqueue() {
 		'hajlajty-tokens' => array( 'assets/styles/tokens.css', array() ),
 		'hajlajty-base'   => array( 'assets/styles/base.css', array( 'hajlajty-tokens' ) ),
 		'hajlajty-layout' => array( 'assets/styles/layout.css', array( 'hajlajty-base' ) ),
+		// Trim launchowy (MVP-a) — TYMCZASOWY: ukrycie afordancji konta + boks
+		// „wkrótce". Po hajlajty-user usuwamy plik i ten wpis. Po layout (tokeny gotowe).
+		'hajlajty-launch-trim' => array( 'assets/styles/launch-trim.css', array( 'hajlajty-layout' ) ),
 	);
 	foreach ( $styles as $handle => $def ) {
 		$path = get_theme_file_path( $def[0] );
