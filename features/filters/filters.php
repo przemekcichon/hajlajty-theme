@@ -47,14 +47,14 @@ function hajlajty_filters_body_class( $classes ) {
 
 add_action( 'wp_enqueue_scripts', 'hajlajty_filters_enqueue' );
 /**
- * Zasoby filtra — TYLKO na widokach LIST (archiwum „mecz" + strona główna),
- * dokładnie jak slice match-lists. Ten sam warunek z natury wyklucza single
- * (`is_singular('mecz')`), więc na meczu paska/JS nie ma. Wzorzec 1:1 z
- * match-lists.php: filemtime jako wersja, CSS zależny od „hajlajty-layout", JS
- * w stopce (DOM gotowy — karty i pasek istnieją).
+ * Zasoby filtra — TYLKO na widokach LIST (archiwum „mecz", strona główna,
+ * terminarz MVP-c), dokładnie jak slice match-lists. Gate przez wspólny predykat
+ * `hajlajty_filters_is_list_view()` (jedno źródło prawdy „to lista"), który z
+ * natury wyklucza single. Wzorzec 1:1 z match-lists.php: filemtime jako wersja,
+ * CSS zależny od „hajlajty-layout", JS w stopce (DOM gotowy — karty i pasek istnieją).
  */
 function hajlajty_filters_enqueue() {
-	if ( ! is_post_type_archive( 'mecz' ) && ! is_front_page() ) {
+	if ( ! hajlajty_filters_is_list_view() ) {
 		return;
 	}
 
