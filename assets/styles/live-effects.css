@@ -1,0 +1,63 @@
+/* ============================================================
+   HAJLAJTY — assets/styles/live-effects.css
+   ------------------------------------------------------------
+   Efekty REALNYCH zdarzeń na single LIVE (MVP-b). Klasy stanu nadaje
+   live-refresh.js po wykryciu PRZYROSTU między pollami fragmentu (3e-iii):
+   gol → golPop (oś) + scoreBump (telebim), kartka → cardFlip, zmiana → sub.
+   Bez symulacji/`data-demo` — animuje się TYLKO nowe zdarzenie w trakcie sesji
+   live (baseline z pierwszego renderu nie animuje historii).
+
+   Warstwa czysto dekoracyjna nakładana na ISTNIEJĄCY markup fragmentu (jedno
+   źródło znacznika). Keyframes portowane z prototypu „Mecz na Żywo", na tokenach.
+   prefers-reduced-motion: animacje wyłączone (podmiana fragmentu działa dalej).
+============================================================ */
+
+/* scoreBump — liczba bramek na telebimie po realnym golu. */
+@keyframes hajlajty-score-bump {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.35); color: var(--accent); }
+  100% { transform: scale(1); }
+}
+.board__nums .n.is-bump {
+  animation: hajlajty-score-bump 600ms var(--ease, ease) both;
+}
+
+/* golPop — węzeł nowego gola na osi czasu. */
+@keyframes hajlajty-gol-pop {
+  0%   { transform: scale(0.5) rotate(-5deg); opacity: 0; }
+  55%  { transform: scale(1.1) rotate(2deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0); }
+}
+.tl-item.is-ev-goal .tl-node {
+  animation: hajlajty-gol-pop 600ms var(--ease, ease) both;
+}
+
+/* cardFlip — węzeł nowej kartki na osi czasu. */
+@keyframes hajlajty-card-flip {
+  0%   { transform: rotate(-20deg) translateY(-28px) scale(0.7); opacity: 0; }
+  60%  { transform: rotate(7deg) scale(1.06); opacity: 1; }
+  100% { transform: rotate(0) scale(1); }
+}
+.tl-item.is-ev-card .tl-node {
+  animation: hajlajty-card-flip 600ms var(--ease, ease) both;
+}
+
+/* efekt zmiany — węzeł nowej zmiany (⇄) na osi czasu. */
+@keyframes hajlajty-sub-pop {
+  0%   { transform: scale(0.6) rotate(-180deg); opacity: 0; }
+  60%  { transform: scale(1.08) rotate(8deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0); }
+}
+.tl-item.is-ev-sub .tl-node {
+  animation: hajlajty-sub-pop 600ms var(--ease, ease) both;
+}
+
+/* Dekoracyjne — wyłączamy przy prefers-reduced-motion (podmiana fragmentu OK). */
+@media (prefers-reduced-motion: reduce) {
+  .board__nums .n.is-bump,
+  .tl-item.is-ev-goal .tl-node,
+  .tl-item.is-ev-card .tl-node,
+  .tl-item.is-ev-sub .tl-node {
+    animation: none;
+  }
+}

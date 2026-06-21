@@ -55,10 +55,24 @@ function hajlajty_match_display_enqueue() {
 	// match-display.js (re-animacja statystyk po podmianie fragmentu).
 	$short = (string) get_post_meta( get_queried_object_id(), 'status', true );
 	if ( in_array( $short, hajlajty_status_live_codes(), true ) ) {
+		// Efekty realnych zdarzeń (MVP-b) — tylko gdy live; klasy stanu nadaje poller.
+		$live_css  = 'assets/styles/live-effects.css';
+		$live_cssp = get_theme_file_path( $live_css );
+		if ( is_readable( $live_cssp ) ) {
+			wp_enqueue_style( 'hajlajty-live-effects', get_theme_file_uri( $live_css ), array( 'hajlajty-match-single' ), (string) filemtime( $live_cssp ) );
+		}
+
+		// Czysta logika wykrywania przyrostu (testowalna, bez DOM) — zależność pollera.
+		$detect_js   = 'assets/js/live-detect.js';
+		$detect_path = get_theme_file_path( $detect_js );
+		if ( is_readable( $detect_path ) ) {
+			wp_enqueue_script( 'hajlajty-live-detect', get_theme_file_uri( $detect_js ), array(), (string) filemtime( $detect_path ), true );
+		}
+
 		$live_js   = 'assets/js/live-refresh.js';
 		$live_path = get_theme_file_path( $live_js );
 		if ( is_readable( $live_path ) ) {
-			wp_enqueue_script( 'hajlajty-live-refresh', get_theme_file_uri( $live_js ), array( 'hajlajty-match-display' ), (string) filemtime( $live_path ), true );
+			wp_enqueue_script( 'hajlajty-live-refresh', get_theme_file_uri( $live_js ), array( 'hajlajty-match-display', 'hajlajty-live-detect' ), (string) filemtime( $live_path ), true );
 		}
 	}
 }
