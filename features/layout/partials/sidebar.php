@@ -2,8 +2,11 @@
 /**
  * Partial powłoki: sidebar off-canvas + nawigacja. Linki list (Na żywo /
  * Zapowiedzi / Skróty) prowadzą do realnych archiwów 3d (slice match-lists).
- * Sekcje „Mundial 2026" i „Twoje" pozostają placeholderami '#' (Faza 4+).
- * Strona główna kieruje do home_url. Markup/klasy 1:1 z monolitem.
+ * „Terminarz turnieju" (MVP-c) wskazuje na Stronę z szablonem
+ * `template-terminarz.php` — URL rozwiązywany DYNAMICZNIE (nie po slug-u);
+ * dopóki Strony nie ma, link zostaje '#'. „Tabele grup"/„Reprezentacje" i grupa
+ * „Twoje" pozostają placeholderami (Faza MVP-e/g / hajlajty-user). Strona główna
+ * kieruje do home_url. Markup/klasy 1:1 z monolitem.
  *
  * Stan aktywny (.is-active) liczony z bieżącego widoku: strona główna albo
  * archiwum „mecz" wg query var `hajlajty_lista` (live/zapowiedzi/skroty).
@@ -24,6 +27,23 @@ $hajlajty_nav_active = static function ( $match ) use ( $hajlajty_is_archive, $h
 		: ( $hajlajty_is_archive && $hajlajty_lista === $match );
 	return $on ? ' is-active' : '';
 };
+
+// URL „Terminarz turnieju" (MVP-c) — Strona z szablonem template-terminarz.php.
+// Rozwiązujemy po SZABLONIE (nie po slug-u): link działa niezależnie od tego, jaki
+// slug nada redaktor. Brak takiej Strony → '' → link zostaje '#'.
+$hajlajty_terminarz_url   = '';
+$hajlajty_terminarz_pages = get_pages(
+	array(
+		'meta_key'    => '_wp_page_template',
+		'meta_value'  => 'template-terminarz.php',
+		'number'      => 1,
+		'post_status' => 'publish',
+	)
+);
+if ( ! empty( $hajlajty_terminarz_pages ) ) {
+	$hajlajty_terminarz_url = (string) get_permalink( $hajlajty_terminarz_pages[0]->ID );
+}
+$hajlajty_terminarz_active = is_page_template( 'template-terminarz.php' ) ? ' is-active' : '';
 ?>
 <aside class="sidebar" id="sidebar" aria-label="Menu główne">
 	<div class="sidebar__head">
@@ -45,7 +65,11 @@ $hajlajty_nav_active = static function ( $match ) use ( $hajlajty_is_archive, $h
 
 	<nav class="sidebar__group">
 		<p class="sidebar__label">Mundial 2026</p>
-		<a class="nav-link" href="#"><svg viewBox="0 0 24 24"><path d="M6 4h12v3a6 6 0 0 1-12 0z"/><path d="M9 14h6M10 14v4M14 14v4M8 21h8"/></svg> Terminarz turnieju</a>
+		<?php if ( '' !== $hajlajty_terminarz_url ) : ?>
+			<a class="nav-link<?php echo esc_attr( $hajlajty_terminarz_active ); ?>" href="<?php echo esc_url( $hajlajty_terminarz_url ); ?>"><svg viewBox="0 0 24 24"><path d="M6 4h12v3a6 6 0 0 1-12 0z"/><path d="M9 14h6M10 14v4M14 14v4M8 21h8"/></svg> Terminarz turnieju</a>
+		<?php else : ?>
+			<a class="nav-link" href="#"><svg viewBox="0 0 24 24"><path d="M6 4h12v3a6 6 0 0 1-12 0z"/><path d="M9 14h6M10 14v4M14 14v4M8 21h8"/></svg> Terminarz turnieju</a>
+		<?php endif; ?>
 		<a class="nav-link" href="#"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg> Tabele grup</a>
 		<a class="nav-link" href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3a14 14 0 0 0 0 18M12 3a14 14 0 0 1 0 18M3 12h18"/></svg> Reprezentacje</a>
 	</nav>
