@@ -58,8 +58,15 @@ $terminarz_query = new WP_Query(
 	)
 );
 ?>
-<div class="section__head">
-	<h1 class="section__title"><span class="kicker-dot"></span> Terminarz turnieju</h1>
+<div class="page-head">
+	<span class="page-head__eyebrow"><span class="dot"></span> Mundial 2026 · Kanada · Meksyk · USA</span>
+	<h1 class="page-head__title">Terminarz turnieju</h1>
+	<p class="page-head__sub">Pełny kalendarz spotkań dzień po dniu — rozegrane mecze ze skrótami, transmisje na żywo oraz nadchodzące zapowiedzi z odliczaniem do pierwszego gwizdka.</p>
+	<div class="legend">
+		<span class="legend__item"><span class="legend__dot skrot"></span> Rozegrane · skrót wideo</span>
+		<span class="legend__item"><span class="legend__dot live"></span> Trwa na żywo</span>
+		<span class="legend__item"><span class="legend__dot soon"></span> Nadchodzące · odliczanie</span>
+	</div>
 </div>
 
 <?php if ( ! $terminarz_query->have_posts() ) : ?>

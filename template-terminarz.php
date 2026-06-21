@@ -27,9 +27,7 @@ if ( function_exists( 'hajlajty_filters_render_bar' ) ) {
 }
 ?>
 <main class="container">
-	<section class="section">
-		<?php get_template_part( 'features/match-lists/partials/terminarz' ); ?>
-	</section>
+	<?php get_template_part( 'features/match-lists/partials/terminarz' ); ?>
 </main>
 <?php
 get_template_part( 'features/layout/partials/footer' );
