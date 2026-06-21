@@ -12,16 +12,17 @@
  *  - karta per stan przez `hajlajty_lookup_status()` (LIVE/ZAPOWIEDZ/ZAKONCZONY/
  *    ODWOLANY) — istniejące partiale + nowa card-wynik dla FT-bez-wideo i odwołanych.
  *
- * Grupowanie (decyzja MVP-c #2): klucz dnia = `substr(kickoff,0,10)` z PŁASKIEJ
- * meta `kickoff` (UTC). Nagłówek dnia formatujemy też w UTC (wp_date z tz UTC),
- * żeby etykieta == klucz grupy (mecz nie wpada pod nagłówek innego dnia). Czas na
- * kartach pozostaje w strefie PL (jak na listach) — świadoma różnica przy meczach
- * blisko północy UTC.
+ * Grupowanie (decyzja MVP-c #2, REWIZJA): klucz dnia = LOKALNA data PL. Surową
+ * meta `kickoff` (UTC `Y-m-d H:i:s`) przeliczamy do strefy serwisu `wp_timezone()`
+ * (PL = UTC+2 latem) i bierzemy `Y-m-d`. Dzięki temu dzień nagłówka == dzień, który
+ * polski widz widzi na karcie (karty też pokazują czas PL). Wieczorny mecz w
+ * Amerykach (rano UTC dnia+1) trafia pod właściwy polski dzień. Etykieta przez
+ * `wp_date` (też PL) — spójna z kluczem.
  *
  * Filtr: terminarz JEST listą (slice filters renderuje pasek/szukajkę, body class
  * i JS — gate poszerzony predykatem). Karty niosą `data-*` filtra; siatki dnia są
- * `[data-filterable]`, a sekcje mają klasę `.section`, więc pusty po filtrze dzień
- * znika natywnie (`.section.is-empty-by-filter`).
+ * `[data-filterable]`, a sekcja dnia ma `data-filter-section`, po którym filters.js
+ * ukrywa pusty po filtrze dzień (`[data-filter-section].is-empty-by-filter`).
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -83,34 +84,39 @@ endif;
 $terminarz_post_ids = wp_list_pluck( $terminarz_query->posts, 'ID' );
 $terminarz_resolved = hajlajty_match_lists_resolve_terms( $terminarz_post_ids );
 
-// Grupowanie po dniu (UTC). PHP zachowuje kolejność wstawiania → dni rosnąco.
-$terminarz_days = array(); // 'Y-m-d' => array( 'ts' => int, 'ids' => int[] )
+// Grupowanie po LOKALNYM dniu PL (wp_timezone). PHP zachowuje kolejność wstawiania,
+// a posty są już sort ASC po kickoffie → dni rosnąco.
+$terminarz_tz   = wp_timezone(); // Strefa serwisu (PL = Europe/Warsaw, UTC+2 latem).
+$terminarz_days = array();       // 'Y-m-d' (PL) => array( 'ts' => int, 'ids' => int[] )
 foreach ( $terminarz_post_ids as $terminarz_pid ) {
 	$terminarz_pid = (int) $terminarz_pid;
 	$terminarz_raw = (string) get_post_meta( $terminarz_pid, 'kickoff', true );
 	if ( '' === $terminarz_raw ) {
 		continue; // Teoretycznie niemożliwe (meta_query EXISTS), ale bezpiecznie.
 	}
-	$terminarz_key = substr( $terminarz_raw, 0, 10 );
+	// kickoff jest w UTC → przeliczamy do strefy PL i grupujemy po lokalnej dacie.
+	$terminarz_dt = date_create_immutable( $terminarz_raw, new DateTimeZone( 'UTC' ) );
+	if ( ! $terminarz_dt ) {
+		continue;
+	}
+	$terminarz_dt  = $terminarz_dt->setTimezone( $terminarz_tz );
+	$terminarz_key = $terminarz_dt->format( 'Y-m-d' );
 	if ( ! isset( $terminarz_days[ $terminarz_key ] ) ) {
-		$terminarz_dt = date_create_immutable( $terminarz_raw, new DateTimeZone( 'UTC' ) );
 		$terminarz_days[ $terminarz_key ] = array(
-			'ts'  => $terminarz_dt ? $terminarz_dt->getTimestamp() : 0,
+			'ts'  => $terminarz_dt->getTimestamp(), // Instant (epoch) — wp_date sformatuje w PL.
 			'ids' => array(),
 		);
 	}
 	$terminarz_days[ $terminarz_key ]['ids'][] = $terminarz_pid;
 }
 
-$terminarz_today = gmdate( 'Y-m-d' ); // Dzień bieżący w UTC (spójny z kluczem grupy).
+$terminarz_today = wp_date( 'Y-m-d' ); // Dzień bieżący w strefie PL (spójny z kluczem grupy).
 
 foreach ( $terminarz_days as $terminarz_key => $terminarz_day ) :
-	$terminarz_label = $terminarz_day['ts']
-		? wp_date( 'l, j F Y', $terminarz_day['ts'], new DateTimeZone( 'UTC' ) )
-		: $terminarz_key;
+	$terminarz_label = wp_date( 'l, j F Y', $terminarz_day['ts'] ); // PL (strefa serwisu, dopełniacz).
 	$terminarz_is_today = ( $terminarz_key === $terminarz_today );
 	?>
-	<section class="schedule-day section" data-day="<?php echo esc_attr( $terminarz_key ); ?>">
+	<section class="schedule-day" data-day="<?php echo esc_attr( $terminarz_key ); ?>" data-filter-section>
 		<div class="schedule-day__head">
 			<h2 class="schedule-section__title"><?php echo esc_html( $terminarz_label ); ?></h2>
 			<span class="schedule-day__count"><?php echo esc_html( hajlajty_terminarz_count_label( count( $terminarz_day['ids'] ) ) ); ?></span>
