@@ -110,9 +110,10 @@ $anchor    = static function ( $id ) use ( $post_id, $live_attr ) {
 					<span class="nm"><?php echo esc_html( $home_name ); ?></span>
 				</div>
 				<div class="board__nums">
-					<span class="n"><?php echo esc_html( null === $goals_home ? '–' : $goals_home ); ?></span>
+					<?php // data-side: hook dla scoreBump (MVP-b) — poller porównuje wartość przed/po. ?>
+					<span class="n" data-side="home"><?php echo esc_html( null === $goals_home ? '–' : $goals_home ); ?></span>
 					<span class="sep">:</span>
-					<span class="n"><?php echo esc_html( null === $goals_away ? '–' : $goals_away ); ?></span>
+					<span class="n" data-side="away"><?php echo esc_html( null === $goals_away ? '–' : $goals_away ); ?></span>
 				</div>
 				<div class="board__team">
 					<?php if ( '' !== $away_flag ) : ?><img class="country-flag" src="<?php echo esc_url( $away_flag ); ?>" alt="" /><?php endif; ?>
@@ -184,6 +185,19 @@ $anchor    = static function ( $id ) use ( $post_id, $live_attr ) {
 						$is_goal = in_array( $item['key'], array( 'goal', 'penalty_goal', 'own_goal', 'missed_penalty' ), true );
 						$is_sub  = ( 'subst' === $item['key'] );
 
+						// MVP-b: sygnatura zdarzenia (stabilna, z danych już renderowanych) —
+						// poller wykrywa PRZYROST między pollami i animuje tylko nowe zdarzenia.
+						// player_id nie ma w timeline, więc nazwa gracza dopina unikalność.
+						$ev_sig  = $item['key'] . '|' . $side . '|' . ( $item['minute'] ?? '' ) . '|' . ( $item['extra'] ?? '' ) . '|' . ( $item['player'] ?? '' );
+						$ev_kind = '';
+						if ( in_array( $item['key'], array( 'goal', 'penalty_goal', 'own_goal' ), true ) ) {
+							$ev_kind = 'goal'; // golPop + scoreBump (missed_penalty: bez efektu).
+						} elseif ( in_array( $item['key'], array( 'yellow', 'red', 'second_yellow' ), true ) ) {
+							$ev_kind = 'card'; // cardFlip.
+						} elseif ( 'subst' === $item['key'] ) {
+							$ev_kind = 'sub'; // efekt zmiany.
+						}
+
 						if ( $is_sub ) {
 							$title = $item['label'] . ' — ' . $tname;
 						} elseif ( ! empty( $item['player'] ) ) {
@@ -192,7 +206,7 @@ $anchor    = static function ( $id ) use ( $post_id, $live_attr ) {
 							$title = $item['label'];
 						}
 						?>
-						<div class="tl-item">
+						<div class="tl-item" data-ev="<?php echo esc_attr( $ev_sig ); ?>"<?php echo '' !== $ev_kind ? ' data-ev-kind="' . esc_attr( $ev_kind ) . '"' : ''; ?>>
 							<span class="tl-min"><?php echo esc_html( $min_txt( $item ) ); ?></span>
 							<span class="tl-rail"><span class="tl-node<?php echo $item['counts'] ? ' is-goal' : ''; ?>"><?php echo $event_icon( $item['key'] ); // phpcs:ignore — statyczne emoji ?></span></span>
 							<div class="tl-content">
