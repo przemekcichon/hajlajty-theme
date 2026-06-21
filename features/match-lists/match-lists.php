@@ -177,17 +177,61 @@ function hajlajty_match_lists_pre_get_posts( $q ) {
 }
 
 /* ============================================================
+   1c. TERMINARZ — predykat widoku (MVP-c).
+============================================================ */
+
+/**
+ * Czy bieżący widok to strona „Terminarz turnieju" (Page Template MVP-c)?
+ *
+ * Terminarz to KOLEJNA lista meczów tego slice'a (reużywa kart + resolvera +
+ * atrybutów filtra), ale żyje jako Strona z szablonem `template-terminarz.php`
+ * — nie jako archiwum CPT. Predykat jest WSPÓLNYM źródłem prawdy „to terminarz"
+ * dla gate'ów enqueue (tu) i widoku list (slice filters konsumuje przez
+ * function_exists — luźne sprzężenie, bez twardej zależności na ten slice).
+ *
+ * Szablon MUSI leżeć w roocie motywu: WP skanuje szablony stron z głębokością 1
+ * (`WP_Theme::get_post_templates()` → `get_files('php',1)`), więc plik w
+ * podkatalogu slice'a (features/match-lists/) nie zostałby wykryty. Stąd
+ * `template-terminarz.php` w roocie, a logika listy w partialu tego slice'a
+ * (vertical slice zachowany).
+ *
+ * @return bool
+ */
+function hajlajty_match_lists_is_terminarz(): bool {
+	return is_page_template( 'template-terminarz.php' );
+}
+
+add_filter( 'body_class', 'hajlajty_match_lists_terminarz_body_class' );
+/**
+ * Znacznik body „to terminarz" — włącza pełnoekranową powłokę z TRWAŁYM sidebarem
+ * (desktop ≥1100px) tak jak home/archiwa. Slice match-lists JEST właścicielem
+ * wiedzy „to terminarz"; layout.css tylko KONSUMUJE klasę (`body.hajlajty-terminarz`),
+ * spójnie z `body.home`/`body.post-type-archive`. Bez tego Page Template dostałby
+ * domyślny drawer (sidebar schowany) — patrz layout.css „WIDOKI Z TRWAŁYM MENU".
+ *
+ * @param string[] $classes Klasy body.
+ * @return string[] Klasy body (z `hajlajty-terminarz` na stronie terminarza).
+ */
+function hajlajty_match_lists_terminarz_body_class( $classes ) {
+	if ( hajlajty_match_lists_is_terminarz() ) {
+		$classes[] = 'hajlajty-terminarz';
+	}
+	return $classes;
+}
+
+/* ============================================================
    1d. ENQUEUE — CSS kart + JS odliczania, tylko gdzie potrzeba.
    Wzorzec 1:1 z match-display.php (filemtime, dep 'hajlajty-layout').
 ============================================================ */
 
 add_action( 'wp_enqueue_scripts', 'hajlajty_match_lists_enqueue' );
 /**
- * Zasoby LIST — tylko na archiwum „mecz" i stronie głównej (nie obciążają reszty).
- * CSS sportowany z designu do assets/styles/ motywu (NIE ładujemy z design/).
+ * Zasoby LIST — archiwum „mecz", strona główna ORAZ terminarz (MVP-c reużywa te
+ * same karty, więc potrzebuje tych samych stylów). CSS sportowany z designu do
+ * assets/styles/ motywu (NIE ładujemy z design/).
  */
 function hajlajty_match_lists_enqueue() {
-	if ( ! is_post_type_archive( 'mecz' ) && ! is_front_page() ) {
+	if ( ! is_post_type_archive( 'mecz' ) && ! is_front_page() && ! hajlajty_match_lists_is_terminarz() ) {
 		return;
 	}
 
@@ -205,6 +249,16 @@ function hajlajty_match_lists_enqueue() {
 			continue;
 		}
 		wp_enqueue_style( $handle, get_theme_file_uri( $def[0] ), $def[1], (string) filemtime( $path ) );
+	}
+
+	// Layout terminarza (sekcje dni + siatka + karta wyniku) — TYLKO na tej stronie.
+	// Zależny od match-lists.css (dziedziczy chrome kart) i layoutu (tokeny).
+	if ( hajlajty_match_lists_is_terminarz() ) {
+		$ter  = 'assets/styles/terminarz.css';
+		$path = get_theme_file_path( $ter );
+		if ( is_readable( $path ) ) {
+			wp_enqueue_style( 'hajlajty-terminarz', get_theme_file_uri( $ter ), array( 'hajlajty-match-lists', 'hajlajty-layout' ), (string) filemtime( $path ) );
+		}
 	}
 
 	$js   = 'assets/js/match-lists.js';

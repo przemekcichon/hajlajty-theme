@@ -205,7 +205,10 @@ body.hajlajty-has-search .topbar__inner {
 
 /* ---- Stany filtra (nadawane przez JS) ---- */
 .is-hidden-by-filter { display: none !important; }
-.section.is-empty-by-filter { display: none; }
+/* Pusta-po-filtrze sekcja: .section (home/archiwa) lub jawny [data-filter-section]
+   (terminarz: sekcja dnia — bez piggybacku na .section). JS toggluje na closest. */
+.section.is-empty-by-filter,
+[data-filter-section].is-empty-by-filter { display: none; }
 /* Zawężanie chipów drużyn wpisanym tekstem (żeby szukana drużyna była od razu
    widoczna, bez scrollowania paska). */
 .chip.is-hidden { display: none; }

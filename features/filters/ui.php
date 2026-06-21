@@ -24,9 +24,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-/** Czy bieżący widok to publiczna LISTA meczów (home albo archiwum „mecz"). */
+/**
+ * Czy bieżący widok to publiczna LISTA meczów (home, archiwum „mecz" albo
+ * terminarz MVP-c). Terminarz to Strona z Page Template należąca do slice'a
+ * match-lists — pytamy o nią przez function_exists (luźne sprzężenie: filters
+ * nie zależy twardo od match-lists, tylko konsumuje predykat gdy obecny).
+ */
 function hajlajty_filters_is_list_view(): bool {
-	return is_post_type_archive( 'mecz' ) || is_front_page();
+	return is_post_type_archive( 'mecz' )
+		|| is_front_page()
+		|| ( function_exists( 'hajlajty_match_lists_is_terminarz' ) && hajlajty_match_lists_is_terminarz() );
 }
 
 /**

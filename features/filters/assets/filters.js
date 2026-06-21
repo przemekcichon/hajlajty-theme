@@ -164,7 +164,9 @@
         if (show) visible++;
       });
       totalVisible += visible;
-      var section = container.closest(".section");
+      // Sekcję-do-ukrycia bierzemy po jawnym [data-filter-section] (terminarz: dzień),
+      // a w jego braku po .section (home/archiwa) — wstecznie zgodne, bez zmian dla list.
+      var section = container.closest("[data-filter-section], .section");
       if (section) section.classList.toggle("is-empty-by-filter", active && visible === 0);
     });
     if (emptyMsg) emptyMsg.hidden = !(active && totalVisible === 0);
