@@ -187,8 +187,10 @@ $anchor    = static function ( $id ) use ( $post_id, $live_attr ) {
 
 						// MVP-b: sygnatura zdarzenia (stabilna, z danych już renderowanych) —
 						// poller wykrywa PRZYROST między pollami i animuje tylko nowe zdarzenia.
-						// player_id nie ma w timeline, więc nazwa gracza dopina unikalność.
-						$ev_sig  = $item['key'] . '|' . $side . '|' . ( $item['minute'] ?? '' ) . '|' . ( $item['extra'] ?? '' ) . '|' . ( $item['player'] ?? '' );
+						// Tożsamość: player_id (pewny, bez kolizji nazw/separatora); fallback na
+						// nazwę gdy brak id (np. VAR — i tak bez efektu).
+						$ev_who  = ( null !== ( $item['player_id'] ?? null ) ) ? (string) $item['player_id'] : (string) ( $item['player'] ?? '' );
+						$ev_sig  = $item['key'] . '|' . $side . '|' . ( $item['minute'] ?? '' ) . '|' . ( $item['extra'] ?? '' ) . '|' . $ev_who;
 						$ev_kind = '';
 						if ( in_array( $item['key'], array( 'goal', 'penalty_goal', 'own_goal' ), true ) ) {
 							$ev_kind = 'goal'; // golPop + scoreBump (missed_penalty: bez efektu).

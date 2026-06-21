@@ -123,17 +123,18 @@ function hajlajty_build_timeline( $events ): array {
 		}
 
 		$out[] = array(
-			'minute'  => $ev['minute'] ?? null,
-			'extra'   => $ev['extra'] ?? null,
-			'side'    => $side,
-			'type'    => $type,
-			'detail'  => $detail,
-			'key'     => $key,
-			'label'   => $meta['label'],
-			'player'  => $ev['player'] ?? null,
-			'assist'  => $ev['assist'] ?? null,
-			'score'   => $score,   // narastający wynik tylko przy liczących golach
-			'counts'  => $counts,  // czy to liczący gol (render: węzeł „is-goal")
+			'minute'    => $ev['minute'] ?? null,
+			'extra'     => $ev['extra'] ?? null,
+			'side'      => $side,
+			'type'      => $type,
+			'detail'    => $detail,
+			'key'       => $key,
+			'label'     => $meta['label'],
+			'player'    => $ev['player'] ?? null,
+			'player_id' => $ev['player_id'] ?? null, // stabilny identyfikator (sygnatura efektu MVP-b)
+			'assist'    => $ev['assist'] ?? null,
+			'score'     => $score,   // narastający wynik tylko przy liczących golach
+			'counts'    => $counts,  // czy to liczący gol (render: węzeł „is-goal")
 		);
 	}
 
