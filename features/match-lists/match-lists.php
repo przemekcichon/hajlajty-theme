@@ -201,6 +201,24 @@ function hajlajty_match_lists_is_terminarz(): bool {
 	return is_page_template( 'template-terminarz.php' );
 }
 
+add_filter( 'body_class', 'hajlajty_match_lists_terminarz_body_class' );
+/**
+ * Znacznik body „to terminarz" — włącza pełnoekranową powłokę z TRWAŁYM sidebarem
+ * (desktop ≥1100px) tak jak home/archiwa. Slice match-lists JEST właścicielem
+ * wiedzy „to terminarz"; layout.css tylko KONSUMUJE klasę (`body.hajlajty-terminarz`),
+ * spójnie z `body.home`/`body.post-type-archive`. Bez tego Page Template dostałby
+ * domyślny drawer (sidebar schowany) — patrz layout.css „WIDOKI Z TRWAŁYM MENU".
+ *
+ * @param string[] $classes Klasy body.
+ * @return string[] Klasy body (z `hajlajty-terminarz` na stronie terminarza).
+ */
+function hajlajty_match_lists_terminarz_body_class( $classes ) {
+	if ( hajlajty_match_lists_is_terminarz() ) {
+		$classes[] = 'hajlajty-terminarz';
+	}
+	return $classes;
+}
+
 /* ============================================================
    1d. ENQUEUE — CSS kart + JS odliczania, tylko gdzie potrzeba.
    Wzorzec 1:1 z match-display.php (filemtime, dep 'hajlajty-layout').
