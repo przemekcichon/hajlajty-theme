@@ -9,9 +9,12 @@
  * MVP-d (Mundial 2026: term „rozgrywki" #3, league_id=1, meta standings_2026).
  * Wzór: tests/3a-helpers.eval.php.
  *
- * Wartości oczekiwane wynikają z potwierdzonego runtime (12 grup A–L po 4 drużyny;
- * Polska = term drużyny api_id 24, fifa POL). Jeśli dane sezonu się zmienią,
- * dostosuj stałe na górze.
+ * Wartości oczekiwane wynikają z potwierdzonego runtime (12 grup A–L po 4 drużyny).
+ * UWAGA: standings zawiera 48 drużyn DANEGO turnieju z api-football, a nie pełny
+ * roster serwisu — np. Polska (api_id 24) jest zaseedowana, lecz NIE występuje w
+ * próbce WŚ 2026. Dlatego batch-resolver testujemy na INWARIANTACH (brak luk,
+ * kluczowanie po api_id), nie na obecności konkretnej drużyny. Jeśli dane sezonu
+ * się zmienią, dostosuj stałe na górze.
  */
 
 // Slice jest już załadowany, gdy motyw aktywny (autoloader features/*). Gdyby nie —
@@ -26,6 +29,10 @@ if ( ! function_exists( 'hajlajty_standings_zone_class' ) ) {
 $league_id = 1;
 $season    = '2026';
 
+// `wp eval-file` wykonuje plik w zasięgu metody, więc top-level NIE jest globalem.
+// `check()` liczy przez `global $pass/$fail` — deklarujemy je globalnie też tutaj,
+// żeby końcowe podsumowanie widziało te same liczniki (inaczej wynik = 0/0).
+global $pass, $fail;
 $pass = 0;
 $fail = 0;
 
@@ -101,15 +108,31 @@ $unique = array_values( array_unique( array_filter( $team_ids ) ) );
 $teams  = hajlajty_standings_resolve_teams( $team_ids );
 printf( "team_id w tabeli: %d (unikalnych %d) → rozwiązano termów: %d\n", count( $team_ids ), count( $unique ), count( $teams ) );
 
+// Drużyny standings = zestaw api-football danego turnieju (NIE pełny roster serwisu;
+// np. Polska/api_id 24 jest zaseedowana, ale NIE występuje w tej próbce WŚ 2026).
+// Dlatego sprawdzamy INWARIANTY resolvera, nie obecność konkretnej drużyny:
 $gaps = array_values( array_diff( $unique, array_keys( $teams ) ) );
 if ( ! empty( $gaps ) ) {
 	printf( "  LUKI w seedzie (api_id bez termu „drużyna”): %s\n", implode( ', ', $gaps ) );
 }
-check( 'mapa kluczowana po api_id (Polska 24 obecna)', true, isset( $teams[24] ) );
-if ( isset( $teams[24] ) ) {
-	$pol = $teams[24];
-	printf( "  api_id 24 → „%s” | fifa_code %s | flaga %s\n", $pol->name, get_term_meta( $pol->term_id, 'fifa_code', true ), hajlajty_flag_url( $pol ) );
-	check( 'api_id 24 → nazwa termu „Polska"', 'Polska', $pol->name );
+check( 'brak luk seedu — każdy team_id ma term', array(), $gaps );
+
+// Mapa kluczowana PO term meta api_id (nie po kolejności get_terms): dla każdego
+// klucza term faktycznie ma api_id == klucz.
+$keyed_ok = true;
+foreach ( $teams as $api => $term ) {
+	if ( (int) get_term_meta( $term->term_id, 'api_id', true ) !== $api ) {
+		$keyed_ok = false;
+		break;
+	}
+}
+check( 'klucz mapy === term meta api_id', true, $keyed_ok );
+
+// Próbka (dynamiczna, bez zakładania konkretnej drużyny): pierwszy rozwiązany term.
+$sample_api = array_key_first( $teams );
+if ( null !== $sample_api ) {
+	$st = $teams[ $sample_api ];
+	printf( "  próbka api_id %d → „%s” | fifa_code %s | flaga %s\n", $sample_api, $st->name, get_term_meta( $st->term_id, 'fifa_code', true ), hajlajty_flag_url( $st ) );
 }
 check( 'pusta lista → []', array(), hajlajty_standings_resolve_teams( array() ) );
 
