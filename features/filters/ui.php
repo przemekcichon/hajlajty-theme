@@ -26,17 +26,20 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /**
  * Czy bieżący widok dostaje filtr drużyn (wyszukiwarka + chipsbar): publiczna
- * LISTA meczów (home, archiwum „mecz", terminarz MVP-c) ALBO tabela grup (MVP-e).
- * Widoki spoza slice'a filters pytamy przez function_exists (luźne sprzężenie:
- * filters nie zależy twardo od match-lists/standings-view, tylko konsumuje ich
- * predykat gdy obecny). Tabela grup nie jest „listą meczów", ale dzieli ten sam
- * filtr po drużynach (znajdź swoją drużynę w grupach).
+ * LISTA meczów (home, archiwum „mecz", terminarz MVP-c), tabela grup (MVP-e) ALBO
+ * lista Reprezentacje (MVP-g). Widoki spoza slice'a filters pytamy przez
+ * function_exists (luźne sprzężenie: filters nie zależy twardo od match-lists/
+ * standings-view/teams-view, tylko konsumuje ich predykat gdy obecny). Ani tabela
+ * grup, ani lista reprezentacji nie są „listą meczów", ale dzielą ten sam filtr po
+ * drużynach (znajdź swoją drużynę). Profil pojedynczej drużyny (single) NIE wpada
+ * tu — to skupiony widok bez filtra.
  */
 function hajlajty_filters_is_list_view(): bool {
 	return is_post_type_archive( 'mecz' )
 		|| is_front_page()
 		|| ( function_exists( 'hajlajty_match_lists_is_terminarz' ) && hajlajty_match_lists_is_terminarz() )
-		|| ( function_exists( 'hajlajty_standings_view_is_table' ) && hajlajty_standings_view_is_table() );
+		|| ( function_exists( 'hajlajty_standings_view_is_table' ) && hajlajty_standings_view_is_table() )
+		|| ( function_exists( 'hajlajty_teams_view_is_list' ) && hajlajty_teams_view_is_list() );
 }
 
 /**

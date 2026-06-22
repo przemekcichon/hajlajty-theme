@@ -35,12 +35,12 @@ $hajlajty_standings = hajlajty_teams_view_find_standings();
 		<?php if ( empty( $hajlajty_terms ) ) : ?>
 			<p class="matches-empty">Brak reprezentacji. Zaseeduj roster: <code>wp hajlajty seed</code>.</p>
 		<?php else : ?>
-			<section class="team-section">
+			<section class="team-section" data-filter-section>
 				<div class="team-section__head">
 					<h2 class="team-section__title">Wszystkie reprezentacje</h2>
 					<span class="team-section__meta"><?php echo esc_html( count( $hajlajty_terms ) . ' reprezentacji' ); ?></span>
 				</div>
-				<div class="teams-grid">
+				<div class="teams-grid" data-filterable>
 					<?php
 					foreach ( $hajlajty_terms as $hajlajty_t ) :
 						get_template_part(
@@ -77,12 +77,12 @@ $hajlajty_standings = hajlajty_teams_view_find_standings();
 			$hajlajty_rows   = (array) $hajlajty_rows;
 			$hajlajty_letter = (string) $hajlajty_letter;
 			?>
-			<section class="team-section" data-group="<?php echo esc_attr( $hajlajty_letter ); ?>">
+			<section class="team-section" data-group="<?php echo esc_attr( $hajlajty_letter ); ?>" data-filter-section>
 				<div class="team-section__head">
 					<h2 class="team-section__title"><span class="group-badge"><?php echo esc_html( $hajlajty_letter ); ?></span> <?php echo esc_html( 'Grupa ' . $hajlajty_letter ); ?></h2>
 					<span class="team-section__meta"><?php echo esc_html( count( $hajlajty_rows ) . ' reprezentacje' ); ?></span>
 				</div>
-				<div class="teams-grid">
+				<div class="teams-grid" data-filterable>
 					<?php
 					foreach ( $hajlajty_rows as $hajlajty_row ) :
 						$hajlajty_tid  = (int) ( $hajlajty_row['team_id'] ?? 0 );

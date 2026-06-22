@@ -27,8 +27,14 @@ $hajlajty_flag = hajlajty_flag_url( $hajlajty_term );
 $hajlajty_code = strtoupper( (string) get_term_meta( $hajlajty_term->term_id, 'fifa_code', true ) );
 $hajlajty_url  = get_term_link( $hajlajty_term );
 $hajlajty_url  = is_wp_error( $hajlajty_url ) ? '' : $hajlajty_url;
+
+// Kontrakt filtra (slice filters / filters.js): karta niesie `data-teams` (kod
+// FIFA → chip drużyny) i `data-team-names` (znormalizowana PL nazwa → wyszukiwarka).
+// Te same atrybuty co karty list meczów (match-lists/terms.php) — jeden filtr,
+// spójny w całym serwisie. `data-team-names` MUSI istnieć, by JS w ogóle objął kartę.
+$hajlajty_names = function_exists( 'hajlajty_filters_normalize_pl' ) ? hajlajty_filters_normalize_pl( $hajlajty_term->name ) : '';
 ?>
-<article class="team-card" data-team="<?php echo esc_attr( $hajlajty_code ); ?>" data-group="<?php echo esc_attr( $hajlajty_group ); ?>">
+<article class="team-card" data-group="<?php echo esc_attr( $hajlajty_group ); ?>" data-teams="<?php echo esc_attr( $hajlajty_code ); ?>" data-team-names="<?php echo esc_attr( $hajlajty_names ); ?>">
 	<div class="team-card__head">
 		<?php if ( '' !== $hajlajty_flag ) : ?>
 			<img class="country-flag team-card__flag" src="<?php echo esc_url( $hajlajty_flag ); ?>" alt="<?php echo esc_attr( $hajlajty_term->name ); ?>" />

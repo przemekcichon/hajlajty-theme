@@ -19,5 +19,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 get_template_part( 'features/layout/partials/header' );
+
+// Pasek filtra drużyn (slice filters) — pod headerem, w `.content` przed `<main>`,
+// jak archive-mecz.php / tabela rozgrywek. Wyszukiwarka w topbarze wstrzykuje się
+// sama (hook hajlajty_topbar_center, gated przez hajlajty_filters_is_list_view,
+// która obejmuje już Reprezentacje). Guard, gdyby slice filters zniknął.
+if ( function_exists( 'hajlajty_filters_render_bar' ) ) {
+	hajlajty_filters_render_bar();
+}
+
 get_template_part( 'features/teams-view/partials/reprezentacje' );
 get_template_part( 'features/layout/partials/footer' );
