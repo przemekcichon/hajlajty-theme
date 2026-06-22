@@ -68,24 +68,33 @@ $hajlajty_teams = hajlajty_standings_resolve_teams( $hajlajty_team_ids );
 	<div class="groups-grid" data-filterable>
 		<?php foreach ( $hajlajty_table as $hajlajty_letter => $hajlajty_rows ) : ?>
 			<?php
-			// Kontrakt filtra (slice filters / filters.js): karta grupy niesie
-			// `data-teams` (kody FIFA → chipy) i `data-team-names` (znormalizowane
-			// nazwy PL → wyszukiwarka tekstowa). Te same atrybuty co karty list
-			// (match-lists/terms.php) — wybór/szukanie drużyny zawęża karty grup.
+			// JEDNA pętla po wierszach grupy buduje widok-modele (nazwa, flaga, kod
+			// FIFA, strefa) — wspólne dla agregatów karty (data-teams/data-team-names)
+			// i dla tbody. Dzięki temu term meta `fifa_code` i flagę czytamy RAZ na
+			// drużynę (nie dwa razy). Kontrakt filtra (slice filters / filters.js):
+			// karta niesie `data-teams` (FIFA → chipy) + `data-team-names`
+			// (znormalizowane PL → tekst), jak karty list (match-lists/terms.php).
+			$hajlajty_vm    = array();
 			$hajlajty_codes = array();
 			$hajlajty_names = array();
 			foreach ( $hajlajty_rows as $hajlajty_row ) {
 				$hajlajty_term_row = $hajlajty_teams[ (int) ( $hajlajty_row['team_id'] ?? 0 ) ] ?? null;
-				if ( ! ( $hajlajty_term_row instanceof WP_Term ) ) {
-					continue;
-				}
-				$hajlajty_code = (string) get_term_meta( $hajlajty_term_row->term_id, 'fifa_code', true );
+				$hajlajty_is_term  = ( $hajlajty_term_row instanceof WP_Term );
+				$hajlajty_code     = $hajlajty_is_term ? strtoupper( (string) get_term_meta( $hajlajty_term_row->term_id, 'fifa_code', true ) ) : '';
+
 				if ( '' !== $hajlajty_code ) {
-					$hajlajty_codes[] = strtoupper( $hajlajty_code );
+					$hajlajty_codes[] = $hajlajty_code;
 				}
-				if ( function_exists( 'hajlajty_filters_normalize_pl' ) ) {
+				if ( $hajlajty_is_term && function_exists( 'hajlajty_filters_normalize_pl' ) ) {
 					$hajlajty_names[] = hajlajty_filters_normalize_pl( $hajlajty_term_row->name );
 				}
+
+				$hajlajty_vm[] = array(
+					'row'  => $hajlajty_row,
+					'name' => $hajlajty_is_term ? $hajlajty_term_row->name : ( '#' . (int) ( $hajlajty_row['team_id'] ?? 0 ) ),
+					'flag' => $hajlajty_is_term ? hajlajty_flag_url( $hajlajty_term_row ) : '',
+					'zone' => hajlajty_standings_zone_class( $hajlajty_row['rank'] ?? 0 ),
+				);
 			}
 			?>
 			<article class="group-card" data-group="<?php echo esc_attr( $hajlajty_letter ); ?>" data-label="<?php echo esc_attr( 'Grupa ' . $hajlajty_letter ); ?>" data-teams="<?php echo esc_attr( implode( ' ', $hajlajty_codes ) ); ?>" data-team-names="<?php echo esc_attr( implode( ' ', $hajlajty_names ) ); ?>">
@@ -108,32 +117,25 @@ $hajlajty_teams = hajlajty_standings_resolve_teams( $hajlajty_team_ids );
 						</tr>
 					</thead>
 					<tbody>
-						<?php foreach ( $hajlajty_rows as $hajlajty_row ) : ?>
-							<?php
-							$hajlajty_team_id = (int) ( $hajlajty_row['team_id'] ?? 0 );
-							$hajlajty_t       = $hajlajty_teams[ $hajlajty_team_id ] ?? null;
-							$hajlajty_name    = ( $hajlajty_t instanceof WP_Term ) ? $hajlajty_t->name : ( '#' . $hajlajty_team_id );
-							$hajlajty_flag    = ( $hajlajty_t instanceof WP_Term ) ? hajlajty_flag_url( $hajlajty_t ) : '';
-							$hajlajty_code    = ( $hajlajty_t instanceof WP_Term ) ? (string) get_term_meta( $hajlajty_t->term_id, 'fifa_code', true ) : '';
-							$hajlajty_zone    = hajlajty_standings_zone_class( $hajlajty_row['rank'] ?? 0 );
-							$hajlajty_gf      = $hajlajty_row['gf'] ?? '–';
-							$hajlajty_ga      = $hajlajty_row['ga'] ?? '–';
+						<?php
+						foreach ( $hajlajty_vm as $hajlajty_item ) :
+							$hajlajty_row = $hajlajty_item['row'];
 							?>
-							<tr<?php echo '' !== $hajlajty_zone ? ' class="' . esc_attr( $hajlajty_zone ) . '"' : ''; ?> data-team="<?php echo esc_attr( $hajlajty_code ); ?>">
+							<tr<?php echo '' !== $hajlajty_item['zone'] ? ' class="' . esc_attr( $hajlajty_item['zone'] ) . '"' : ''; ?>>
 								<td class="pos"><?php echo esc_html( $hajlajty_row['rank'] ?? '–' ); ?></td>
 								<td class="team">
 									<span class="std-team">
-										<?php if ( '' !== $hajlajty_flag ) : ?>
-											<img class="country-flag" src="<?php echo esc_url( $hajlajty_flag ); ?>" alt="<?php echo esc_attr( $hajlajty_name ); ?>">
+										<?php if ( '' !== $hajlajty_item['flag'] ) : ?>
+											<img class="country-flag" src="<?php echo esc_url( $hajlajty_item['flag'] ); ?>" alt="<?php echo esc_attr( $hajlajty_item['name'] ); ?>">
 										<?php endif; ?>
-										<span class="nm"><?php echo esc_html( $hajlajty_name ); ?></span>
+										<span class="nm"><?php echo esc_html( $hajlajty_item['name'] ); ?></span>
 									</span>
 								</td>
 								<td><?php echo esc_html( $hajlajty_row['played'] ?? '–' ); ?></td>
 								<td><?php echo esc_html( $hajlajty_row['win'] ?? '–' ); ?></td>
 								<td><?php echo esc_html( $hajlajty_row['draw'] ?? '–' ); ?></td>
 								<td><?php echo esc_html( $hajlajty_row['lose'] ?? '–' ); ?></td>
-								<td class="gf"><?php echo esc_html( $hajlajty_gf . ':' . $hajlajty_ga ); ?></td>
+								<td class="gf"><?php echo esc_html( ( $hajlajty_row['gf'] ?? '–' ) . ':' . ( $hajlajty_row['ga'] ?? '–' ) ); ?></td>
 								<td class="pts"><?php echo esc_html( $hajlajty_row['points'] ?? '–' ); ?></td>
 							</tr>
 						<?php endforeach; ?>
