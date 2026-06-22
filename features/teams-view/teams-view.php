@@ -45,17 +45,18 @@ function hajlajty_teams_view_is_list(): bool {
 
 add_filter( 'body_class', 'hajlajty_teams_view_body_class' );
 /**
- * Klasy body „app-shell" — włączają trwały sidebar + treść na całą szerokość przy
- * ≥1100px (layout.css KONSUMUJE te klasy, jak `hajlajty-tabela-rozgrywek`). Slice
- * ma wiedzę „to Profil/Reprezentacje"; layout.css tylko reaguje (luźne sprzężenie).
+ * Klasa body app-shell TYLKO dla LISTY Reprezentacje (trwały sidebar + treść na
+ * całą szerokość ≥1100px, jak terminarz/tabele — layout.css konsumuje klasę).
+ *
+ * PROFIL kraju CELOWO bez tej klasy: ma się zachowywać jak SINGLE meczu (drawer
+ * off-canvas, sidebar chowany pod hamburgerem) — skupiony widok jednej drużyny,
+ * nie widok listy. Brak klasy = domyślny layout = dokładnie zachowanie single.
  *
  * @param string[] $classes Klasy body.
  * @return string[]
  */
 function hajlajty_teams_view_body_class( $classes ) {
-	if ( hajlajty_teams_view_is_profile() ) {
-		$classes[] = 'hajlajty-profil-druzyny';
-	} elseif ( hajlajty_teams_view_is_list() ) {
+	if ( hajlajty_teams_view_is_list() ) {
 		$classes[] = 'hajlajty-reprezentacje';
 	}
 	return $classes;
