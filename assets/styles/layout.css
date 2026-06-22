@@ -204,7 +204,8 @@
    ma być STAŁE (jak w projekcie). Przy ≥1100px shell staje się dwukolumnowy
    (sidebar | treść), a sidebar przestaje być wysuwany. Bramkowane klasami body
    (.home / .post-type-archive z body_class(); .hajlajty-terminarz dokłada slice
-   match-lists na stronie terminarza), więc single (.single-mecz) bez zmian.
+   match-lists; .hajlajty-tabela-rozgrywek dokłada slice standings-view MVP-e),
+   więc single (.single-mecz) bez zmian.
    Mobile (<1100px) bez zmian — wszędzie ten sam drawer pod hamburgerem.
 ============================================================ */
 @media (min-width: 1100px) {
@@ -213,7 +214,8 @@
      siatkę kart na całą dostępną powierzchnię, nie tylko do --container). */
   body.home .shell,
   body.post-type-archive .shell,
-  body.hajlajty-terminarz .shell {
+  body.hajlajty-terminarz .shell,
+  body.hajlajty-tabela-rozgrywek .shell {
     display: grid;
     grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
     transition: grid-template-columns var(--t-med);
@@ -223,16 +225,19 @@
      layout.js). Treść przejmuje całą szerokość. */
   body.home.nav-collapsed .shell,
   body.post-type-archive.nav-collapsed .shell,
-  body.hajlajty-terminarz.nav-collapsed .shell { grid-template-columns: 0 minmax(0, 1fr); }
+  body.hajlajty-terminarz.nav-collapsed .shell,
+  body.hajlajty-tabela-rozgrywek.nav-collapsed .shell { grid-template-columns: 0 minmax(0, 1fr); }
   body.home.nav-collapsed .sidebar,
   body.post-type-archive.nav-collapsed .sidebar,
-  body.hajlajty-terminarz.nav-collapsed .sidebar { opacity: 0; pointer-events: none; }
+  body.hajlajty-terminarz.nav-collapsed .sidebar,
+  body.hajlajty-tabela-rozgrywek.nav-collapsed .sidebar { opacity: 0; pointer-events: none; }
 
   /* Topbar pełnej szerokości — logo licuje z lewą krawędzią, nad sidebarem
      (na single topbar pozostaje zawężony do pasma widoku). */
   body.home .topbar__inner,
   body.post-type-archive .topbar__inner,
-  body.hajlajty-terminarz .topbar__inner {
+  body.hajlajty-terminarz .topbar__inner,
+  body.hajlajty-tabela-rozgrywek .topbar__inner {
     max-width: none;
     margin-inline: 0;
     padding-inline: var(--space-sm);
@@ -241,7 +246,8 @@
   /* Sidebar STAŁY: statyczna kolumna z własnym scrollem (nie drawer). */
   body.home .sidebar,
   body.post-type-archive .sidebar,
-  body.hajlajty-terminarz .sidebar {
+  body.hajlajty-terminarz .sidebar,
+  body.hajlajty-tabela-rozgrywek .sidebar {
     position: static;
     transform: none;
     width: auto;
@@ -257,16 +263,19 @@
      ZOSTAJE widoczny — służy do zwijania/rozwijania stałego menu. */
   body.home .sidebar__head,
   body.post-type-archive .sidebar__head,
-  body.hajlajty-terminarz .sidebar__head { display: none; }
+  body.hajlajty-terminarz .sidebar__head,
+  body.hajlajty-tabela-rozgrywek .sidebar__head { display: none; }
 
   /* Treść WYPEŁNIA kolumnę: zdejmujemy max-width/centrowanie .container w .content
      (inaczej lista zostaje w pasie --container = ~3 karty mimo szerokiego ekranu). */
   body.home .content main.container,
   body.post-type-archive .content main.container,
   body.hajlajty-terminarz .content main.container,
+  body.hajlajty-tabela-rozgrywek .content main.container,
   body.home .content .footer > .container,
   body.post-type-archive .content .footer > .container,
-  body.hajlajty-terminarz .content .footer > .container {
+  body.hajlajty-terminarz .content .footer > .container,
+  body.hajlajty-tabela-rozgrywek .content .footer > .container {
     max-width: none;
     margin-inline: 0;
     padding-inline: var(--gutter);
@@ -275,7 +284,8 @@
   /* Scrim niepotrzebny przy stałym menu (zwijanie idzie przez grid, nie drawer). */
   body.home .scrim,
   body.post-type-archive .scrim,
-  body.hajlajty-terminarz .scrim { display: none !important; }
+  body.hajlajty-terminarz .scrim,
+  body.hajlajty-tabela-rozgrywek .scrim { display: none !important; }
 }
 
 /* ============================================================
