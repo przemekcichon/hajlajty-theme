@@ -62,7 +62,6 @@ if ( $hajlajty_group && $hajlajty_group['rozgrywki'] instanceof WP_Term ) {
 
 	<!-- ===== HERO ===== -->
 	<section class="profile-hero">
-		<span class="profile-hero__stripe" aria-hidden="true"></span>
 		<div class="profile-hero__inner">
 			<?php if ( '' !== $hajlajty_flag ) : ?>
 				<img class="profile-hero__flag" src="<?php echo esc_url( $hajlajty_flag ); ?>" alt="<?php echo esc_attr( 'Flaga: ' . $hajlajty_term->name ); ?>" />

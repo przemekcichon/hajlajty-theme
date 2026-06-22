@@ -50,14 +50,13 @@
     radial-gradient(120% 150% at 100% 8%, oklch(0.84 0.15 92 / 0.16), transparent 52%),
     var(--surface);
 }
-.profile-hero__stripe {
-  position: absolute; left: 0; top: 0; bottom: 0; width: 6px;
-  background: linear-gradient(180deg, oklch(0.28 0.02 60) 0 33%, oklch(0.84 0.15 92) 33% 66%, var(--live) 66% 100%);
-}
+/* Pasek-tricolor z mockupu („Profil Belgia") był barwami Belgii (czarny-żółty-
+   czerwony) zaszytymi na sztywno → na każdym kraju pokazywał flagę Belgii. Nie mamy
+   danych o barwach flag per kraj, więc pasek USUNIĘTY; zostaje neutralny gradient
+   tła hero (radialne poświaty na .profile-hero), działający dla dowolnej drużyny. */
 .profile-hero__inner {
   display: flex; align-items: center; gap: var(--space-lg);
   padding: clamp(20px, 3vw, 36px) clamp(20px, 3vw, 40px);
-  padding-left: clamp(28px, 3.5vw, 52px);
 }
 .profile-hero__flag {
   height: clamp(64px, 8vw, 92px); width: auto; flex: 0 0 auto;
@@ -92,7 +91,10 @@
   align-items: start;
 }
 .profile-col--main { min-width: 0; display: flex; flex-direction: column; gap: var(--space-2xl); }
-.profile-col--side { display: flex; flex-direction: column; gap: var(--space-lg); }
+/* min-width:0 KONIECZNE: bez tego długa nazwa kraju w mini-tabeli (np. „Republika
+   Południowej Afryki") rozpycha kolumnę grid ponad 1fr → poziomy scroll całej
+   strony (znika prawy margines boksów). Razem z table-layout:fixed niżej. */
+.profile-col--side { min-width: 0; display: flex; flex-direction: column; gap: var(--space-lg); }
 .profile-col--main .section { margin-bottom: 0; }
 
 .subhead {
@@ -117,10 +119,16 @@
 .widget__link:hover { color: var(--accent); }
 .widget__cap { margin-top: var(--space-sm); font-size: 12px; color: var(--text-faint); font-weight: 600; text-wrap: pretty; line-height: 1.5; }
 
-/* mini-tabela grupy */
-.gtable { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+/* mini-tabela grupy — table-layout:fixed: kolumny mają stałe szerokości, więc
+   długa nazwa kraju (np. „Republika Południowej Afryki") TRUNCATE'uje się
+   wielokropkiem zamiast rozpychać tabelę (przyczyna poziomego scrolla na mobile).
+   Kolumna „Drużyna" bierze resztę; kolumny liczbowe stałe i wąskie. */
+.gtable { width: 100%; border-collapse: collapse; table-layout: fixed; font-variant-numeric: tabular-nums; }
+.gtable th:nth-child(1), .gtable td:nth-child(1) { width: 24px; }  /* # */
+.gtable th:nth-child(3), .gtable td:nth-child(3) { width: 30px; }  /* M */
+.gtable th:nth-child(4), .gtable td:nth-child(4) { width: 44px; }  /* Br. (np. 12:5) */
+.gtable th:nth-child(5), .gtable td:nth-child(5) { width: 34px; }  /* Pkt */
 .gtable thead th { font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-faint); text-align: center; padding: 0 4px 9px; }
-.gtable thead th.pos { width: 22px; }
 .gtable thead th.team { text-align: left; padding-left: 6px; }
 .gtable tbody td { padding: 9px 4px; font-size: 13px; font-weight: 600; text-align: center; color: var(--text-muted); border-top: 1px solid var(--border); }
 .gtable td.pos { position: relative; width: 22px; font-weight: 800; color: var(--text-muted); }
@@ -131,7 +139,7 @@
 .gtable td.team { text-align: left; padding-left: 6px; }
 .gt-team { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .gt-team .country-flag { height: 14px; }
-.gt-team .nm { font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gt-team .nm { min-width: 0; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .gtable td.pts { font-weight: 800; color: var(--text); }
 .gtable tr.is-target td { background: var(--accent-soft); }
 .gtable tr.is-target .nm, .gtable tr.is-target td.pos { color: var(--accent-strong); }
@@ -247,4 +255,7 @@
 @media (max-width: 620px) {
   .profile-hero__inner { flex-wrap: wrap; gap: var(--space-md); }
   .profile-hero__id { flex-basis: 100%; }
+  /* Karty meczów: 1 kolumna na wąskim ekranie — bez `minmax(300px)`, które na
+     bardzo wąskim telefonie (<332px treści) wymusiłoby szerokość > kontenera. */
+  .profile-col--main .grid-videos { grid-template-columns: 1fr; }
 }
