@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 						<a href="#">Na żywo</a>
 						<a href="#">Zapowiedzi</a>
 						<a href="#">Skróty</a>
-						<a href="#">Reprezentacje</a>
+						<a href="<?php echo esc_url( home_url( '/reprezentacje/' ) ); ?>">Reprezentacje</a>
 					</div>
 					<div class="footer__col">
 						<h4>Mundial 2026</h4>
