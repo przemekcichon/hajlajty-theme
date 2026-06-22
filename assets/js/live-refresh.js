@@ -99,6 +99,7 @@
       team: el.getAttribute("data-ev-team") || "",
       flag: el.getAttribute("data-ev-flag") || "",
       min: el.getAttribute("data-ev-min") || "",
+      color: el.getAttribute("data-ev-color") || "",
       label: el.getAttribute("data-ev-label") || "",
       cardkind: el.getAttribute("data-ev-cardkind") || "",
       inName: el.getAttribute("data-ev-in") || "",
@@ -117,6 +118,9 @@
     if (!el) { overlayDone(); return; }
 
     if (ev.kind === "goal") {
+      // Barwa overlayu = kolor koszulki strzelca z API; brak → fallback --accent (CSS).
+      if (ev.color) el.style.setProperty("--ev-color", ev.color);
+      else el.style.removeProperty("--ev-color");
       setText(el, "[data-ev-goal-player]", ev.player || ev.team);
       setText(el, "[data-ev-goal-min]", ev.min ? " · " + ev.min : "");
     } else if (ev.kind === "card") {

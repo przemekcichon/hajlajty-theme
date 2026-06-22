@@ -251,6 +251,15 @@ $anchor    = static function ( $id ) use ( $post_id, $live_attr ) {
 								if ( 'card' === $ev_kind ) {
 									$card_kind = in_array( $item['key'], array( 'red', 'second_yellow' ), true ) ? 'red' : 'yellow';
 									$ev_attrs .= ' data-ev-cardkind="' . esc_attr( $card_kind ) . '"';
+								} else {
+									// GOL: barwa overlayu = kolor koszulki strzelającej drużyny z API
+									// (`lineups[side].colors.player.primary`) — to samo źródło co boisko
+									// (single-live). Walidacja hex jak tam; brak/niepoprawny → bez atrybutu
+									// (JS zostawia fallback --accent).
+									$ev_primary = $data['lineups'][ $side ]['colors']['player']['primary'] ?? '';
+									if ( is_string( $ev_primary ) && preg_match( '/^[0-9a-fA-F]{3,8}$/', $ev_primary ) ) {
+										$ev_attrs .= ' data-ev-color="#' . esc_attr( $ev_primary ) . '"';
+									}
 								}
 							}
 						}
