@@ -121,6 +121,13 @@
    strony (znika prawy margines boksów). Razem z table-layout:fixed niżej. */
 .profile-col--side { min-width: 0; display: flex; flex-direction: column; gap: var(--space-lg); }
 .profile-col--main .section { margin-bottom: 0; }
+/* Siatka meczów profilu miksuje karty RÓŻNEJ wysokości: niski wynik (.rcard) obok
+   wysokiej karty wideo (.vcard). Bez tego grid (domyślne align-items:stretch)
+   rozciąga kartę wyniku do wysokości sąsiada (puste pole pod meczem). align-items:
+   start trzyma każdą kartę przy jej naturalnej wysokości — wzór: terminarz.css
+   (.ter-grid też miksuje stany i ma align-items:start). Scope do profilu, by nie
+   zmieniać .grid-videos na archiwach (tam karty są jednorodne). */
+.profile-col--main .grid-videos { align-items: start; }
 
 .subhead {
   display: flex; align-items: center; gap: 10px;
