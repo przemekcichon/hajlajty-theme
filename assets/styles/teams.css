@@ -82,6 +82,31 @@
 }
 
 /* ============================================================
+   PROFIL — SZEROKOŚĆ „WATCH BAND" (równa single meczu)
+   ------------------------------------------------------------
+   Profil to widok skupiony (jak single meczu) → ma mieć DOKŁADNIE tę samą szerokość
+   pasma co single. Pasmo definiuje match-single.css przez --watch-max, ale TA
+   wtyczka stylu ładuje się tylko na single (nie na profilu). Mirrorujemy tu te same
+   tokeny 1:1, ZAWĘŻONE do `body.hajlajty-profil-druzyny`, by nie ruszać innych
+   widoków. Topbar i stopka biorą --watch-max z layout.css automatycznie
+   (`var(--watch-max, var(--container))` na widokach bez app-shell); tu dokładamy
+   tylko zawężenie <main>. Wartości MUSZĄ pozostać zgodne z match-single.css.
+============================================================ */
+@media (min-width: 1100px) {
+  body.hajlajty-profil-druzyny {
+    --max-player-width: 1280px;
+    --match-sidebar-width: 480px;
+    --page-horizontal-margin: var(--space-md);
+    --watch-max: calc(var(--max-player-width) + var(--match-sidebar-width) + (var(--page-horizontal-margin) * 3));
+  }
+  body.hajlajty-profil-druzyny .content main.container {
+    max-width: var(--watch-max);
+    margin-inline: auto;
+    padding-inline: var(--page-horizontal-margin);
+  }
+}
+
+/* ============================================================
    PROFIL — UKŁAD 2 KOLUMNY
 ============================================================ */
 .profile-grid {
