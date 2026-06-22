@@ -138,6 +138,7 @@
 .subhead--mt { margin-top: var(--space-xl); }
 .subhead__dot { width: 9px; height: 9px; border-radius: 50%; background: var(--text-faint); flex: 0 0 auto; }
 .subhead__dot.soon { background: var(--accent); }
+.subhead__dot.live { background: var(--live); }
 
 /* ============================================================
    PROFIL — WIDŻETY (prawa kolumna)

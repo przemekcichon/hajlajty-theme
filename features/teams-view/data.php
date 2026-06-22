@@ -245,13 +245,22 @@ function hajlajty_teams_view_find_team_group( int $api_id, $standings = null ) {
  * ---------------------------------------------------------------------- */
 
 /**
- * ID meczów drużyny w oknie czasowym, sortowane po płaskiej meta `kickoff`.
+ * ID meczów drużyny dla danego stanu, sortowane po płaskiej meta `kickoff`.
  *
  * KONWENCJA CZASU = match-lists: `kickoff` to `Y-m-d H:i:s` UTC, zero-padded →
  * porównania/sortowanie LEKSYKALNE (type CHAR) są chronologiczne. NIGDY _num.
+ * Sortowanie po NAZWANEJ klauzuli `kick` (wzór match-lists.php), bez meta_key.
+ *
+ * Stany:
+ *  - 'live'     — REALNY status `status IN (kody live)` (jak listy 3e-i), NIE okno
+ *                 czasowe; sort kickoff ASC. UWAGA: mecz live ma kickoff w przeszłości,
+ *                 więc też pasuje do 'recent' — konsument MUSI odjąć live od recent
+ *                 (patrz profile.php), żeby nie pokazać go dwa razy.
+ *  - 'upcoming' — kickoff >= teraz, ASC (najbliższe u góry).
+ *  - 'recent'   — kickoff < teraz, DESC (najnowsze u góry).
  *
  * @param int    $term_id Term „druzyna" (tax_query).
- * @param string $when    'upcoming' (kickoff >= teraz, ASC) | 'recent' (< teraz, DESC).
+ * @param string $when    'live' | 'upcoming' | 'recent'.
  * @param int    $limit   Maks. liczba meczów.
  * @return int[] ID meczów (może być puste).
  */
@@ -260,36 +269,50 @@ function hajlajty_teams_view_match_ids( int $term_id, string $when, int $limit )
 		return array();
 	}
 
-	$now      = gmdate( 'Y-m-d H:i:s' );
-	$compare  = ( 'upcoming' === $when ) ? '>=' : '<';
-	$order    = ( 'upcoming' === $when ) ? 'ASC' : 'DESC';
-
-	$query = new WP_Query(
-		array(
-			'post_type'      => 'mecz',
-			'posts_per_page' => $limit,
-			'no_found_rows'  => true,
-			'fields'         => 'ids',
-			'orderby'        => 'meta_value',
-			'order'          => $order,
-			'tax_query'      => array(
-				array(
-					'taxonomy' => 'druzyna',
-					'field'    => 'term_id',
-					'terms'    => $term_id,
-				),
+	$args = array(
+		'post_type'      => 'mecz',
+		'posts_per_page' => $limit,
+		'no_found_rows'  => true,
+		'fields'         => 'ids',
+		'tax_query'      => array(
+			array(
+				'taxonomy' => 'druzyna',
+				'field'    => 'term_id',
+				'terms'    => $term_id,
 			),
-			'meta_query'     => array(
-				'kick' => array(
-					'key'     => 'kickoff',
-					'value'   => $now,
-					'compare' => $compare,
-					'type'    => 'CHAR',
-				),
-			),
-			'meta_key'       => 'kickoff', // orderby meta_value czyta TEN klucz.
-		)
+		),
 	);
+
+	if ( 'live' === $when ) {
+		// Kody live wywodzone z jedynej mapy statusu (match-display/lookups.php) — to
+		// samo źródło co filtr list „Na żywo". Wymagamy kickoffa (sort).
+		$args['meta_query'] = array(
+			'relation' => 'AND',
+			'stat'     => array(
+				'key'     => 'status',
+				'value'   => hajlajty_status_live_codes(),
+				'compare' => 'IN',
+			),
+			'kick'     => array(
+				'key'     => 'kickoff',
+				'compare' => 'EXISTS',
+			),
+		);
+		$args['orderby'] = array( 'kick' => 'ASC' );
+	} else {
+		$now                = gmdate( 'Y-m-d H:i:s' );
+		$args['meta_query'] = array(
+			'kick' => array(
+				'key'     => 'kickoff',
+				'value'   => $now,
+				'compare' => ( 'upcoming' === $when ) ? '>=' : '<',
+				'type'    => 'CHAR',
+			),
+		);
+		$args['orderby'] = array( 'kick' => ( 'upcoming' === $when ) ? 'ASC' : 'DESC' );
+	}
+
+	$query = new WP_Query( $args );
 
 	return array_map( 'intval', $query->posts );
 }

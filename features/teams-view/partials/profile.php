@@ -38,13 +38,17 @@ $hajlajty_seed      = $hajlajty_group ? hajlajty_teams_view_seed_label( $hajlajt
 // Statystyki drużyny (MVP-f).
 $hajlajty_stats = hajlajty_teams_view_get_team_stats( $hajlajty_term->term_id );
 
-// Mecze drużyny: nadchodzące (ASC) + ostatnie (DESC). Selekcjoner best-effort z
-// ostatnich (DESC → najnowszy skład najpierw). Zero N+1: jeden batch termów na obie listy.
+// Mecze drużyny: na żywo (status) + nadchodzące (ASC) + ostatnie (DESC). Mecz live
+// ma kickoff w przeszłości, więc 'recent' też by go zwrócił — ODEJMUJEMY live od
+// recent, by nie pokazać go dwa razy (i jako wynik). Selekcjoner best-effort z live
+// (gra teraz) → potem z ostatnich. Zero N+1: jeden batch termów na wszystkie listy.
+$hajlajty_live     = hajlajty_teams_view_match_ids( $hajlajty_term->term_id, 'live', 6 );
 $hajlajty_upcoming = hajlajty_teams_view_match_ids( $hajlajty_term->term_id, 'upcoming', 6 );
 $hajlajty_recent   = hajlajty_teams_view_match_ids( $hajlajty_term->term_id, 'recent', 6 );
-$hajlajty_coach    = hajlajty_teams_view_coach_name( $hajlajty_recent, $hajlajty_api );
+$hajlajty_recent   = array_values( array_diff( $hajlajty_recent, $hajlajty_live ) );
+$hajlajty_coach    = hajlajty_teams_view_coach_name( array_merge( $hajlajty_live, $hajlajty_recent ), $hajlajty_api );
 
-$hajlajty_all_ids  = array_values( array_unique( array_merge( $hajlajty_upcoming, $hajlajty_recent ) ) );
+$hajlajty_all_ids  = array_values( array_unique( array_merge( $hajlajty_live, $hajlajty_upcoming, $hajlajty_recent ) ) );
 $hajlajty_resolved = ! empty( $hajlajty_all_ids ) ? hajlajty_match_lists_resolve_terms( $hajlajty_all_ids ) : array();
 
 $hajlajty_empty_terms = array(
@@ -94,7 +98,25 @@ if ( $hajlajty_group && $hajlajty_group['rozgrywki'] instanceof WP_Term ) {
 					<h2 class="section__title"><span class="kicker-dot"></span> Mecze reprezentacji</h2>
 				</div>
 
-				<h3 class="subhead"><span class="subhead__dot soon"></span> Nadchodzące</h3>
+				<?php if ( ! empty( $hajlajty_live ) ) : ?>
+					<h3 class="subhead"><span class="subhead__dot live"></span> Na żywo</h3>
+					<div class="grid-videos">
+						<?php
+						foreach ( $hajlajty_live as $hajlajty_pid ) :
+							get_template_part(
+								'features/match-lists/partials/card-live',
+								null,
+								array(
+									'post_id' => (int) $hajlajty_pid,
+									'terms'   => $hajlajty_resolved[ $hajlajty_pid ] ?? $hajlajty_empty_terms,
+								)
+							);
+						endforeach;
+						?>
+					</div>
+				<?php endif; ?>
+
+				<h3 class="subhead<?php echo empty( $hajlajty_live ) ? '' : ' subhead--mt'; ?>"><span class="subhead__dot soon"></span> Nadchodzące</h3>
 				<?php if ( empty( $hajlajty_upcoming ) ) : ?>
 					<p class="matches-empty">Brak zaplanowanych meczów dla tej reprezentacji.</p>
 				<?php else : ?>
