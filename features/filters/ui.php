@@ -25,15 +25,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Czy bieżący widok to publiczna LISTA meczów (home, archiwum „mecz" albo
- * terminarz MVP-c). Terminarz to Strona z Page Template należąca do slice'a
- * match-lists — pytamy o nią przez function_exists (luźne sprzężenie: filters
- * nie zależy twardo od match-lists, tylko konsumuje predykat gdy obecny).
+ * Czy bieżący widok dostaje filtr drużyn (wyszukiwarka + chipsbar): publiczna
+ * LISTA meczów (home, archiwum „mecz", terminarz MVP-c) ALBO tabela grup (MVP-e).
+ * Widoki spoza slice'a filters pytamy przez function_exists (luźne sprzężenie:
+ * filters nie zależy twardo od match-lists/standings-view, tylko konsumuje ich
+ * predykat gdy obecny). Tabela grup nie jest „listą meczów", ale dzieli ten sam
+ * filtr po drużynach (znajdź swoją drużynę w grupach).
  */
 function hajlajty_filters_is_list_view(): bool {
 	return is_post_type_archive( 'mecz' )
 		|| is_front_page()
-		|| ( function_exists( 'hajlajty_match_lists_is_terminarz' ) && hajlajty_match_lists_is_terminarz() );
+		|| ( function_exists( 'hajlajty_match_lists_is_terminarz' ) && hajlajty_match_lists_is_terminarz() )
+		|| ( function_exists( 'hajlajty_standings_view_is_table' ) && hajlajty_standings_view_is_table() );
 }
 
 /**

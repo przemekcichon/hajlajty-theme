@@ -21,6 +21,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 get_template_part( 'features/layout/partials/header' );
+
+// Pasek filtra drużyn (slice filters) — pod headerem, w `.content` przed `<main>`,
+// jak archive-mecz.php / terminarz. Self-gated do widoków list+tabeli; guard,
+// gdyby slice zniknął. Chipy/wyszukiwarka zawężają karty grup po `data-teams`.
+if ( function_exists( 'hajlajty_filters_render_bar' ) ) {
+	hajlajty_filters_render_bar();
+}
 ?>
 <main class="container">
 	<?php get_template_part( 'features/standings-view/partials/groups' ); ?>

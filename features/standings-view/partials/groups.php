@@ -65,22 +65,30 @@ $hajlajty_teams = hajlajty_standings_resolve_teams( $hajlajty_team_ids );
 <?php if ( '' !== $hajlajty_notice ) : ?>
 	<p class="standings-empty"><?php echo esc_html( $hajlajty_notice ); ?></p>
 <?php else : ?>
-	<div class="groups-grid">
+	<div class="groups-grid" data-filterable>
 		<?php foreach ( $hajlajty_table as $hajlajty_letter => $hajlajty_rows ) : ?>
 			<?php
-			// data-teams = kody FIFA drużyn grupy (spacją); pomija nierozwiązane.
+			// Kontrakt filtra (slice filters / filters.js): karta grupy niesie
+			// `data-teams` (kody FIFA → chipy) i `data-team-names` (znormalizowane
+			// nazwy PL → wyszukiwarka tekstowa). Te same atrybuty co karty list
+			// (match-lists/terms.php) — wybór/szukanie drużyny zawęża karty grup.
 			$hajlajty_codes = array();
+			$hajlajty_names = array();
 			foreach ( $hajlajty_rows as $hajlajty_row ) {
 				$hajlajty_term_row = $hajlajty_teams[ (int) ( $hajlajty_row['team_id'] ?? 0 ) ] ?? null;
-				if ( $hajlajty_term_row instanceof WP_Term ) {
-					$hajlajty_code = (string) get_term_meta( $hajlajty_term_row->term_id, 'fifa_code', true );
-					if ( '' !== $hajlajty_code ) {
-						$hajlajty_codes[] = $hajlajty_code;
-					}
+				if ( ! ( $hajlajty_term_row instanceof WP_Term ) ) {
+					continue;
+				}
+				$hajlajty_code = (string) get_term_meta( $hajlajty_term_row->term_id, 'fifa_code', true );
+				if ( '' !== $hajlajty_code ) {
+					$hajlajty_codes[] = strtoupper( $hajlajty_code );
+				}
+				if ( function_exists( 'hajlajty_filters_normalize_pl' ) ) {
+					$hajlajty_names[] = hajlajty_filters_normalize_pl( $hajlajty_term_row->name );
 				}
 			}
 			?>
-			<article class="group-card" data-group="<?php echo esc_attr( $hajlajty_letter ); ?>" data-label="<?php echo esc_attr( 'Grupa ' . $hajlajty_letter ); ?>" data-teams="<?php echo esc_attr( implode( ' ', $hajlajty_codes ) ); ?>">
+			<article class="group-card" data-group="<?php echo esc_attr( $hajlajty_letter ); ?>" data-label="<?php echo esc_attr( 'Grupa ' . $hajlajty_letter ); ?>" data-teams="<?php echo esc_attr( implode( ' ', $hajlajty_codes ) ); ?>" data-team-names="<?php echo esc_attr( implode( ' ', $hajlajty_names ) ); ?>">
 				<div class="group-card__head">
 					<span class="group-badge"><?php echo esc_html( $hajlajty_letter ); ?></span>
 					<span class="group-card__title"><?php echo esc_html( 'Grupa ' . $hajlajty_letter ); ?></span>
