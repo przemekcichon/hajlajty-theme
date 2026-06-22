@@ -101,11 +101,15 @@ function hajlajty_teams_view_stat_value( $value ): string {
  * Rozkłada string formy (`form`, np. „WWDLW") na pigułki W/D/L. Nieznane znaki
  * pomijane (odporne na śmieci z API). null/'' → [] (render ukrywa wiersz formy).
  *
- * @param string|null $form Surowy string formy z CURATED JSON.
+ * Typ `mixed` (nie `?string`) świadomie: `form` to passthrough z API (zero koercji
+ * w producencie MVP-f), więc nie-string (np. tablica przy zmianie schematu API)
+ * NIE może rzucić TypeError w renderze — `is_string` go miękko odrzuca → [].
+ *
+ * @param mixed $form Surowa wartość `form` z CURATED JSON (oczekiwany string|null).
  * @return array<int,array{ch:string,cls:string,title:string}> Pigułki w kolejności.
  */
-function hajlajty_teams_view_form_pills( ?string $form ): array {
-	if ( null === $form || '' === $form ) {
+function hajlajty_teams_view_form_pills( $form ): array {
+	if ( ! is_string( $form ) || '' === $form ) {
 		return array();
 	}
 

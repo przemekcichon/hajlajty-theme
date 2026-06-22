@@ -108,6 +108,9 @@ check(
 );
 check( '„w" (małe) → rozpoznane jako W', 'win', hajlajty_teams_view_form_pills( 'w' )[0]['cls'] );
 check( 'śmieci „X1" → pominięte', array(), hajlajty_teams_view_form_pills( 'X1' ) );
+// Twardość typu: nie-string (gdyby API zmieniło schemat) NIE rzuca TypeError → [].
+check( 'tablica → [] (bez TypeError)', array(), hajlajty_teams_view_form_pills( array( 'W' ) ) );
+check( 'int → [] (bez TypeError)', array(), hajlajty_teams_view_form_pills( 5 ) );
 
 echo "\n=== SEED LABEL ===\n";
 check( '(„G", 3) → „G3"', 'G3', hajlajty_teams_view_seed_label( 'G', 3 ) );
