@@ -1,0 +1,120 @@
+/*
+ * Tabele grup (MVP-e) — port sekcji „10. TABELE GRUP" z
+ * design/Hajlajty - Tabele Grup.html. Tylko klasy RDZENIA renderu statycznego:
+ * nagłówek strony, legenda stref, siatka grup, karta grupy, tabela. Klasy warstwy
+ * JS (.reveal, .is-focusing/.is-focused, tr.is-target, #filterPill) świadomie
+ * POMINIĘTE — render serwerowy bez wyszukiwarki/filtra/fokusu.
+ *
+ * Buduje na tokenach :root z tokens.css (zależność enqueue: hajlajty-layout).
+ * .country-flag ma bazę globalną w base.css — tu tylko rozmiar w wierszu tabeli.
+ *
+ * .page-head / .legend (baza) celowo zduplikowane z terminarz.css: oba widoki
+ * ładują własny CSS warunkowo, więc każdy jest samowystarczalny i niezależny od
+ * kolejności ładowania (ten sam wzorzec view-scoped co terminarz; dot-y różne).
+ */
+
+/* ---- NAGŁÓWEK STRONY ---- */
+.page-head { margin-bottom: var(--space-xl); }
+.page-head__eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--accent-strong);
+}
+[data-theme="dark"] .page-head__eyebrow { color: var(--accent); }
+.page-head__eyebrow .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+.page-head__title {
+  margin-top: var(--space-xs);
+  font-size: clamp(30px, 5vw, 46px);
+  font-weight: 800; letter-spacing: -0.035em; line-height: 1.05;
+}
+
+/* ---- LEGENDA STREF ---- */
+.legend { display: flex; flex-wrap: wrap; gap: var(--space-md); margin-top: var(--space-lg); }
+.legend__item { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--text-muted); }
+.legend__dot { width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; }
+.legend__dot.qual { background: var(--accent); }
+.legend__dot.play { background: oklch(0.8 0.14 80); }
+.legend__dot.out  { background: var(--text-faint); }
+
+/* ---- PUSTY STAN (brak meta / termu / danych) ---- */
+.standings-empty {
+  margin-top: var(--space-lg);
+  padding: var(--space-md) var(--space-lg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  color: var(--text-muted);
+  font-size: 15px; font-weight: 600;
+}
+
+/* ---- SIATKA GRUP ---- */
+.groups-grid {
+  --qual: var(--accent);
+  --wait: oklch(0.8 0.14 80);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: var(--space-lg) var(--space-md);
+  align-items: start;
+}
+
+.group-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--space-md);
+  display: flex; flex-direction: column; gap: var(--space-sm);
+  scroll-margin-top: 96px;
+}
+
+.group-card__head { display: flex; align-items: center; gap: var(--space-sm); }
+.group-badge {
+  width: 40px; height: 40px; flex: 0 0 auto;
+  display: grid; place-items: center;
+  border-radius: 13px;
+  background: var(--accent-soft); color: var(--accent-strong);
+  font-weight: 800; font-size: 18px; letter-spacing: -0.02em;
+}
+[data-theme="dark"] .group-badge { color: var(--accent); }
+.group-card__title { font-size: 16px; font-weight: 800; letter-spacing: -0.01em; }
+.group-card__meta {
+  margin-left: auto;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+/* ---- TABELA ---- */
+.standings { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.standings thead th {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase;
+  color: var(--text-faint); text-align: center; padding: 0 4px 10px;
+}
+.standings thead th.pos { width: 28px; }
+.standings thead th.team { text-align: left; padding-left: 8px; }
+.standings tbody td {
+  padding: 10px 4px; font-size: 14px; font-weight: 600; text-align: center;
+  color: var(--text-muted); border-top: 1px solid var(--border);
+}
+.standings tbody tr:first-child td { border-top: none; }
+
+.standings td.pos {
+  position: relative; width: 28px; text-align: center;
+  font-weight: 800; color: var(--text-muted);
+}
+.standings td.pos::before {
+  content: ""; position: absolute; left: -6px; top: 50%; transform: translateY(-50%);
+  width: 3px; height: 24px; border-radius: 3px; background: transparent;
+}
+.standings tr.qual td.pos { color: var(--text); }
+.standings tr.qual td.pos::before { background: var(--qual); }
+.standings tr.play td.pos::before { background: repeating-linear-gradient(to bottom, var(--wait) 0 4px, transparent 4px 8px); }
+
+.standings td.team { text-align: left; padding-left: 8px; }
+.std-team { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.std-team .country-flag { height: 15px; }
+.std-team .nm { font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.standings td.gf { color: var(--text-muted); }
+.standings td.pts { font-weight: 800; color: var(--text); }
+
+@media (max-width: 680px) {
+  .groups-grid { grid-template-columns: 1fr; }
+}
