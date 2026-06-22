@@ -41,9 +41,19 @@ $hajlajty_standings = hajlajty_teams_view_find_standings();
 					<span class="team-section__meta"><?php echo esc_html( count( $hajlajty_terms ) . ' reprezentacji' ); ?></span>
 				</div>
 				<div class="teams-grid">
-					<?php foreach ( $hajlajty_terms as $hajlajty_t ) : ?>
-						<?php hajlajty_teams_view_render_team_card( $hajlajty_t, '', '' ); ?>
-					<?php endforeach; ?>
+					<?php
+					foreach ( $hajlajty_terms as $hajlajty_t ) :
+						get_template_part(
+							'features/teams-view/partials/team-card',
+							null,
+							array(
+								'term'  => $hajlajty_t,
+								'seed'  => '',
+								'group' => '',
+							)
+						);
+					endforeach;
+					?>
 				</div>
 			</section>
 		<?php endif; ?>
@@ -81,7 +91,15 @@ $hajlajty_standings = hajlajty_teams_view_find_standings();
 							continue; // drużyna spoza rostera (brak termu) → nie ma profilu do podlinkowania.
 						}
 						$hajlajty_seed = hajlajty_teams_view_seed_label( $hajlajty_letter, $hajlajty_row['rank'] ?? null );
-						hajlajty_teams_view_render_team_card( $hajlajty_term, $hajlajty_seed, $hajlajty_letter );
+						get_template_part(
+							'features/teams-view/partials/team-card',
+							null,
+							array(
+								'term'  => $hajlajty_term,
+								'seed'  => $hajlajty_seed,
+								'group' => $hajlajty_letter,
+							)
+						);
 					endforeach;
 					?>
 				</div>
