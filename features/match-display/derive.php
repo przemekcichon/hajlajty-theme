@@ -142,6 +142,89 @@ function hajlajty_build_timeline( $events ): array {
 }
 
 /**
+ * Klasa efektu overlay (MVP-b LIVE) dla semantycznego `key` zdarzenia. Jedno
+ * źródło mapowania key→efekt — używane przy budowie `data-ev-kind` (oś czasu) ORAZ
+ * przy decyzji o autoodtworzeniu gola (board). CZYSTA funkcja.
+ *
+ *  - 'goal' — gol/gol z karnego/samobój (te wynikowo zmieniają tablicę → telebim),
+ *  - 'card' — żółta/czerwona/druga żółta,
+ *  - 'sub'  — zmiana,
+ *  - ''     — bez efektu (missed_penalty, var, other).
+ *
+ * @param string $key Semantyczny klucz z hajlajty_lookup_event().
+ * @return string 'goal' | 'card' | 'sub' | ''.
+ */
+function hajlajty_event_overlay_kind( string $key ): string {
+	if ( in_array( $key, array( 'goal', 'penalty_goal', 'own_goal' ), true ) ) {
+		return 'goal';
+	}
+	if ( in_array( $key, array( 'yellow', 'red', 'second_yellow' ), true ) ) {
+		return 'card';
+	}
+	if ( 'subst' === $key ) {
+		return 'sub';
+	}
+	return '';
+}
+
+/**
+ * Stabilna sygnatura zdarzenia osi czasu — tożsamość zdarzenia między pollami
+ * (poller wykrywa przyrost po niej). Tożsamość: `player_id` (pewny, bez kolizji
+ * nazw); fallback na nazwę gdy brak id (np. VAR — i tak bez efektu). CZYSTA funkcja;
+ * format MUSI być spójny po obu stronach (render osi i decyzja autoodtworzenia).
+ *
+ * @param array $item Element z hajlajty_build_timeline().
+ * @return string `key|side|minute|extra|who`.
+ */
+function hajlajty_event_signature( array $item ): string {
+	$who = ( null !== ( $item['player_id'] ?? null ) )
+		? (string) $item['player_id']
+		: (string) ( $item['player'] ?? '' );
+
+	return ( $item['key'] ?? '' ) . '|'
+		. ( $item['side'] ?? '' ) . '|'
+		. ( $item['minute'] ?? '' ) . '|'
+		. ( $item['extra'] ?? '' ) . '|'
+		. $who;
+}
+
+/**
+ * Sygnatura NAJNOWSZEGO liczącego gola, jeśli padł w ostatnich `$within` minutach
+ * gry względem bieżącej minuty (`$elapsed`) — do JEDNORAZOWEGO autoodtworzenia
+ * overlayu „GOL" przy wejściu na żywy mecz. Gdy żaden gol nie mieści się w oknie
+ * (albo `$elapsed` nieznane) → '' (NIE odtwarzamy historii). CZYSTA funkcja.
+ *
+ * Okno liczone w minutach GRY (elapsed − minuta gola), bo to jedyna miara dostępna
+ * z `match_data` (brak zegara ściennego zdarzenia). Tylko gole liczące
+ * (`counts`) — kartki/zmiany NIE są autoodtwarzane (decyzja właściciela).
+ *
+ * @param array $timeline Wynik hajlajty_build_timeline() (chronologicznie rosnąco).
+ * @param mixed $elapsed  Bieżąca minuta gry (`status.elapsed`); int|null.
+ * @param int   $within   Szerokość okna w minutach (domyślnie 4).
+ * @return string Sygnatura gola do odtworzenia albo ''.
+ */
+function hajlajty_recent_goal_signature( array $timeline, $elapsed, int $within = 4 ): string {
+	if ( ! is_numeric( $elapsed ) ) {
+		return '';
+	}
+	$now = (int) $elapsed;
+	$sig = '';
+	foreach ( $timeline as $item ) {
+		if ( empty( $item['counts'] ) || 'goal' !== hajlajty_event_overlay_kind( $item['key'] ?? '' ) ) {
+			continue;
+		}
+		if ( ! is_numeric( $item['minute'] ?? null ) ) {
+			continue;
+		}
+		$diff = $now - (int) $item['minute'];
+		if ( $diff >= 0 && $diff <= $within ) {
+			$sig = hajlajty_event_signature( $item ); // ostatni pasujący (timeline rośnie) = najnowszy.
+		}
+	}
+	return $sig;
+}
+
+/**
  * Wiersze statystyk do renderu: wybiera USTALONY podzbiór `statistics` (ten sam
  * zestaw kluczy i kolejność co render single-ft/live), tłumaczy etykietę przez
  * `hajlajty_lookup_stat_label` i zachowuje SUROWE wartości stron. Pomija klucz,
