@@ -123,6 +123,11 @@ if ( $hajlajty_group && $hajlajty_group['rozgrywki'] instanceof WP_Term ) {
 						foreach ( $hajlajty_recent as $hajlajty_pid ) :
 							$hajlajty_pid = (int) $hajlajty_pid;
 							// „Ma wideo" = niepuste skrot_url (decyzja #9) → karta skrótu; inaczej karta wyniku.
+							// EDGE (świadomie akceptowany): „ostatnie" = kickoff w przeszłości. Mecz
+							// przełożony/w toku (status ≠ FT) z przeszłym kickoffem trafi w card-wynik,
+							// która degraduje go do „zakończony bez wyniku" (— : —) — nie wywraca układu,
+							// może chwilowo zmylić etykietą. Pełne rozróżnienie stanów na profilu to
+							// przyszły krok (#8: nie dorabiamy gałęzi LIVE/NS na zapas).
 							$hajlajty_skrot = function_exists( 'get_field' )
 								? get_field( 'skrot_url', $hajlajty_pid )
 								: get_post_meta( $hajlajty_pid, 'skrot_url', true );

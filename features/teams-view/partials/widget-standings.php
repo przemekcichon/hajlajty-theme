@@ -5,6 +5,12 @@
  * (.is-target). Strefy `.qual`/`.play` WYŁĄCZNIE po `rank` (zones.php, MVP-e) —
  * NIE po stringu `zone` (różni się per turniej; ground-truth / pamięć).
  *
+ * Zależność: `hajlajty_standings_zone_class()` ze slice'a standings-view (MVP-e)
+ * wołana wprost, bez function_exists — ŚWIADOMIE. To zależność WEWNĄTRZ jednego
+ * artefaktu (motyw), spójna z resztą reużycia display (`hajlajty_flag_url`,
+ * `hajlajty_get_match_data`); MVP-g z założenia stoi na MVP-d/e. Brak standings-view
+ * = ten widżet wybuchnie — akceptowalne (te slice'y żyją razem w jednym motywie).
+ *
  * Drużyny w wierszach resolwowane po `api_id` (≤4 termy, batch) — NIGDY po term_id.
  *
  * Wejście (get_template_part $args):

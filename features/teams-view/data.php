@@ -112,6 +112,12 @@ function hajlajty_teams_view_resolve_by_api( array $api_ids ): array {
  * Dekodowane raz (jedyne json_decode statystyk w renderze, analog
  * hajlajty_get_match_data / hajlajty_get_standings).
  *
+ * Bierze PIERWSZY pasujący blob `team_stats_*`. Dla Mundialu (jeden turniej =
+ * jeden blob) jest to deterministyczne i wystarczające (#8: bez wyboru na zapas).
+ * TODO (Faza 5, piłka klubowa): gdy term „druzyna" dostanie >1 blob (różne ligi/
+ * sezony), „pierwszy" jest arbitralny — dodać deterministyczny wybór (np. bieżący
+ * sezon / kontekst widoku), zamiast polegać na kolejności get_term_meta.
+ *
  * @param int $term_id Term „druzyna".
  * @return array Zdekodowany curated (albo [] gdy brak meta / nie-string / zły JSON).
  */
@@ -148,6 +154,11 @@ function hajlajty_teams_view_get_team_stats( int $term_id ): array {
 /**
  * Pierwsza zaimportowana tabela grup w serwisie: skan termów „rozgrywki" po
  * meta `standings_*`. Dla Mundialu to jedna tabela (term „Mistrzostwa Świata").
+ *
+ * Bierze PIERWSZY pasujący blob (pierwszy term × pierwszy `standings_*`). Dla
+ * jednego turnieju deterministyczne i wystarczające (#8). TODO (Faza 5, piłka
+ * klubowa): przy wielu rozgrywkach/sezonach „pierwszy" jest arbitralny — dodać
+ * deterministyczny wybór (bieżący sezon / kontekst), nie kolejność get_terms.
  *
  * @return array{table:array<string,array>,rozgrywki:WP_Term,season:string}|null
  *   null gdy żadna tabela nie istnieje (render degraduje do trybu „bez tabeli").
