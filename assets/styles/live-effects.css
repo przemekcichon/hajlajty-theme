@@ -1,15 +1,18 @@
 /* ============================================================
    HAJLAJTY — assets/styles/live-effects.css
    ------------------------------------------------------------
-   Efekty REALNYCH zdarzeń na single LIVE (MVP-b). Klasy stanu nadaje
-   live-refresh.js po wykryciu PRZYROSTU między pollami fragmentu (3e-iii):
-   gol → golPop (oś) + scoreBump (telebim), kartka → cardFlip, zmiana → sub.
-   Bez symulacji/`data-demo` — animuje się TYLKO nowe zdarzenie w trakcie sesji
-   live (baseline z pierwszego renderu nie animuje historii).
+   Efekty REALNYCH zdarzeń na single LIVE (MVP-b). Pełnoekranowy „telebim" overlay
+   nad tablicą wyników: gol (GOOOL!), kartka (flip żółtej/czerwonej), zmiana
+   (wchodzi/schodzi) — port z prototypu „Mecz na Żywo". Klasę `.is-active` na
+   właściwym `.ev` nadaje live-refresh.js po wykryciu NOWEGO zdarzenia w trakcie
+   pollingu fragmentu (3e-iii); przy WEJŚCIU odtwarzany jest wyłącznie gol z
+   ostatnich 4 min gry (board niesie `data-ev-autoplay`). Dane efektu (zawodnik,
+   minuta, drużyna, flaga) JS czyta z `data-ev-*` elementu osi — zero JSON.
 
-   Warstwa czysto dekoracyjna nakładana na ISTNIEJĄCY markup fragmentu (jedno
-   źródło znacznika). Keyframes portowane z prototypu „Mecz na Żywo", na tokenach.
-   prefers-reduced-motion: animacje wyłączone (podmiana fragmentu działa dalej).
+   Dodatkowo: scoreBump na liczbie bramek telebimu po realnym golu (reakcja tablicy).
+   Overlay leży wewnątrz `.board` (position:relative; overflow:hidden — match-single.css),
+   więc `inset:0` przykrywa kadr 16:9. Tokeny --card-yellow/--card-red z match-single.css.
+   prefers-reduced-motion: keyframes wyłączone (overlay nadal pokazuje treść).
 ============================================================ */
 
 /* scoreBump — liczba bramek na telebimie po realnym golu. */
@@ -22,42 +25,86 @@
   animation: hajlajty-score-bump 600ms var(--ease, ease) both;
 }
 
-/* golPop — węzeł nowego gola na osi czasu. */
+/* ---- OVERLAY ZDARZEŃ (aktywowany klasą .is-active z JS) ---- */
+.ev {
+  position: absolute; inset: 0; z-index: 5;
+  display: grid; place-items: center; padding: 5%;
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transition: opacity 320ms var(--ease, ease), visibility 320ms var(--ease, ease);
+}
+.ev.is-active { opacity: 1; visibility: visible; }
+.ev__goal-box { text-align: center; }
+
+/* GOL */
+.ev--goal {
+  background:
+    radial-gradient(circle at 50% 50%, var(--ev-color, var(--accent)) 0%, color-mix(in oklab, var(--ev-color, var(--accent)) 60%, black) 100%);
+}
+/* --ev-ink: kontrastowy kolor tekstu dobrany do barwy koszulki przez JS (jasny
+   tekst na ciemnej barwie, ciemny na jasnej — np. biała/żółta koszulka). Fallback
+   #fff dla domyślnego (akcentowego) tła, gdy brak barwy. */
+.ev--goal .gol {
+  font-size: clamp(40px, 12vw, 116px); font-weight: 800; letter-spacing: 0.03em; color: var(--ev-ink, #fff);
+  text-shadow: 0 6px 30px oklch(0 0 0 / 0.4); line-height: 0.9;
+}
+.ev--goal .gol-sub { margin-top: 14px; font-size: clamp(14px, 2vw, 22px); font-weight: 700; color: var(--ev-ink, #fff); opacity: 0.92; }
+.ev--goal .gol-sub b { font-weight: 800; }
+.ev.is-active .gol { animation: hajlajty-gol-pop 700ms var(--ease, ease) both; }
+.ev.is-active .gol-sub { animation: hajlajty-fade-up 600ms var(--ease, ease) 120ms both; }
 @keyframes hajlajty-gol-pop {
   0%   { transform: scale(0.5) rotate(-5deg); opacity: 0; }
   55%  { transform: scale(1.1) rotate(2deg); opacity: 1; }
   100% { transform: scale(1) rotate(0); }
 }
-.tl-item.is-ev-goal .tl-node {
-  animation: hajlajty-gol-pop 600ms var(--ease, ease) both;
+@keyframes hajlajty-fade-up {
+  from { transform: translateY(14px); opacity: 0; }
+  to   { transform: none; opacity: 1; }
 }
 
-/* cardFlip — węzeł nowej kartki na osi czasu. */
+/* KARTKA + ZMIANA — wspólne ciemne tło */
+.ev--card, .ev--sub { background: oklch(0 0 0 / 0.82); backdrop-filter: blur(5px); }
+.ev__inner { display: flex; align-items: center; gap: clamp(16px, 3vw, 34px); }
+
+/* KARTKA */
+.card-graphic {
+  flex: 0 0 auto; width: clamp(52px, 8vw, 82px); height: clamp(74px, 11vw, 116px);
+  border-radius: 9px; box-shadow: 0 14px 34px oklch(0 0 0 / 0.5);
+}
+.card-graphic.yellow { background: var(--card-yellow); }
+.card-graphic.red { background: var(--card-red); }
+.ev.is-active .card-graphic { animation: hajlajty-card-flip 720ms var(--ease, ease) both; }
 @keyframes hajlajty-card-flip {
   0%   { transform: rotate(-20deg) translateY(-28px) scale(0.7); opacity: 0; }
   60%  { transform: rotate(7deg) scale(1.06); opacity: 1; }
   100% { transform: rotate(0) scale(1); }
 }
-.tl-item.is-ev-card .tl-node {
-  animation: hajlajty-card-flip 600ms var(--ease, ease) both;
-}
+.ev__meta .lab { font-size: 12px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: oklch(1 0 0 / 0.65); }
+.ev__meta .who { font-size: clamp(20px, 3vw, 34px); font-weight: 800; color: #fff; line-height: 1.1; margin-top: 4px; }
+.ev__meta .team { font-size: clamp(12px, 1.6vw, 15px); font-weight: 600; color: oklch(1 0 0 / 0.7); margin-top: 6px; display: inline-flex; align-items: center; gap: 7px; }
+.ev__meta .team .country-flag { height: 14px; border-radius: 2px; }
 
-/* efekt zmiany — węzeł nowej zmiany (⇄) na osi czasu. */
-@keyframes hajlajty-sub-pop {
-  0%   { transform: scale(0.6) rotate(-180deg); opacity: 0; }
-  60%  { transform: scale(1.08) rotate(8deg); opacity: 1; }
-  100% { transform: scale(1) rotate(0); }
-}
-.tl-item.is-ev-sub .tl-node {
-  animation: hajlajty-sub-pop 600ms var(--ease, ease) both;
-}
+/* ZMIANA */
+.ev--sub .ev__inner { flex-direction: column; align-items: stretch; gap: clamp(10px, 1.8vh, 16px); min-width: clamp(230px, 42%, 360px); }
+.ev--sub .lab { text-align: center; font-size: 12px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: oklch(1 0 0 / 0.65); }
+.sub-row { display: flex; align-items: center; gap: 12px; font-size: clamp(16px, 2.2vw, 22px); font-weight: 800; color: #fff; }
+.sub-row .arrow { width: 30px; height: 30px; flex: 0 0 auto; display: grid; place-items: center; border-radius: 50%; }
+.sub-row .arrow svg { width: 17px; height: 17px; stroke: currentColor; stroke-width: 2.6; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.sub-row.in  .arrow { background: var(--accent); color: var(--accent-ink); }
+.sub-row.out .arrow { background: var(--card-red); color: #fff; }
+.ev.is-active .sub-row.in  { animation: hajlajty-slide-r 560ms var(--ease, ease) both; }
+.ev.is-active .sub-row.out { animation: hajlajty-slide-l 560ms var(--ease, ease) both; }
+@keyframes hajlajty-slide-r { from { transform: translateX(22px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes hajlajty-slide-l { from { transform: translateX(-22px); opacity: 0; } to { transform: none; opacity: 1; } }
 
-/* Dekoracyjne — wyłączamy przy prefers-reduced-motion (podmiana fragmentu OK). */
+/* Dekoracyjne — przy prefers-reduced-motion zerujemy animacje (overlay nadal
+   pokazuje treść; podmiana fragmentu działa). */
 @media (prefers-reduced-motion: reduce) {
   .board__nums .n.is-bump,
-  .tl-item.is-ev-goal .tl-node,
-  .tl-item.is-ev-card .tl-node,
-  .tl-item.is-ev-sub .tl-node {
+  .ev.is-active .gol,
+  .ev.is-active .gol-sub,
+  .ev.is-active .card-graphic,
+  .ev.is-active .sub-row.in,
+  .ev.is-active .sub-row.out {
     animation: none;
   }
 }
