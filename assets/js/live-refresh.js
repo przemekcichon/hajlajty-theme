@@ -78,6 +78,129 @@
     score = base.nextScore;
   }
 
+  // --- OVERLAY ZDARZEŃ (pełnoekranowy telebim) ----------------------------
+  // Kolejka FIFO: zdarzenia grają po kolei (nie nakładają się). Dane efektu czytamy
+  // z data-ev-* elementu osi; overlay-skeleton żyje w .board (podmieniany przy pollu),
+  // więc query NA ŻYWO przy każdym odtworzeniu.
+  var OVERLAY_MS = 3500;  // czas widoczności overlayu.
+  var OVERLAY_GAP = 250;  // odstęp między kolejnymi w kolejce.
+  var evQueue = [];
+  var evBusy = false;
+
+  function setText(scope, sel, txt) {
+    var el = scope.querySelector(sel);
+    if (el) el.textContent = txt || "";
+  }
+
+  // Kontrastowy kolor tekstu dla danej barwy tła (hex #rgb/#rrggbb[aa]). Jasna
+  // koszulka (biała/żółta) → ciemny tekst; ciemna → biały. Luminancja sRGB (WCAG-ish);
+  // próg 0.6 dobrany pod żółć (jasna → ciemny). Niepoprawny hex → biały (bezpiecznie).
+  function pickInk(hex) {
+    var h = String(hex || "").replace("#", "");
+    if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+    if (h.length < 6) return "#fff";
+    var r = parseInt(h.slice(0, 2), 16);
+    var g = parseInt(h.slice(2, 4), 16);
+    var b = parseInt(h.slice(4, 6), 16);
+    if (isNaN(r) || isNaN(g) || isNaN(b)) return "#fff";
+    var lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+    return lum > 0.6 ? "#10131a" : "#fff";
+  }
+
+  function readEventData(el, kind) {
+    return {
+      kind: kind || el.getAttribute("data-ev-kind") || "",
+      player: el.getAttribute("data-ev-player") || "",
+      team: el.getAttribute("data-ev-team") || "",
+      flag: el.getAttribute("data-ev-flag") || "",
+      min: el.getAttribute("data-ev-min") || "",
+      color: el.getAttribute("data-ev-color") || "",
+      label: el.getAttribute("data-ev-label") || "",
+      cardkind: el.getAttribute("data-ev-cardkind") || "",
+      inName: el.getAttribute("data-ev-in") || "",
+      outName: el.getAttribute("data-ev-out") || ""
+    };
+  }
+
+  function overlayDone() {
+    evBusy = false;
+    setTimeout(pumpOverlay, OVERLAY_GAP);
+  }
+
+  function showOverlay(ev) {
+    var cls = ev.kind === "card" ? "card" : (ev.kind === "sub" ? "sub" : "goal");
+    var el = document.querySelector(".board .ev--" + cls);
+    if (!el) { overlayDone(); return; }
+
+    if (ev.kind === "goal") {
+      // Barwa overlayu = kolor koszulki strzelca z API; brak → fallback --accent (CSS).
+      // Kolor tekstu dobierany do kontrastu z barwą (jasna koszulka → ciemny tekst).
+      if (ev.color) {
+        el.style.setProperty("--ev-color", ev.color);
+        el.style.setProperty("--ev-ink", pickInk(ev.color));
+      } else {
+        el.style.removeProperty("--ev-color");
+        el.style.removeProperty("--ev-ink");
+      }
+      setText(el, "[data-ev-goal-player]", ev.player || ev.team);
+      setText(el, "[data-ev-goal-min]", ev.min ? " · " + ev.min : "");
+    } else if (ev.kind === "card") {
+      var gfx = el.querySelector("[data-ev-card-gfx]");
+      if (gfx) gfx.className = "card-graphic " + (ev.cardkind === "red" ? "red" : "yellow");
+      setText(el, "[data-ev-card-lab]", ev.label);
+      setText(el, "[data-ev-card-who]", ev.player);
+      var flagEl = el.querySelector("[data-ev-card-flag]");
+      if (flagEl) {
+        if (ev.flag) { flagEl.src = ev.flag; flagEl.hidden = false; }
+        else { flagEl.hidden = true; }
+      }
+      setText(el, "[data-ev-card-team]", ev.team + (ev.min ? " · " + ev.min : ""));
+    } else if (ev.kind === "sub") {
+      setText(el, "[data-ev-sub-in]", ev.inName || "—");
+      setText(el, "[data-ev-sub-out]", ev.outName || "—");
+    } else {
+      overlayDone();
+      return;
+    }
+
+    // Restart animacji: zdejmij klasę, wymuś reflow, nałóż ponownie.
+    el.classList.remove("is-active");
+    void el.offsetWidth;
+    el.classList.add("is-active");
+    setTimeout(function () { el.classList.remove("is-active"); overlayDone(); }, OVERLAY_MS);
+  }
+
+  function pumpOverlay() {
+    if (evBusy) return;
+    var ev = evQueue.shift();
+    if (!ev) return;
+    evBusy = true;
+    showOverlay(ev);
+  }
+
+  function enqueueOverlay(ev) {
+    if (!ev || !ev.kind) return;
+    evQueue.push(ev);
+    pumpOverlay();
+  }
+
+  // Element osi po sygnaturze (porównanie atrybutu — bez eskejpowania selektora).
+  function findEventEl(sig) {
+    var items = document.querySelectorAll(".tl-item[data-ev]");
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].getAttribute("data-ev") === sig) return items[i];
+    }
+    return null;
+  }
+
+  // WEJŚCIE: odtwórz JEDEN raz gola z ostatnich 4 min (board niesie data-ev-autoplay).
+  // Czytane TYLKO na starcie — po swapach nie wracamy do historii.
+  var autoplaySig = primary.getAttribute("data-ev-autoplay");
+  if (autoplaySig) {
+    var apEl = findEventEl(autoplaySig);
+    if (apEl) enqueueOverlay(readEventData(apEl, "goal"));
+  }
+
   function stop() {
     if (timer) { clearInterval(timer); timer = null; }
   }
@@ -116,7 +239,7 @@
     seen = r.nextSeen;
     score = r.nextScore;
 
-    // Nowe zdarzenia osi → klasa wg kind na świeżym węźle (animuje raz).
+    // Nowe zdarzenia osi → pełnoekranowy overlay (kolejkowany, gra po kolei).
     var anyNew = false;
     var sig;
     for (sig in r.newSigs) { if (Object.prototype.hasOwnProperty.call(r.newSigs, sig)) { anyNew = true; break; } }
@@ -124,10 +247,9 @@
       var items = document.querySelectorAll(".tl-item[data-ev]");
       Array.prototype.forEach.call(items, function (el) {
         var kind = r.newSigs[el.getAttribute("data-ev")];
-        if (kind === undefined) return;
-        if (kind === "goal") el.classList.add("is-ev-goal");
-        else if (kind === "card") el.classList.add("is-ev-card");
-        else if (kind === "sub") el.classList.add("is-ev-sub");
+        if (kind === "goal" || kind === "card" || kind === "sub") {
+          enqueueOverlay(readEventData(el, kind));
+        }
       });
     }
 
