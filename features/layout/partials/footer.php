@@ -14,24 +14,25 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<div class="footer__grid">
 					<div class="footer__brand">
 						<a class="logo" href="<?php echo esc_url( home_url( '/' ) ); ?>" aria-label="Hajlajty">
-							<svg class="logo__play" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
 							<span class="logo__text">hajlajt<span class="logo__y">y</span></span>
+							<svg class="logo__play" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" d="M7 5.8 18 12 7 18.2Z"/></svg>
 						</a>
 						<p class="footer__tag">Portal Młodego Kibica. Wszystkie skróty reprezentacji w jednym miejscu — prosto z oficjalnych kanałów.</p>
 					</div>
 					<div class="footer__col">
 						<h4>Serwis</h4>
-						<a href="#">Na żywo</a>
-						<a href="#">Zapowiedzi</a>
-						<a href="#">Skróty</a>
-						<a href="#">Reprezentacje</a>
+						<a href="<?php echo esc_url( home_url( '/na-zywo/' ) ); ?>">Na żywo</a>
+						<a href="<?php echo esc_url( home_url( '/zapowiedzi/' ) ); ?>">Zapowiedzi</a>
+						<a href="<?php echo esc_url( home_url( '/skroty/' ) ); ?>">Skróty</a>
+						<a href="<?php echo esc_url( home_url( '/reprezentacje/' ) ); ?>">Reprezentacje</a>
 					</div>
 					<div class="footer__col">
 						<h4>Mundial 2026</h4>
-						<a href="#">Terminarz</a>
-						<a href="#">Grupy</a>
-						<a href="#">Faza pucharowa</a>
-						<a href="#">Strzelcy</a>
+						<a href="<?php echo esc_url( home_url( '/terminarz/' ) ); ?>">Terminarz</a>
+						<a href="<?php echo esc_url( home_url( '/tabele-grup/' ) ); ?>">Grupy</a>
+						<?php // Faza pucharowa i Strzelcy — ukryte do czasu realizacji (display:none, łatwe do przywrócenia). ?>
+						<a href="#" style="display:none">Faza pucharowa</a>
+						<a href="#" style="display:none">Strzelcy</a>
 					</div>
 					<div class="footer__col">
 						<h4>Hajlajty</h4>
