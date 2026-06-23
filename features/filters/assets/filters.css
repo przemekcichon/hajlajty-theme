@@ -38,6 +38,16 @@
      gdzie topbar i pasek dzieliły scroll okna) powodował, że gdy [data-filters]
      rośnie o komunikat „brak wyników", sticky zjeżdżał w dół o wysokość topbara. */
   .chipsbar { top: 0; }
+
+  /* `display: contents` — KLUCZOWE dla sticky chipsbara: bez tego blokiem
+     zawierającym `.chipsbar` jest krótki wrapper `[data-filters]` (sam pasek), a
+     karty (`<main>`) są jego RODZEŃSTWEM → sticky odkleja się od razu po wyjściu
+     paska z kadru. Z `display: contents` wrapper znika z layoutu, więc blokiem
+     zawierającym staje się wysoki `.content` (kontener scrolla) i pasek klei się
+     NAD przewijanymi kartami. Pigułka „Filtrujesz" zostaje w przepływie treści →
+     chowa się przy scrollu (zamierzone). Skanery JS (querySelector w [data-filters])
+     działają dalej — display:contents nie usuwa elementu z DOM. */
+  .content [data-filters] { display: contents; }
 }
 
 /* ---- Środkowa kolumna topbara: pole (desktop) / lupa (mobile) ----
