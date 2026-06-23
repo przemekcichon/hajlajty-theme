@@ -92,6 +92,21 @@
     if (el) el.textContent = txt || "";
   }
 
+  // Kontrastowy kolor tekstu dla danej barwy tła (hex #rgb/#rrggbb[aa]). Jasna
+  // koszulka (biała/żółta) → ciemny tekst; ciemna → biały. Luminancja sRGB (WCAG-ish);
+  // próg 0.6 dobrany pod żółć (jasna → ciemny). Niepoprawny hex → biały (bezpiecznie).
+  function pickInk(hex) {
+    var h = String(hex || "").replace("#", "");
+    if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+    if (h.length < 6) return "#fff";
+    var r = parseInt(h.slice(0, 2), 16);
+    var g = parseInt(h.slice(2, 4), 16);
+    var b = parseInt(h.slice(4, 6), 16);
+    if (isNaN(r) || isNaN(g) || isNaN(b)) return "#fff";
+    var lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+    return lum > 0.6 ? "#10131a" : "#fff";
+  }
+
   function readEventData(el, kind) {
     return {
       kind: kind || el.getAttribute("data-ev-kind") || "",
@@ -119,8 +134,14 @@
 
     if (ev.kind === "goal") {
       // Barwa overlayu = kolor koszulki strzelca z API; brak → fallback --accent (CSS).
-      if (ev.color) el.style.setProperty("--ev-color", ev.color);
-      else el.style.removeProperty("--ev-color");
+      // Kolor tekstu dobierany do kontrastu z barwą (jasna koszulka → ciemny tekst).
+      if (ev.color) {
+        el.style.setProperty("--ev-color", ev.color);
+        el.style.setProperty("--ev-ink", pickInk(ev.color));
+      } else {
+        el.style.removeProperty("--ev-color");
+        el.style.removeProperty("--ev-ink");
+      }
       setText(el, "[data-ev-goal-player]", ev.player || ev.team);
       setText(el, "[data-ev-goal-min]", ev.min ? " · " + ev.min : "");
     } else if (ev.kind === "card") {

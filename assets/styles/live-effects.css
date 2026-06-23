@@ -40,11 +40,14 @@
   background:
     radial-gradient(circle at 50% 50%, var(--ev-color, var(--accent)) 0%, color-mix(in oklab, var(--ev-color, var(--accent)) 60%, black) 100%);
 }
+/* --ev-ink: kontrastowy kolor tekstu dobrany do barwy koszulki przez JS (jasny
+   tekst na ciemnej barwie, ciemny na jasnej — np. biała/żółta koszulka). Fallback
+   #fff dla domyślnego (akcentowego) tła, gdy brak barwy. */
 .ev--goal .gol {
-  font-size: clamp(40px, 12vw, 116px); font-weight: 800; letter-spacing: 0.03em; color: #fff;
+  font-size: clamp(40px, 12vw, 116px); font-weight: 800; letter-spacing: 0.03em; color: var(--ev-ink, #fff);
   text-shadow: 0 6px 30px oklch(0 0 0 / 0.4); line-height: 0.9;
 }
-.ev--goal .gol-sub { margin-top: 14px; font-size: clamp(14px, 2vw, 22px); font-weight: 700; color: oklch(1 0 0 / 0.92); }
+.ev--goal .gol-sub { margin-top: 14px; font-size: clamp(14px, 2vw, 22px); font-weight: 700; color: var(--ev-ink, #fff); opacity: 0.92; }
 .ev--goal .gol-sub b { font-weight: 800; }
 .ev.is-active .gol { animation: hajlajty-gol-pop 700ms var(--ease, ease) both; }
 .ev.is-active .gol-sub { animation: hajlajty-fade-up 600ms var(--ease, ease) 120ms both; }
