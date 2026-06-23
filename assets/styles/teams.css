@@ -1,0 +1,300 @@
+/*
+ * Reprezentacje + Profil kraju (MVP-g) — port sekcji „12. PROFIL REPREZENTACJI" i
+ * listy reprezentacji z design/Hajlajty - Profil Belgia.html + Reprezentacje.html.
+ * Tylko klasy RDZENIA renderu statycznego. Klasy warstwy JS / Fazy 4 (.reveal,
+ * .is-target hover-fokus, .team-fav, .hero-follow, chipsbar) świadomie POMINIĘTE.
+ *
+ * Buduje na tokenach :root z tokens.css (zależność enqueue: hajlajty-layout).
+ * `.country-flag` ma bazę globalną w base.css — tu tylko rozmiary kontekstowe.
+ * `.section`/`.section__title`/`.grid-videos` przychodzą z match-lists.css (Profil
+ * dociąga ją pod karty meczów). `.page-head` zduplikowana z standings/terminarz
+ * (view-scoped: Reprezentacje ładują TYLKO ten plik — musi być samowystarczalny).
+ */
+
+/* ---- NAGŁÓWEK STRONY (Reprezentacje) ---- */
+.page-head { margin-bottom: var(--space-xl); }
+.page-head__eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--accent-strong);
+}
+[data-theme="dark"] .page-head__eyebrow { color: var(--accent); }
+.page-head__eyebrow .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+.page-head__title {
+  margin-top: var(--space-xs);
+  font-size: clamp(30px, 5vw, 46px);
+  font-weight: 800; letter-spacing: -0.035em; line-height: 1.05;
+}
+
+/* ---- PUSTY STAN (brak meczów / danych) ---- */
+.matches-empty {
+  padding: var(--space-md) var(--space-lg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  color: var(--text-muted);
+  font-size: 14px; font-weight: 600;
+}
+
+/* ============================================================
+   PROFIL — HERO
+============================================================ */
+.profile-hero {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  margin-bottom: var(--space-xl);
+  background:
+    radial-gradient(120% 150% at 0% 0%, oklch(0.63 0.22 25 / 0.16), transparent 52%),
+    radial-gradient(120% 150% at 100% 8%, oklch(0.84 0.15 92 / 0.16), transparent 52%),
+    var(--surface);
+}
+/* Pasek-tricolor z mockupu („Profil Belgia") był barwami Belgii (czarny-żółty-
+   czerwony) zaszytymi na sztywno → na każdym kraju pokazywał flagę Belgii. Nie mamy
+   danych o barwach flag per kraj, więc pasek USUNIĘTY; zostaje neutralny gradient
+   tła hero (radialne poświaty na .profile-hero), działający dla dowolnej drużyny. */
+.profile-hero__inner {
+  display: flex; align-items: center; gap: var(--space-lg);
+  padding: clamp(20px, 3vw, 36px) clamp(20px, 3vw, 40px);
+}
+.profile-hero__flag {
+  height: clamp(64px, 8vw, 92px); width: auto; flex: 0 0 auto;
+  border-radius: 8px;
+  box-shadow: 0 0 0 1px oklch(0 0 0 / 0.12), 0 14px 34px -14px oklch(0 0 0 / 0.5);
+}
+.profile-hero__id { min-width: 0; flex: 1 1 auto; display: flex; flex-direction: column; gap: 8px; }
+.profile-hero__eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 12px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--accent-strong);
+}
+[data-theme="dark"] .profile-hero__eyebrow { color: var(--accent); }
+.profile-hero__eyebrow .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+.profile-hero__name { font-size: clamp(34px, 5.5vw, 56px); font-weight: 800; letter-spacing: -0.04em; line-height: 1; }
+.profile-hero__coach { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; color: var(--text-muted); font-weight: 600; }
+.profile-hero__coach b { color: var(--text); font-weight: 800; }
+.hero-meta { display: flex; flex-wrap: wrap; gap: var(--space-2xs); margin-top: 6px; }
+.hero-chip {
+  display: inline-flex; align-items: center; height: 30px; padding: 0 13px;
+  border-radius: var(--r-pill); background: var(--surface-2); border: 1px solid var(--border);
+  font-size: 12.5px; font-weight: 700; color: var(--text-muted); white-space: nowrap;
+}
+
+/* ============================================================
+   PROFIL — SZEROKOŚĆ „WATCH BAND" (równa single meczu)
+   ------------------------------------------------------------
+   Profil to widok skupiony (jak single meczu) → ma mieć DOKŁADNIE tę samą szerokość
+   pasma co single. Pasmo definiuje match-single.css przez --watch-max, ale TA
+   wtyczka stylu ładuje się tylko na single (nie na profilu). Mirrorujemy tu te same
+   tokeny 1:1, ZAWĘŻONE do `body.hajlajty-profil-druzyny`, by nie ruszać innych
+   widoków. Topbar i stopka biorą --watch-max z layout.css automatycznie
+   (`var(--watch-max, var(--container))` na widokach bez app-shell); tu dokładamy
+   tylko zawężenie <main>. Wartości MUSZĄ pozostać zgodne z match-single.css.
+============================================================ */
+@media (min-width: 1100px) {
+  body.hajlajty-profil-druzyny {
+    --max-player-width: 1280px;
+    --match-sidebar-width: 480px;
+    --page-horizontal-margin: var(--space-md);
+    --watch-max: calc(var(--max-player-width) + var(--match-sidebar-width) + (var(--page-horizontal-margin) * 3));
+  }
+  body.hajlajty-profil-druzyny .content main.container {
+    max-width: var(--watch-max);
+    margin-inline: auto;
+    padding-inline: var(--page-horizontal-margin);
+  }
+}
+
+/* ============================================================
+   PROFIL — UKŁAD 2 KOLUMNY
+============================================================ */
+.profile-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 350px;
+  gap: var(--space-xl) var(--space-lg);
+  align-items: start;
+}
+.profile-col--main { min-width: 0; display: flex; flex-direction: column; gap: var(--space-2xl); }
+/* min-width:0 KONIECZNE: bez tego długa nazwa kraju w mini-tabeli (np. „Republika
+   Południowej Afryki") rozpycha kolumnę grid ponad 1fr → poziomy scroll całej
+   strony (znika prawy margines boksów). Razem z table-layout:fixed niżej. */
+.profile-col--side { min-width: 0; display: flex; flex-direction: column; gap: var(--space-lg); }
+.profile-col--main .section { margin-bottom: 0; }
+/* Siatka meczów profilu miksuje karty RÓŻNEJ wysokości: niski wynik (.rcard) obok
+   wysokiej karty wideo (.vcard). Bez tego grid (domyślne align-items:stretch)
+   rozciąga kartę wyniku do wysokości sąsiada (puste pole pod meczem). align-items:
+   start trzyma każdą kartę przy jej naturalnej wysokości — wzór: terminarz.css
+   (.ter-grid też miksuje stany i ma align-items:start). Scope do profilu, by nie
+   zmieniać .grid-videos na archiwach (tam karty są jednorodne). */
+.profile-col--main .grid-videos { align-items: start; }
+
+.subhead {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 14px; font-weight: 800; letter-spacing: 0.02em; text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: var(--space-md);
+}
+.subhead--mt { margin-top: var(--space-xl); }
+.subhead__dot { width: 9px; height: 9px; border-radius: 50%; background: var(--text-faint); flex: 0 0 auto; }
+.subhead__dot.soon { background: var(--accent); }
+.subhead__dot.live { background: var(--live); }
+
+/* ============================================================
+   PROFIL — WIDŻETY (prawa kolumna)
+============================================================ */
+.widget { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: var(--space-md); }
+.widget__head { display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-sm); }
+.widget__title { font-size: 15px; font-weight: 800; letter-spacing: -0.01em; }
+.widget__sub { margin-left: auto; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-faint); }
+.widget__link { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px; font-weight: 700; color: var(--text-muted); transition: color var(--t-fast); }
+.widget__link svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.widget__link:hover { color: var(--accent); }
+.widget__cap { margin-top: var(--space-sm); font-size: 12px; color: var(--text-faint); font-weight: 600; text-wrap: pretty; line-height: 1.5; }
+
+/* mini-tabela grupy — table-layout:fixed: kolumny mają stałe szerokości, więc
+   długa nazwa kraju (np. „Republika Południowej Afryki") TRUNCATE'uje się
+   wielokropkiem zamiast rozpychać tabelę (przyczyna poziomego scrolla na mobile).
+   Kolumna „Drużyna" bierze resztę; kolumny liczbowe stałe i wąskie. */
+.gtable { width: 100%; border-collapse: collapse; table-layout: fixed; font-variant-numeric: tabular-nums; }
+.gtable th:nth-child(1), .gtable td:nth-child(1) { width: 24px; }  /* # */
+.gtable th:nth-child(3), .gtable td:nth-child(3) { width: 30px; }  /* M */
+.gtable th:nth-child(4), .gtable td:nth-child(4) { width: 44px; }  /* Br. (np. 12:5) */
+.gtable th:nth-child(5), .gtable td:nth-child(5) { width: 34px; }  /* Pkt */
+.gtable thead th { font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-faint); text-align: center; padding: 0 4px 9px; }
+.gtable thead th.team { text-align: left; padding-left: 6px; }
+.gtable tbody td { padding: 9px 4px; font-size: 13px; font-weight: 600; text-align: center; color: var(--text-muted); border-top: 1px solid var(--border); }
+.gtable td.pos { position: relative; width: 22px; font-weight: 800; color: var(--text-muted); }
+.gtable td.pos::before { content: ""; position: absolute; left: -3px; top: 50%; transform: translateY(-50%); width: 3px; height: 20px; border-radius: 3px; background: transparent; }
+.gtable tr.qual td.pos { color: var(--text); }
+.gtable tr.qual td.pos::before { background: var(--accent); }
+.gtable tr.play td.pos::before { background: repeating-linear-gradient(to bottom, oklch(0.8 0.14 92) 0 4px, transparent 4px 8px); }
+.gtable td.team { text-align: left; padding-left: 6px; }
+.gt-team { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.gt-team .country-flag { height: 14px; }
+.gt-team .nm { min-width: 0; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gtable td.pts { font-weight: 800; color: var(--text); }
+.gtable tr.is-target td { background: var(--accent-soft); }
+.gtable tr.is-target .nm, .gtable tr.is-target td.pos { color: var(--accent-strong); }
+[data-theme="dark"] .gtable tr.is-target .nm, [data-theme="dark"] .gtable tr.is-target td.pos { color: var(--accent); }
+.gtable tr.is-target td:first-child { border-top-left-radius: 7px; border-bottom-left-radius: 7px; }
+.gtable tr.is-target td:last-child { border-top-right-radius: 7px; border-bottom-right-radius: 7px; }
+.gt-zones { display: flex; flex-wrap: wrap; gap: var(--space-md); margin-top: var(--space-sm); }
+.gt-zone { display: inline-flex; align-items: center; gap: 7px; font-size: 11.5px; font-weight: 700; color: var(--text-muted); }
+.gt-zone__dot { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 auto; }
+.gt-zone__dot.qual { background: var(--accent); }
+.gt-zone__dot.play { background: oklch(0.8 0.14 92); }
+
+/* paski statystyk */
+.stats { display: flex; flex-direction: column; gap: var(--space-md); }
+.stat-row { display: flex; flex-direction: column; gap: 8px; }
+.stat-row__top { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-sm); }
+.stat-row__lab { font-size: 13px; font-weight: 600; color: var(--text-muted); }
+.stat-row__val { font-size: 15px; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
+.stat-bar { height: 8px; border-radius: var(--r-pill); background: var(--surface-2); overflow: hidden; }
+.stat-bar__fill { display: block; height: 100%; border-radius: var(--r-pill); background: var(--accent); }
+
+/* pigułki formy (W/D/L) — własne MVP-g (design ich nie miał; dane MVP-f mają `form`) */
+.form-pills { display: inline-flex; gap: 5px; }
+.form-pill {
+  display: inline-grid; place-items: center;
+  width: 22px; height: 22px; border-radius: 7px;
+  font-size: 11px; font-weight: 800; color: #fff;
+}
+.form-pill.win  { background: var(--accent); color: var(--accent-ink); }
+.form-pill.draw { background: var(--surface-2); color: var(--text-muted); }
+.form-pill.lose { background: var(--live); }
+
+/* ============================================================
+   LISTA REPREZENTACJE — sekcje grup + karty drużyn
+============================================================ */
+.team-section { margin-bottom: var(--space-xl); }
+.team-section:last-of-type { margin-bottom: 0; }
+.team-section__head { display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-md); }
+.team-section__title {
+  display: flex; align-items: center; gap: var(--space-xs);
+  font-size: clamp(20px, 2.4vw, 26px); font-weight: 800; letter-spacing: -0.03em; line-height: 1.1;
+}
+.team-section__meta {
+  margin-left: auto;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+/* odznaka litery grupy (współdzielona z tabelami; tu samodzielna kopia view-scoped) */
+.group-badge {
+  width: 40px; height: 40px; flex: 0 0 auto;
+  display: grid; place-items: center;
+  border-radius: 13px;
+  background: var(--accent-soft); color: var(--accent-strong);
+  font-weight: 800; font-size: 18px; letter-spacing: -0.02em;
+}
+[data-theme="dark"] .group-badge { color: var(--accent); }
+
+.teams-grid {
+  display: grid; gap: var(--space-md);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+@media (max-width: 1400px) { .teams-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 1100px) { .teams-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+/* minmax(0,1fr), NIE samo 1fr: 1fr = minmax(auto,1fr), a `auto` nie pozwala
+   kolumnie zejść poniżej min-content karty (nazwa `nowrap` „Korea Południowa"
+   rozpychała ją ponad ekran → ucięty prawy margines na liście). */
+@media (max-width: 620px)  { .teams-grid { grid-template-columns: minmax(0, 1fr); } }
+
+.team-card {
+  /* min-width:0 — element grid domyślnie ma min-width:auto i nie kurczy się
+     poniżej treści; bez tego nazwa `nowrap` + badge wychodzą poza kolumnę. */
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--space-md);
+  display: flex; flex-direction: column; gap: var(--space-md);
+  transition: transform var(--t-med), border-color var(--t-med), box-shadow var(--t-med);
+}
+.team-card:hover { transform: translateY(-4px); border-color: var(--border-strong); box-shadow: var(--shadow); }
+.team-card__head { display: flex; align-items: center; gap: var(--space-sm); }
+.team-card__flag { height: 34px; border-radius: 4px; }
+.team-card__id { min-width: 0; flex: 1 1 auto; }
+.team-card__name {
+  display: block; min-width: 0;
+  font-size: 17px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.15;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.team-seed {
+  flex: 0 0 auto;
+  display: inline-grid; place-items: center;
+  min-width: 36px; height: 26px; padding: 0 9px;
+  border-radius: var(--r-pill);
+  background: var(--accent-soft); color: var(--accent-strong);
+  font-size: 12px; font-weight: 800; letter-spacing: 0.02em;
+}
+[data-theme="dark"] .team-seed { color: var(--accent); }
+.team-card__foot { margin-top: auto; display: flex; gap: var(--space-2xs); }
+.team-btn {
+  flex: 1 1 auto;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  height: 44px; border-radius: var(--r-pill);
+  background: var(--surface-2); color: var(--text);
+  font-weight: 700; font-size: 14px;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+.team-btn svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: transform var(--t-fast); }
+.team-btn:hover { background: var(--accent); color: var(--accent-ink); }
+.team-btn:hover svg { transform: translateX(2px); }
+
+/* ============================================================
+   RESPONSYWNOŚĆ
+============================================================ */
+@media (max-width: 1100px) {
+  .profile-grid { grid-template-columns: 1fr; gap: var(--space-xl); }
+  .profile-col--main { gap: var(--space-xl); }
+}
+@media (max-width: 620px) {
+  .profile-hero__inner { flex-wrap: wrap; gap: var(--space-md); }
+  .profile-hero__id { flex-basis: 100%; }
+  /* Karty meczów: 1 kolumna na wąskim ekranie — bez `minmax(300px)`, które na
+     bardzo wąskim telefonie (<332px treści) wymusiłoby szerokość > kontenera. */
+  .profile-col--main .grid-videos { grid-template-columns: 1fr; }
+}

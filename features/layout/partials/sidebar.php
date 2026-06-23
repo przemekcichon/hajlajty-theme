@@ -38,6 +38,11 @@ $hajlajty_terminarz_active = is_page_template( 'template-terminarz.php' ) ? ' is
 // Stan aktywny po szablonie (działa niezależnie od slug-a).
 $hajlajty_tabele_url    = home_url( '/tabele-grup/' );
 $hajlajty_tabele_active = is_page_template( 'template-tabela-rozgrywek.php' ) ? ' is-active' : '';
+
+// URL „Reprezentacje" (MVP-g) — STAŁY (slug `reprezentacje`), spójnie z powyższymi.
+// Aktywny na Stronie listy ORAZ na Profilu kraju (archiwum termu „druzyna").
+$hajlajty_reprez_url    = home_url( '/reprezentacje/' );
+$hajlajty_reprez_active = ( is_page_template( 'template-reprezentacje.php' ) || is_tax( 'druzyna' ) ) ? ' is-active' : '';
 ?>
 <aside class="sidebar" id="sidebar" aria-label="Menu główne">
 	<div class="sidebar__head">
@@ -61,7 +66,7 @@ $hajlajty_tabele_active = is_page_template( 'template-tabela-rozgrywek.php' ) ? 
 		<p class="sidebar__label">Mundial 2026</p>
 		<a class="nav-link<?php echo esc_attr( $hajlajty_terminarz_active ); ?>" href="<?php echo esc_url( $hajlajty_terminarz_url ); ?>"><svg viewBox="0 0 24 24"><path d="M6 4h12v3a6 6 0 0 1-12 0z"/><path d="M9 14h6M10 14v4M14 14v4M8 21h8"/></svg> Terminarz turnieju</a>
 		<a class="nav-link<?php echo esc_attr( $hajlajty_tabele_active ); ?>" href="<?php echo esc_url( $hajlajty_tabele_url ); ?>"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg> Tabele grup</a>
-		<a class="nav-link" href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3a14 14 0 0 0 0 18M12 3a14 14 0 0 1 0 18M3 12h18"/></svg> Reprezentacje</a>
+		<a class="nav-link<?php echo esc_attr( $hajlajty_reprez_active ); ?>" href="<?php echo esc_url( $hajlajty_reprez_url ); ?>"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3a14 14 0 0 0 0 18M12 3a14 14 0 0 1 0 18M3 12h18"/></svg> Reprezentacje</a>
 	</nav>
 
 	<?php
