@@ -56,6 +56,7 @@ $ph_words = static function ( string $label ): array {
 <div class="card--preview card--placeholder"<?php echo $filter_attrs; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped — atrybuty escapowane w helperze. ?>>
 	<?php if ( '' !== $round_pl ) : ?>
 		<span class="card__phase">⚽ <?php echo esc_html( $round_pl ); ?></span>
+		<?php $hajl_no = isset( $args['match_no'] ) ? (int) $args['match_no'] : 0; if ( $hajl_no > 0 ) : ?><span class="card__matchno">Mecz <?php echo (int) $hajl_no; ?></span><?php endif; ?>
 	<?php endif; ?>
 	<?php if ( '' !== $when_label ) : ?>
 		<p class="card__when"><?php echo esc_html( $when_label ); ?> (czasu PL)</p>

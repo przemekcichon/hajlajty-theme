@@ -84,7 +84,7 @@ foreach ( $terminarz_post_ids as $terminarz_pid ) {
 // WYGRYWA po kluczu (round,kickoff). Wynik jest chronologiczny i otagowany `type`
 // (post|placeholder) — render rozróżnia kartę. Backfill dzieje się sam: gdy import
 // wciągnie realny mecz danej rundy, placeholder o tym samym kluczu znika.
-$terminarz_items = hajlajty_knockout_merge( $terminarz_real, hajlajty_knockout_schedule() );
+$terminarz_items = hajlajty_knockout_merge( $terminarz_real, hajlajty_knockout_placeholders() );
 ?>
 <div class="page-head">
 	<span class="page-head__eyebrow"><span class="dot"></span> Mundial 2026 · Kanada · Meksyk · USA</span>
@@ -159,6 +159,7 @@ foreach ( $terminarz_days as $terminarz_key => $terminarz_day ) :
 							'kickoff' => $terminarz_item['kickoff'] ?? '',
 							'home'    => $terminarz_item['home'] ?? '',
 							'away'    => $terminarz_item['away'] ?? '',
+							'match_no' => (int) ( $terminarz_item['no'] ?? 0 ),
 						)
 					);
 					continue;
@@ -199,6 +200,7 @@ foreach ( $terminarz_days as $terminarz_key => $terminarz_day ) :
 						'post_id' => $terminarz_card_id,
 						'terms'   => $terminarz_terms,
 						'data'    => $terminarz_data,
+						'match_no' => hajlajty_knockout_match_no( $terminarz_item['round'] ?? null, $terminarz_item['kickoff'] ?? null ),
 					)
 				);
 			endforeach;

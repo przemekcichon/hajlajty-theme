@@ -67,6 +67,7 @@ $title = get_the_title( $post_id );
 		<h3 class="vcard__title"><?php echo esc_html( $title ); ?></h3>
 		<?php if ( '' !== $roz_name || '' !== $ago ) : ?>
 			<div class="vcard__meta">
+					<?php $hajl_no = isset( $args['match_no'] ) ? (int) $args['match_no'] : 0; if ( $hajl_no > 0 ) : ?><span class="card__matchno">Mecz <?php echo (int) $hajl_no; ?></span><?php endif; ?>
 				<?php if ( '' !== $roz_name ) : ?><span class="vcard__comp"><?php echo esc_html( $roz_name ); ?></span><?php endif; ?>
 				<?php if ( '' !== $roz_name && '' !== $ago ) : ?><span class="dot-sep"></span><?php endif; ?>
 				<?php echo esc_html( $ago ); ?>

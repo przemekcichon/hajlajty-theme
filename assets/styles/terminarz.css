@@ -208,6 +208,25 @@
   overflow: visible;          /* pełna etykieta — bez przycięcia numeru meczu */
 }
 .card--placeholder .card__ph-word { display: block; }
+
+/* Plakietka „Mecz N" (numer meczu FIFA) — TYLKO terminarz (przekazywany match_no).
+   Dyskretna, drugorzędna wobec zielonego chipu fazy; obok niego (karty z fazą) lub
+   w pasku meta karty skrótu. Numer pozwala rozwiązać referencje placeholderów
+   („Zwycięzca meczu 74"). */
+.card__matchno {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  vertical-align: middle;
+}
+.vcard__meta .card__matchno { margin-left: 0; margin-right: 2px; }
 .card--placeholder .card__vs { color: var(--text-faint); }
 .card__tbd {
   margin: var(--space-sm) 0 0;
