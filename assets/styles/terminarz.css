@@ -181,3 +181,40 @@
 }
 .rcard__sep { opacity: 0.55; }
 .rcard__score--off { font-size: 18px; color: var(--text-faint); font-weight: 700; }
+
+/* ============================================================
+   PLACEHOLDER FAZY PUCHAROWEJ (.card--placeholder) — TYLKO terminarz.
+   Slot rundy bez realnego fixture'a (Round of 16 … Final). Dziedziczy chrome
+   karty zapowiedzi (.card--preview z card-preview.css); tu tylko WYRÓŻNIENIE
+   „to jeszcze nie mecz": przygaszenie, przerywana ramka, brak interakcji.
+   Znika automatycznie, gdy import wciągnie realny mecz (hajlajty_knockout_merge).
+============================================================ */
+.card--placeholder {
+  border-style: dashed;
+  background: var(--surface-2);
+  cursor: default;
+}
+.card--placeholder:hover { transform: none; box-shadow: none; }
+.card--placeholder .card__team-name {
+  color: var(--text-muted);
+  font-weight: 600;
+  font-style: italic;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.card--placeholder .card__vs { color: var(--text-faint); }
+.card__tbd {
+  margin: var(--space-sm) 0 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: var(--r-pill);
+  background: var(--surface-1);
+  color: var(--text-faint);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
