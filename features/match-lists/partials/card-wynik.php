@@ -48,6 +48,7 @@ $goals_away = $data['goals']['away'] ?? null;
 	<div class="rcard__top">
 		<?php if ( '' !== $round_pl ) : ?>
 			<span class="rcard__phase">⚽ <?php echo esc_html( $round_pl ); ?></span>
+			<?php $hajl_no = isset( $args['match_no'] ) ? (int) $args['match_no'] : 0; if ( $hajl_no > 0 ) : ?><span class="card__matchno">Mecz <?php echo (int) $hajl_no; ?></span><?php endif; ?>
 		<?php endif; ?>
 		<span class="rcard__status">
 			<?php echo esc_html( $is_canc ? 'Odwołany' : 'Zakończony' ); ?>

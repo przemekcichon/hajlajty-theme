@@ -181,3 +181,68 @@
 }
 .rcard__sep { opacity: 0.55; }
 .rcard__score--off { font-size: 18px; color: var(--text-faint); font-weight: 700; }
+
+/* ============================================================
+   PLACEHOLDER FAZY PUCHAROWEJ (.card--placeholder) — TYLKO terminarz.
+   Slot rundy bez realnego fixture'a (Round of 16 … Final). Dziedziczy chrome
+   karty zapowiedzi (.card--preview z card-preview.css); tu tylko WYRÓŻNIENIE
+   „to jeszcze nie mecz": przygaszenie, przerywana ramka, brak interakcji.
+   Znika automatycznie, gdy import wciągnie realny mecz (hajlajty_knockout_merge).
+============================================================ */
+.card--placeholder {
+  border-style: dashed;
+  background: var(--surface-2);
+  cursor: default;
+}
+.card--placeholder:hover { transform: none; box-shadow: none; }
+.card--placeholder .card__team-name {
+  display: flex;
+  flex-direction: column;     /* każde słowo etykiety w osobnej linii */
+  align-items: center;
+  gap: 1px;
+  color: var(--text-muted);
+  font-weight: 600;
+  font-style: italic;
+  line-height: 1.2;
+  text-align: center;
+  overflow: visible;          /* pełna etykieta — bez przycięcia numeru meczu */
+}
+.card--placeholder .card__ph-word { display: block; }
+
+/* Plakietka „Mecz N" (numer meczu FIFA) — TYLKO terminarz (przekazywany match_no).
+   Dyskretna, drugorzędna wobec zielonego chipu fazy; obok niego (karty z fazą) lub
+   w pasku meta karty skrótu. Numer pozwala rozwiązać referencje placeholderów
+   („Zwycięzca meczu 74"). */
+.card__matchno {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  vertical-align: middle;
+}
+.vcard__meta .card__matchno { margin-left: 0; margin-right: 2px; }
+/* Numer w TEJ SAMEJ linii co chip fazy, dosunięty do prawej (nie nowa linia). */
+.card__topline { display: flex; align-items: center; gap: 8px; }
+.card__topline .card__matchno,
+.rcard__top .card__matchno { margin-left: auto; }
+.card--placeholder .card__vs { color: var(--text-faint); }
+.card__tbd {
+  margin: var(--space-sm) 0 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: var(--r-pill);
+  background: var(--surface-1);
+  color: var(--text-faint);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
