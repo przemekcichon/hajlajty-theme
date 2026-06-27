@@ -216,7 +216,8 @@
   body.post-type-archive .shell,
   body.hajlajty-terminarz .shell,
   body.hajlajty-tabela-rozgrywek .shell,
-  body.hajlajty-reprezentacje .shell {
+  body.hajlajty-reprezentacje .shell,
+  body.hajlajty-faza-pucharowa .shell {
     display: grid;
     grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
     transition: grid-template-columns var(--t-med);
@@ -228,12 +229,14 @@
   body.post-type-archive.nav-collapsed .shell,
   body.hajlajty-terminarz.nav-collapsed .shell,
   body.hajlajty-tabela-rozgrywek.nav-collapsed .shell,
-  body.hajlajty-reprezentacje.nav-collapsed .shell { grid-template-columns: 0 minmax(0, 1fr); }
+  body.hajlajty-reprezentacje.nav-collapsed .shell,
+  body.hajlajty-faza-pucharowa.nav-collapsed .shell { grid-template-columns: 0 minmax(0, 1fr); }
   body.home.nav-collapsed .sidebar,
   body.post-type-archive.nav-collapsed .sidebar,
   body.hajlajty-terminarz.nav-collapsed .sidebar,
   body.hajlajty-tabela-rozgrywek.nav-collapsed .sidebar,
-  body.hajlajty-reprezentacje.nav-collapsed .sidebar { opacity: 0; pointer-events: none; }
+  body.hajlajty-reprezentacje.nav-collapsed .sidebar,
+  body.hajlajty-faza-pucharowa.nav-collapsed .sidebar { opacity: 0; pointer-events: none; }
 
   /* Topbar pełnej szerokości — logo licuje z lewą krawędzią, nad sidebarem
      (na single topbar pozostaje zawężony do pasma widoku). */
@@ -241,7 +244,8 @@
   body.post-type-archive .topbar__inner,
   body.hajlajty-terminarz .topbar__inner,
   body.hajlajty-tabela-rozgrywek .topbar__inner,
-  body.hajlajty-reprezentacje .topbar__inner {
+  body.hajlajty-reprezentacje .topbar__inner,
+  body.hajlajty-faza-pucharowa .topbar__inner {
     max-width: none;
     margin-inline: 0;
     padding-inline: var(--space-sm);
@@ -252,7 +256,8 @@
   body.post-type-archive .sidebar,
   body.hajlajty-terminarz .sidebar,
   body.hajlajty-tabela-rozgrywek .sidebar,
-  body.hajlajty-reprezentacje .sidebar {
+  body.hajlajty-reprezentacje .sidebar,
+  body.hajlajty-faza-pucharowa .sidebar {
     position: static;
     transform: none;
     width: auto;
@@ -270,7 +275,8 @@
   body.post-type-archive .sidebar__head,
   body.hajlajty-terminarz .sidebar__head,
   body.hajlajty-tabela-rozgrywek .sidebar__head,
-  body.hajlajty-reprezentacje .sidebar__head { display: none; }
+  body.hajlajty-reprezentacje .sidebar__head,
+  body.hajlajty-faza-pucharowa .sidebar__head { display: none; }
 
   /* Treść WYPEŁNIA kolumnę: zdejmujemy max-width/centrowanie .container w .content
      (inaczej lista zostaje w pasie --container = ~3 karty mimo szerokiego ekranu). */
@@ -279,11 +285,13 @@
   body.hajlajty-terminarz .content main.container,
   body.hajlajty-tabela-rozgrywek .content main.container,
   body.hajlajty-reprezentacje .content main.container,
+  body.hajlajty-faza-pucharowa .content main.container,
   body.home .content .footer > .container,
   body.post-type-archive .content .footer > .container,
   body.hajlajty-terminarz .content .footer > .container,
   body.hajlajty-tabela-rozgrywek .content .footer > .container,
-  body.hajlajty-reprezentacje .content .footer > .container {
+  body.hajlajty-reprezentacje .content .footer > .container,
+  body.hajlajty-faza-pucharowa .content .footer > .container {
     max-width: none;
     margin-inline: 0;
     padding-inline: var(--gutter);
@@ -294,7 +302,8 @@
   body.post-type-archive .scrim,
   body.hajlajty-terminarz .scrim,
   body.hajlajty-tabela-rozgrywek .scrim,
-  body.hajlajty-reprezentacje .scrim { display: none !important; }
+  body.hajlajty-reprezentacje .scrim,
+  body.hajlajty-faza-pucharowa .scrim { display: none !important; }
 }
 
 /* ============================================================
