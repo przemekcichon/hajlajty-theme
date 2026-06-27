@@ -104,14 +104,7 @@
   text-decoration: none;
   color: var(--text);
 }
-.bracket-cell__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.bracket-cell__no {
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  color: var(--text-faint);
-  font-variant-numeric: tabular-nums;
-}
+.bracket-cell__head { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
 .bracket-cell__live {
   font-size: 10px;
   font-weight: 800;
@@ -124,8 +117,23 @@ a.bracket-cell--real { transition: border-color var(--t-fast), background var(--
 a.bracket-cell--real:hover { border-color: var(--border-strong); background: var(--surface-hover); transform: translateY(-1px); }
 .bracket-cell--real.is-live { border-color: var(--live); }
 
-.bracket-cell__team { display: flex; align-items: center; gap: 8px; }
+.bracket-cell__team { display: flex; align-items: center; gap: 8px; min-height: 18px; }
 .bracket-cell__team .country-flag { flex: 0 0 auto; width: 20px; height: 14px; border-radius: 2px; object-fit: cover; }
+/* Kwadracik „?" w miejscu flagi — rozmiar flagi (20×14), gdy obsada nieznana. */
+.bracket-cell__qmark {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 14px;
+  border-radius: 2px;
+  border: 1px dashed var(--border-strong);
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--text-faint);
+}
 .bracket-cell__code { font-size: 14px; font-weight: 700; letter-spacing: 0.01em; }
 .bracket-cell__g {
   margin-left: auto;
@@ -138,17 +146,14 @@ a.bracket-cell--real:hover { border-color: var(--border-strong); background: var
 .bracket-cell__note { color: var(--accent-strong); }
 [data-theme="dark"] .bracket-cell__note { color: var(--accent); }
 
-/* Placeholder / TBD = nieklikalne, przygaszone, bez flag. */
+/* Obsada nieustalona (placeholder R16+ / TBD R32) = nieklikalne, dashed, bez flag —
+   ten sam układ co komórka realna, tylko z kwadracikami „?" zamiast flag. */
 .bracket-cell--placeholder,
 .bracket-cell--tbd {
   border-style: dashed;
   background: transparent;
   color: var(--text-muted);
 }
-.bracket-cell__feeder { display: flex; flex-wrap: wrap; gap: 0 5px; font-size: 12px; font-weight: 700; color: var(--text-muted); }
-.bracket-cell__word { white-space: nowrap; }
-.bracket-cell__vs { font-size: 10px; font-weight: 800; letter-spacing: 0.1em; color: var(--text-faint); text-transform: uppercase; }
-.bracket-cell__tbd { font-size: 12px; font-weight: 700; color: var(--text-faint); }
 
 /* ============================================================
    3. FILTR NA DRABINCE — PRZYGASZANIE, nie ukrywanie (plan DECYZJA 5)

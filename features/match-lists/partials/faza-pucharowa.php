@@ -69,12 +69,16 @@ foreach ( $bracket_post_ids as $bracket_pid ) {
 $bracket_columns = hajlajty_bracket_build( hajlajty_knockout_schedule() );
 wp_reset_postdata();
 
-// Etykieta placeholderowa („Zwycięzca meczu 74") bywa dłuższa niż kolumna — rozbijamy
-// na słowa (czytelność, zero przycięcia numeru). Domknięcie, nie funkcja (partial bywa
-// include'owany wielokrotnie). Wzór: card-placeholder.php.
-$bracket_words = static function ( ?string $label ): array {
-	$label = trim( (string) $label );
-	return '' === $label ? array() : preg_split( '/\s+/', $label );
+// Etykieta „data · godzina" (PL) z płaskiego UTC „Y-m-d H:i:s" — WSPÓLNA dla komórek
+// realnych (płaska meta `kickoff`) i nieustalonych (`kickoff` z harmonogramu FIFA),
+// żeby KAŻDY bloczek drabinki niósł termin meczu. Domknięcie, nie funkcja (partial
+// bywa include'owany wielokrotnie). Konwencja czasu jak karty/terminarz.
+$bracket_when = static function ( string $utc ): string {
+	if ( '' === $utc ) {
+		return '';
+	}
+	$dt = date_create_immutable( $utc, new DateTimeZone( 'UTC' ) );
+	return $dt ? wp_date( 'j M · H:i', $dt->getTimestamp() ) : '';
 };
 ?>
 <div class="page-head">
@@ -83,8 +87,7 @@ $bracket_words = static function ( ?string $label ): array {
 	<p class="page-head__sub">Drabinka pucharowa od 1/16 finału po finał. Rozegrane i zaplanowane mecze pojawiają się automatycznie z importu; sloty bez ustalonej obsady czekają jako „do ustalenia".</p>
 	<div class="legend">
 		<span class="legend__item"><span class="legend__dot skrot"></span> Mecz z terminarza (klikalny)</span>
-		<span class="legend__item"><span class="legend__dot soon"></span> Zwycięzca/przegrany meczu N</span>
-		<span class="legend__item"><span class="legend__dot live"></span> Obsada do ustalenia</span>
+		<span class="legend__item"><span class="legend__dot soon"></span> Obsada do ustalenia (?)</span>
 	</div>
 </div>
 
@@ -146,44 +149,36 @@ endif;
 									: 'po karnych';
 							}
 
-							// Etykieta środka: wynik (zakończony/live) albo godzina (zapowiedź).
+							// Wynik pokazujemy dla zakończonych/live; data+godzina jest ZAWSZE
+							// (płaska meta `kickoff`) — każdy bloczek niesie termin.
 							$bracket_show_score = in_array( $bracket_state, array( 'ZAKONCZONY', 'LIVE' ), true );
-							$bracket_when = '';
-							if ( ! $bracket_show_score ) {
-								$bracket_kickoff_raw = (string) get_post_meta( $bracket_card_id, 'kickoff', true );
-								$bracket_kdt = ( '' !== $bracket_kickoff_raw )
-									? date_create_immutable( $bracket_kickoff_raw, new DateTimeZone( 'UTC' ) )
-									: false;
-								$bracket_when = $bracket_kdt ? wp_date( 'j M · H:i', $bracket_kdt->getTimestamp() ) : '';
-							}
+							$bracket_when_label = $bracket_when( (string) get_post_meta( $bracket_card_id, 'kickoff', true ) );
 							?>
 							<a class="bracket-cell bracket-cell--real is-<?php echo esc_attr( strtolower( $bracket_state ) ); ?>" href="<?php echo esc_url( get_permalink( $bracket_card_id ) ); ?>"<?php echo hajlajty_match_lists_card_filter_attrs( $bracket_terms ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped — atrybuty escapowane w helperze. ?>>
-								<span class="bracket-cell__head">
-									<span class="bracket-cell__no">Mecz <?php echo (int) $bracket_no; ?></span>
-									<?php if ( 'LIVE' === $bracket_state ) : ?>
-										<span class="bracket-cell__live">● LIVE</span>
-									<?php endif; ?>
-								</span>
+								<?php if ( 'LIVE' === $bracket_state ) : ?>
+									<span class="bracket-cell__head"><span class="bracket-cell__live">● LIVE</span></span>
+								<?php endif; ?>
 								<span class="bracket-cell__team">
-									<?php if ( '' !== $bracket_home_flag ) : ?><img class="country-flag" src="<?php echo esc_url( $bracket_home_flag ); ?>" alt="" /><?php endif; ?>
+									<?php if ( '' !== $bracket_home_flag ) : ?><img class="country-flag" src="<?php echo esc_url( $bracket_home_flag ); ?>" alt="" /><?php else : ?><span class="bracket-cell__qmark" aria-hidden="true">?</span><?php endif; ?>
 									<span class="bracket-cell__code"><?php echo esc_html( $bracket_home_code ); ?></span>
 									<?php if ( $bracket_show_score ) : ?><b class="bracket-cell__g"><?php echo esc_html( null === $bracket_gh ? '–' : $bracket_gh ); ?></b><?php endif; ?>
 								</span>
 								<span class="bracket-cell__team">
-									<?php if ( '' !== $bracket_away_flag ) : ?><img class="country-flag" src="<?php echo esc_url( $bracket_away_flag ); ?>" alt="" /><?php endif; ?>
+									<?php if ( '' !== $bracket_away_flag ) : ?><img class="country-flag" src="<?php echo esc_url( $bracket_away_flag ); ?>" alt="" /><?php else : ?><span class="bracket-cell__qmark" aria-hidden="true">?</span><?php endif; ?>
 									<span class="bracket-cell__code"><?php echo esc_html( $bracket_away_code ); ?></span>
 									<?php if ( $bracket_show_score ) : ?><b class="bracket-cell__g"><?php echo esc_html( null === $bracket_ga ? '–' : $bracket_ga ); ?></b><?php endif; ?>
 								</span>
-								<?php if ( $bracket_show_score && '' !== $bracket_note ) : ?>
-									<span class="bracket-cell__note"><?php echo esc_html( $bracket_note ); ?></span>
-								<?php elseif ( ! $bracket_show_score && '' !== $bracket_when ) : ?>
-									<span class="bracket-cell__when"><?php echo esc_html( $bracket_when ); ?></span>
-								<?php endif; ?>
+								<?php if ( '' !== $bracket_when_label ) : ?><span class="bracket-cell__when"><?php echo esc_html( $bracket_when_label ); ?></span><?php endif; ?>
+								<?php if ( $bracket_show_score && '' !== $bracket_note ) : ?><span class="bracket-cell__note"><?php echo esc_html( $bracket_note ); ?></span><?php endif; ?>
 							</a>
 							<?php
 						else :
-							// placeholder / tbd — NIEklikalne, bez flag, PUSTE atrybuty filtra
-							// (filtr drużyny je wygasi; atrybut data-team-names MUSI istnieć).
+							// Obsada nieustalona (placeholder R16+ lub R32 bez fixture'a): ten SAM
+							// układ co komórka realna, ale zamiast flag — kwadracik wielkości flagi
+							// z „?". Słowne „Zwycięzca meczu N" wypada (drzewo pokazuje zasilanie
+							// wizualnie). Data+godzina z harmonogramu FIFA. PUSTE atrybuty filtra
+							// (filtr drużyny wygasi; data-team-names MUSI istnieć).
+							$bracket_when_label  = $bracket_when( (string) $bracket_cell['kickoff'] );
 							$bracket_empty_attrs = hajlajty_match_lists_card_filter_attrs(
 								array(
 									'home' => null,
@@ -192,24 +187,13 @@ endif;
 							);
 							?>
 							<div class="bracket-cell bracket-cell--<?php echo esc_attr( $bracket_mode ); ?>"<?php echo $bracket_empty_attrs; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped — atrybuty escapowane w helperze. ?>>
-								<span class="bracket-cell__head">
-									<span class="bracket-cell__no">Mecz <?php echo (int) $bracket_no; ?></span>
+								<span class="bracket-cell__team">
+									<span class="bracket-cell__qmark" aria-hidden="true">?</span>
 								</span>
-								<?php if ( 'placeholder' === $bracket_mode ) : ?>
-									<span class="bracket-cell__feeder">
-										<?php foreach ( $bracket_words( $bracket_cell['home_label'] ) as $bracket_w ) : ?>
-											<span class="bracket-cell__word"><?php echo esc_html( $bracket_w ); ?></span>
-										<?php endforeach; ?>
-									</span>
-									<span class="bracket-cell__vs">vs</span>
-									<span class="bracket-cell__feeder">
-										<?php foreach ( $bracket_words( $bracket_cell['away_label'] ) as $bracket_w ) : ?>
-											<span class="bracket-cell__word"><?php echo esc_html( $bracket_w ); ?></span>
-										<?php endforeach; ?>
-									</span>
-								<?php else : ?>
-									<span class="bracket-cell__tbd">Obsada do ustalenia</span>
-								<?php endif; ?>
+								<span class="bracket-cell__team">
+									<span class="bracket-cell__qmark" aria-hidden="true">?</span>
+								</span>
+								<?php if ( '' !== $bracket_when_label ) : ?><span class="bracket-cell__when"><?php echo esc_html( $bracket_when_label ); ?></span><?php endif; ?>
 							</div>
 							<?php
 						endif;
