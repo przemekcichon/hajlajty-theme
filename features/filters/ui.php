@@ -38,6 +38,7 @@ function hajlajty_filters_is_list_view(): bool {
 	return is_post_type_archive( 'mecz' )
 		|| is_front_page()
 		|| ( function_exists( 'hajlajty_match_lists_is_terminarz' ) && hajlajty_match_lists_is_terminarz() )
+		|| ( function_exists( 'hajlajty_match_lists_is_faza_pucharowa' ) && hajlajty_match_lists_is_faza_pucharowa() )
 		|| ( function_exists( 'hajlajty_standings_view_is_table' ) && hajlajty_standings_view_is_table() )
 		|| ( function_exists( 'hajlajty_teams_view_is_list' ) && hajlajty_teams_view_is_list() );
 }

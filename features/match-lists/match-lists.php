@@ -22,6 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 require_once __DIR__ . '/terms.php';
 require_once __DIR__ . '/knockout.php';
+require_once __DIR__ . '/bracket.php';
 
 /* ============================================================
    1a. ROUTING — ładne URL-e → archiwum CPT „mecz" + query var.
@@ -202,6 +203,19 @@ function hajlajty_match_lists_is_terminarz(): bool {
 	return is_page_template( 'template-terminarz.php' );
 }
 
+/**
+ * Czy bieżący widok to Strona „Faza pucharowa" (Page Template drabinki)? Jedno
+ * źródło prawdy „to drabinka" dla gate'ów enqueue (tu), klasy body (pełna szerokość +
+ * trwały sidebar) i — luźno, przez function_exists — slice'a filters. Szablon MUSI
+ * leżeć w roocie motywu (scan depth-1), jak terminarz. Wzór:
+ * hajlajty_match_lists_is_terminarz().
+ *
+ * @return bool
+ */
+function hajlajty_match_lists_is_faza_pucharowa(): bool {
+	return is_page_template( 'template-faza-pucharowa.php' );
+}
+
 add_filter( 'body_class', 'hajlajty_match_lists_terminarz_body_class' );
 /**
  * Znacznik body „to terminarz" — włącza pełnoekranową powłokę z TRWAŁYM sidebarem
@@ -216,6 +230,10 @@ add_filter( 'body_class', 'hajlajty_match_lists_terminarz_body_class' );
 function hajlajty_match_lists_terminarz_body_class( $classes ) {
 	if ( hajlajty_match_lists_is_terminarz() ) {
 		$classes[] = 'hajlajty-terminarz';
+	}
+	if ( hajlajty_match_lists_is_faza_pucharowa() ) {
+		// Ta sama powłoka „app-shell" co terminarz/tabela (layout.css KONSUMUJE klasę).
+		$classes[] = 'hajlajty-faza-pucharowa';
 	}
 	return $classes;
 }
@@ -232,7 +250,7 @@ add_action( 'wp_enqueue_scripts', 'hajlajty_match_lists_enqueue' );
  * assets/styles/ motywu (NIE ładujemy z design/).
  */
 function hajlajty_match_lists_enqueue() {
-	if ( ! is_post_type_archive( 'mecz' ) && ! is_front_page() && ! hajlajty_match_lists_is_terminarz() ) {
+	if ( ! is_post_type_archive( 'mecz' ) && ! is_front_page() && ! hajlajty_match_lists_is_terminarz() && ! hajlajty_match_lists_is_faza_pucharowa() ) {
 		return;
 	}
 
@@ -259,6 +277,16 @@ function hajlajty_match_lists_enqueue() {
 		$path = get_theme_file_path( $ter );
 		if ( is_readable( $path ) ) {
 			wp_enqueue_style( 'hajlajty-terminarz', get_theme_file_uri( $ter ), array( 'hajlajty-match-lists', 'hajlajty-layout' ), (string) filemtime( $path ) );
+		}
+	}
+
+	// Drabinka (kolumny rund + komórki + reguła przygaszania filtra) — TYLKO na tej
+	// stronie. Zależny od match-lists.css (dziedziczy chrome kart/flagi) i layoutu.
+	if ( hajlajty_match_lists_is_faza_pucharowa() ) {
+		$brk  = 'assets/styles/bracket.css';
+		$path = get_theme_file_path( $brk );
+		if ( is_readable( $path ) ) {
+			wp_enqueue_style( 'hajlajty-bracket', get_theme_file_uri( $brk ), array( 'hajlajty-match-lists', 'hajlajty-layout' ), (string) filemtime( $path ) );
 		}
 	}
 
