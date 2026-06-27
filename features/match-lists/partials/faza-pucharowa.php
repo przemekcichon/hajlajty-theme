@@ -103,7 +103,7 @@ endif;
 
 <div class="bracket-scroll">
 	<div class="bracket" data-filterable>
-		<?php foreach ( $bracket_columns as $bracket_col ) : ?>
+		<?php foreach ( $bracket_columns as $bracket_col_i => $bracket_col ) : ?>
 			<?php $bracket_round_pl = hajlajty_lookup_round( $bracket_col['round'] ); ?>
 			<section class="bracket__col" data-round="<?php echo esc_attr( $bracket_col['round'] ); ?>">
 				<h2 class="bracket__round"><?php echo esc_html( '' !== $bracket_round_pl ? $bracket_round_pl : $bracket_col['round'] ); ?></h2>
@@ -114,6 +114,19 @@ endif;
 						$bracket_real = $bracket_real_by_no[ $bracket_no ] ?? null;
 						$bracket_has_label = ( null !== $bracket_cell['home_label'] && null !== $bracket_cell['away_label'] );
 						$bracket_mode = hajlajty_bracket_cell_mode( null !== $bracket_real, $bracket_has_label );
+
+						// Atrybuty grafu drabinki dla rysunku linii łączących (bracket.js):
+						// numer meczu, indeks kolumny i numery feederów (>0). Te same na karcie
+						// realnej i pustej — JS łączy komórki po (data-no / data-feeder-*),
+						// rysuje tylko dla feedera z SĄSIEDNIEJ kolumny (mecz o 3. miejsce,
+						// którego feederzy są 2 kolumny wstecz, zostaje bez linii).
+						$bracket_graph_attrs = ' data-no="' . $bracket_no . '" data-col="' . (int) $bracket_col_i . '"';
+						if ( (int) $bracket_cell['home_feeder'] > 0 ) {
+							$bracket_graph_attrs .= ' data-feeder-a="' . (int) $bracket_cell['home_feeder'] . '"';
+						}
+						if ( (int) $bracket_cell['away_feeder'] > 0 ) {
+							$bracket_graph_attrs .= ' data-feeder-b="' . (int) $bracket_cell['away_feeder'] . '"';
+						}
 
 						if ( 'real' === $bracket_mode ) :
 							$bracket_card_id = (int) $bracket_real['post_id'];
@@ -154,7 +167,7 @@ endif;
 							$bracket_show_score = in_array( $bracket_state, array( 'ZAKONCZONY', 'LIVE' ), true );
 							$bracket_when_label = $bracket_when( (string) get_post_meta( $bracket_card_id, 'kickoff', true ) );
 							?>
-							<a class="bracket-cell bracket-cell--real is-<?php echo esc_attr( strtolower( $bracket_state ) ); ?>" href="<?php echo esc_url( get_permalink( $bracket_card_id ) ); ?>"<?php echo hajlajty_match_lists_card_filter_attrs( $bracket_terms ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped — atrybuty escapowane w helperze. ?>>
+							<a class="bracket-cell bracket-cell--real is-<?php echo esc_attr( strtolower( $bracket_state ) ); ?>" href="<?php echo esc_url( get_permalink( $bracket_card_id ) ); ?>"<?php echo $bracket_graph_attrs; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped — same literały int. ?><?php echo hajlajty_match_lists_card_filter_attrs( $bracket_terms ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped — atrybuty escapowane w helperze. ?>>
 								<?php if ( 'LIVE' === $bracket_state ) : ?>
 									<span class="bracket-cell__head"><span class="bracket-cell__live">● LIVE</span></span>
 								<?php endif; ?>
@@ -186,7 +199,7 @@ endif;
 								)
 							);
 							?>
-							<div class="bracket-cell bracket-cell--<?php echo esc_attr( $bracket_mode ); ?>"<?php echo $bracket_empty_attrs; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped — atrybuty escapowane w helperze. ?>>
+							<div class="bracket-cell bracket-cell--<?php echo esc_attr( $bracket_mode ); ?>"<?php echo $bracket_graph_attrs; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped — same literały int. ?><?php echo $bracket_empty_attrs; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped — atrybuty escapowane w helperze. ?>>
 								<span class="bracket-cell__team">
 									<span class="bracket-cell__qmark" aria-hidden="true">?</span>
 								</span>

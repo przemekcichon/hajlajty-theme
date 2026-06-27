@@ -57,11 +57,16 @@
   padding-bottom: var(--space-sm);
 }
 .bracket {
+  position: relative; /* układ odniesienia dla nakładki SVG z liniami łączącymi */
   display: flex;
   align-items: stretch; /* kolumny równej wysokości → mniejsze rundy rozkładają komórki na środku (efekt drzewa) */
   gap: var(--space-lg);
   min-width: min-content;
 }
+/* Linie łączące (bracket.js) — nakładka SVG POD komórkami (kolumny mają z-index > 0). */
+.bracket__lines { position: absolute; top: 0; left: 0; z-index: 0; pointer-events: none; overflow: visible; }
+.bracket__line { fill: none; stroke: var(--border-strong); stroke-width: 1.5; }
+.bracket__col { position: relative; z-index: 1; }
 .bracket__col {
   display: flex;
   flex-direction: column;

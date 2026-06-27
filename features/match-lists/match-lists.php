@@ -288,6 +288,13 @@ function hajlajty_match_lists_enqueue() {
 		if ( is_readable( $path ) ) {
 			wp_enqueue_style( 'hajlajty-bracket', get_theme_file_uri( $brk ), array( 'hajlajty-match-lists', 'hajlajty-layout' ), (string) filemtime( $path ) );
 		}
+
+		// Linie łączące drabinki — nakładka SVG liczona z pozycji komórek. TYLKO tu.
+		$brk_js = 'assets/js/bracket.js';
+		$path   = get_theme_file_path( $brk_js );
+		if ( is_readable( $path ) ) {
+			wp_enqueue_script( 'hajlajty-bracket', get_theme_file_uri( $brk_js ), array(), (string) filemtime( $path ), true );
+		}
 	}
 
 	$js   = 'assets/js/match-lists.js';
