@@ -58,6 +58,33 @@ $terminarz_query = new WP_Query(
 		'orderby'        => array( 'kick' => 'ASC' ),
 	)
 );
+
+// Realne posty „mecz" → pozycje do scalenia z placeholderami pucharowymi. match_data
+// dekodujemy RAZ na post (reużyte przy renderze karty); round + płaska meta `kickoff`
+// zasilają klucz dedup (round,kickoff) z placeholderami FIFA.
+$terminarz_post_ids   = wp_list_pluck( $terminarz_query->posts, 'ID' );
+$terminarz_resolved   = hajlajty_match_lists_resolve_terms( $terminarz_post_ids );
+$terminarz_data_by_id = array(); // post_id => match_data (dekodowane raz)
+$terminarz_real       = array(); // pozycje realne dla hajlajty_knockout_merge
+foreach ( $terminarz_post_ids as $terminarz_pid ) {
+	$terminarz_pid = (int) $terminarz_pid;
+	$terminarz_raw = (string) get_post_meta( $terminarz_pid, 'kickoff', true );
+	if ( '' === $terminarz_raw ) {
+		continue; // Teoretycznie niemożliwe (meta_query EXISTS), ale bezpiecznie.
+	}
+	$terminarz_data_by_id[ $terminarz_pid ] = hajlajty_get_match_data( $terminarz_pid );
+	$terminarz_real[]                       = array(
+		'post_id' => $terminarz_pid,
+		'kickoff' => $terminarz_raw,
+		'round'   => $terminarz_data_by_id[ $terminarz_pid ]['round'] ?? null,
+	);
+}
+
+// Scalenie realnych meczów z placeholderami fazy pucharowej (FIFA): realny mecz
+// WYGRYWA po kluczu (round,kickoff). Wynik jest chronologiczny i otagowany `type`
+// (post|placeholder) — render rozróżnia kartę. Backfill dzieje się sam: gdy import
+// wciągnie realny mecz danej rundy, placeholder o tym samym kluczu znika.
+$terminarz_items = hajlajty_knockout_merge( $terminarz_real, hajlajty_knockout_schedule() );
 ?>
 <div class="page-head">
 	<span class="page-head__eyebrow"><span class="dot"></span> Mundial 2026 · Kanada · Meksyk · USA</span>
@@ -70,7 +97,7 @@ $terminarz_query = new WP_Query(
 	</div>
 </div>
 
-<?php if ( ! $terminarz_query->have_posts() ) : ?>
+<?php if ( empty( $terminarz_items ) ) : ?>
 	<div class="empty-state is-visible">
 		<h3>Brak meczów w terminarzu</h3>
 		<p>Nie zaimportowano jeszcze żadnych spotkań. Wróć, gdy ruszy import meczów.</p>
@@ -80,19 +107,14 @@ $terminarz_query = new WP_Query(
 	return;
 endif;
 
-// Komplet ID w kolejności chronologicznej + JEDEN batch-resolve drużyn (zero N+1).
-$terminarz_post_ids = wp_list_pluck( $terminarz_query->posts, 'ID' );
-$terminarz_resolved = hajlajty_match_lists_resolve_terms( $terminarz_post_ids );
-
-// Grupowanie po LOKALNYM dniu PL (wp_timezone). PHP zachowuje kolejność wstawiania,
-// a posty są już sort ASC po kickoffie → dni rosnąco.
+// Grupowanie scalonej listy (realne + placeholdery) po LOKALNYM dniu PL (wp_timezone).
+// PHP zachowuje kolejność wstawiania, a lista jest już sort ASC po kickoffie → dni rosnąco.
 $terminarz_tz   = wp_timezone(); // Strefa serwisu (PL = Europe/Warsaw, UTC+2 latem).
-$terminarz_days = array();       // 'Y-m-d' (PL) => array( 'ts' => int, 'ids' => int[] )
-foreach ( $terminarz_post_ids as $terminarz_pid ) {
-	$terminarz_pid = (int) $terminarz_pid;
-	$terminarz_raw = (string) get_post_meta( $terminarz_pid, 'kickoff', true );
+$terminarz_days = array();       // 'Y-m-d' (PL) => array( 'ts' => int, 'items' => array[] )
+foreach ( $terminarz_items as $terminarz_item ) {
+	$terminarz_raw = (string) ( $terminarz_item['kickoff'] ?? '' );
 	if ( '' === $terminarz_raw ) {
-		continue; // Teoretycznie niemożliwe (meta_query EXISTS), ale bezpiecznie.
+		continue; // Bez kickoffa nie ma gdzie umieścić pozycji (nie powinno wystąpić).
 	}
 	// kickoff jest w UTC → przeliczamy do strefy PL i grupujemy po lokalnej dacie.
 	$terminarz_dt = date_create_immutable( $terminarz_raw, new DateTimeZone( 'UTC' ) );
@@ -103,11 +125,11 @@ foreach ( $terminarz_post_ids as $terminarz_pid ) {
 	$terminarz_key = $terminarz_dt->format( 'Y-m-d' );
 	if ( ! isset( $terminarz_days[ $terminarz_key ] ) ) {
 		$terminarz_days[ $terminarz_key ] = array(
-			'ts'  => $terminarz_dt->getTimestamp(), // Instant (epoch) — wp_date sformatuje w PL.
-			'ids' => array(),
+			'ts'    => $terminarz_dt->getTimestamp(), // Instant (epoch) — wp_date sformatuje w PL.
+			'items' => array(),
 		);
 	}
-	$terminarz_days[ $terminarz_key ]['ids'][] = $terminarz_pid;
+	$terminarz_days[ $terminarz_key ]['items'][] = $terminarz_item;
 }
 
 $terminarz_today = wp_date( 'Y-m-d' ); // Dzień bieżący w strefie PL (spójny z kluczem grupy).
@@ -119,16 +141,33 @@ foreach ( $terminarz_days as $terminarz_key => $terminarz_day ) :
 	<section class="schedule-day" data-day="<?php echo esc_attr( $terminarz_key ); ?>" data-filter-section>
 		<div class="schedule-day__head">
 			<h2 class="schedule-section__title"><?php echo esc_html( $terminarz_label ); ?></h2>
-			<span class="schedule-day__count"><?php echo esc_html( hajlajty_terminarz_count_label( count( $terminarz_day['ids'] ) ) ); ?></span>
+			<span class="schedule-day__count"><?php echo esc_html( hajlajty_terminarz_count_label( count( $terminarz_day['items'] ) ) ); ?></span>
 			<?php if ( $terminarz_is_today ) : ?>
 				<span class="schedule-day__today"><span class="dot"></span> DZIŚ</span>
 			<?php endif; ?>
 		</div>
 		<div class="schedule-grid" data-filterable>
 			<?php
-			foreach ( $terminarz_day['ids'] as $terminarz_card_id ) :
-				$terminarz_card_id = (int) $terminarz_card_id;
-				$terminarz_data    = hajlajty_get_match_data( $terminarz_card_id );
+			foreach ( $terminarz_day['items'] as $terminarz_item ) :
+				// Placeholder pucharowy (jeszcze brak realnego fixture'a) — karta bez linku/flag.
+				if ( 'placeholder' === ( $terminarz_item['type'] ?? '' ) ) {
+					get_template_part(
+						'features/match-lists/partials/card-placeholder',
+						null,
+						array(
+							'round'   => $terminarz_item['round'] ?? '',
+							'kickoff' => $terminarz_item['kickoff'] ?? '',
+							'home'    => $terminarz_item['home'] ?? '',
+							'away'    => $terminarz_item['away'] ?? '',
+						)
+					);
+					continue;
+				}
+
+				// Realny mecz — wybór karty po stanie (jak dotąd). match_data wzięte z
+				// mapy zdekodowanej raz wyżej (fallback dekoduje, gdyby zabrakło).
+				$terminarz_card_id = (int) ( $terminarz_item['post_id'] ?? 0 );
+				$terminarz_data    = $terminarz_data_by_id[ $terminarz_card_id ] ?? hajlajty_get_match_data( $terminarz_card_id );
 				$terminarz_state   = hajlajty_lookup_status( $terminarz_data['status']['short'] ?? null )['state'];
 				$terminarz_terms   = isset( $terminarz_resolved[ $terminarz_card_id ] )
 					? $terminarz_resolved[ $terminarz_card_id ]
