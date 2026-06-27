@@ -66,7 +66,7 @@
   display: flex;
   flex-direction: column;
   flex: 0 0 auto;
-  width: 158px;
+  width: 120px;
 }
 .bracket__round {
   font-size: 13px;
@@ -117,7 +117,10 @@ a.bracket-cell--real { transition: border-color var(--t-fast), background var(--
 a.bracket-cell--real:hover { border-color: var(--border-strong); background: var(--surface-hover); transform: translateY(-1px); }
 .bracket-cell--real.is-live { border-color: var(--live); }
 
-.bracket-cell__team { display: flex; align-items: center; gap: 8px; min-height: 18px; }
+/* Stała wysokość wiersza drużyny — KOMÓRKA pusta („?") i wypełniona muszą mieć tę
+   samą wysokość (inaczej tekst kodu/wyniku z inheritowanym line-height robił wiersz
+   wyższy niż sam kwadracik „?"). */
+.bracket-cell__team { display: flex; align-items: center; gap: 8px; height: 18px; }
 /* Flaga naturalnym proporcjom (height-based, jak standings/teams) — nie zniekształca. */
 .bracket-cell__team .country-flag { flex: 0 0 auto; height: 16px; width: auto; border-radius: 2px; }
 /* Prostokącik „?" w miejscu flagi — dopasowany WIELKOŚCIĄ do flagi (≈3:2 przy h=16). */
@@ -135,11 +138,12 @@ a.bracket-cell--real:hover { border-color: var(--border-strong); background: var
   line-height: 1;
   color: var(--text-faint);
 }
-.bracket-cell__code { font-size: 14px; font-weight: 700; letter-spacing: 0.01em; }
+.bracket-cell__code { font-size: 14px; font-weight: 700; letter-spacing: 0.01em; line-height: 1; }
 .bracket-cell__g {
   margin-left: auto;
   font-size: 15px;
   font-weight: 800;
+  line-height: 1;
   font-variant-numeric: tabular-nums;
 }
 .bracket-cell__when,
@@ -187,6 +191,6 @@ body.hajlajty-faza-pucharowa [data-filter-empty] { display: none !important; }
    4. RESPONSYWNOŚĆ — węższe kolumny na małych ekranach (scroll poziomy zostaje)
 ============================================================ */
 @media (max-width: 768px) {
-  .bracket__col { width: 146px; }
+  .bracket__col { width: 112px; }
   .bracket { gap: var(--space-md); }
 }
