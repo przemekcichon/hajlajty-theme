@@ -35,6 +35,47 @@ function hajlajty_knockout_schedule(): array {
 }
 
 /**
+ * Placeholdery do renderu w terminarzu: wiersze harmonogramu z etykietami drużyn
+ * (`home`/`away`). Wiersze „tylko numer" (Round of 32) są pomijane — R32 ma realne
+ * fixtures z importu, więc nie pokazujemy dla niego zaślepki.
+ *
+ * @return array<int,array{no:int,round:string,kickoff:string,home:string,away:string}>
+ */
+function hajlajty_knockout_placeholders(): array {
+	$out = array();
+	foreach ( hajlajty_knockout_schedule() as $row ) {
+		if ( '' !== (string) ( $row['home'] ?? '' ) && '' !== (string) ( $row['away'] ?? '' ) ) {
+			$out[] = $row;
+		}
+	}
+	return $out;
+}
+
+/**
+ * Numer meczu FIFA (73–104) po kluczu (`round`, `kickoff`) — z kuracyjnej tabeli.
+ * Dla meczów spoza fazy pucharowej (faza grupowa) ORAZ przy rozjeździe godziny
+ * FIFA↔API zwraca 0 (render: brak plakietki — degradacja łagodna, nigdy zły numer).
+ * Mapa budowana raz (static) z `hajlajty_knockout_schedule()`.
+ *
+ * @param string|null $round
+ * @param string|null $kickoff
+ * @return int Numer meczu albo 0, gdy nieznany.
+ */
+function hajlajty_knockout_match_no( ?string $round, ?string $kickoff ): int {
+	static $map = null;
+	if ( null === $map ) {
+		$map = array();
+		foreach ( hajlajty_knockout_schedule() as $row ) {
+			$no = (int) ( $row['no'] ?? 0 );
+			if ( $no > 0 ) {
+				$map[ hajlajty_knockout_key( $row['round'] ?? null, $row['kickoff'] ?? null ) ] = $no;
+			}
+		}
+	}
+	return $map[ hajlajty_knockout_key( $round, $kickoff ) ] ?? 0;
+}
+
+/**
  * Klucz dedup placeholder↔realny mecz: (`round`, `kickoff`). JEDNO miejsce
  * normalizacji — gdyby RUNTIME pokazał rozjazd godzin FIFA↔api-football, luźniejszy
  * klucz zmienia się tu (np. round + sama data dnia), bez ruszania scalania.

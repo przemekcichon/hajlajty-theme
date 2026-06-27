@@ -112,39 +112,71 @@ check(
 	keys_of( $only_ph )
 );
 
-echo "\n=== SPÓJNOŚĆ KURACYJNEGO HARMONOGRAMU ===\n";
+echo "\n=== SPÓJNOŚĆ KURACYJNEJ TABELI MECZÓW ===\n";
 $schedule    = hajlajty_knockout_schedule();
-$allowed     = array( 'Round of 16', 'Quarter-finals', 'Semi-finals', '3rd Place Final', 'Final' );
+// Tabela niesie też Round of 32 (TYLKO dla numeru); dozwolone literały rund:
+$allowed     = array( 'Round of 32', 'Round of 16', 'Quarter-finals', 'Semi-finals', '3rd Place Final', 'Final' );
 $rounds_ok   = true;
 $kickoffs_ok = true;
+$nos_ok      = true;
 $keys_unique = array();
+$nos_unique  = array();
 $dupe        = false;
+$dupe_no     = false;
 foreach ( $schedule as $row ) {
 	if ( ! in_array( $row['round'] ?? null, $allowed, true ) ) {
 		$rounds_ok = false;
 	}
-	// Format kickoffa pod dedup: dokładnie „RRRR-MM-DD HH:MM:SS" (jak płaska meta).
+	// Format kickoffa pod dedup/lookup: dokładnie „RRRR-MM-DD HH:MM:SS" (jak płaska meta).
 	if ( ! is_string( $row['kickoff'] ?? null ) || ! preg_match( '/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $row['kickoff'] ) ) {
 		$kickoffs_ok = false;
+	}
+	// Numer meczu FIFA w zakresie 73–104.
+	$no = (int) ( $row['no'] ?? 0 );
+	if ( $no < 73 || $no > 104 ) {
+		$nos_ok = false;
 	}
 	$k = hajlajty_knockout_key( $row['round'] ?? null, $row['kickoff'] ?? null );
 	if ( isset( $keys_unique[ $k ] ) ) {
 		$dupe = true;
 	}
 	$keys_unique[ $k ] = true;
+	if ( isset( $nos_unique[ $no ] ) ) {
+		$dupe_no = true;
+	}
+	$nos_unique[ $no ] = true;
 }
-check( 'harmonogram niepusty', true, count( $schedule ) > 0 );
+check( 'tabela niepusta', true, count( $schedule ) > 0 );
+check( 'komplet 32 meczów pucharowych (73–104)', 32, count( $schedule ) );
 check( 'wszystkie rundy z dozwolonych literałów (klucze lookup_round)', true, $rounds_ok );
 check( 'wszystkie kickoffy w formacie meta „Y-m-d H:i:s"', true, $kickoffs_ok );
-check( 'klucze (round,kickoff) unikalne w harmonogramie', false, $dupe );
-// R32 świadomie NIE jest placeholderem (realne fixtures z importu).
-$has_r32 = false;
-foreach ( $schedule as $row ) {
+check( 'numery meczów w zakresie 73–104', true, $nos_ok );
+check( 'klucze (round,kickoff) unikalne', false, $dupe );
+check( 'numery meczów unikalne', false, $dupe_no );
+
+echo "\n=== PLACEHOLDERY: TYLKO RUNDY BEZ FIXTURES (R16…Final) ===\n";
+$placeholders = hajlajty_knockout_placeholders();
+$labels_ok    = true;
+$ph_has_r32   = false;
+foreach ( $placeholders as $row ) {
+	if ( '' === (string) ( $row['home'] ?? '' ) || '' === (string) ( $row['away'] ?? '' ) ) {
+		$labels_ok = false;
+	}
 	if ( 'Round of 32' === ( $row['round'] ?? null ) ) {
-		$has_r32 = true;
+		$ph_has_r32 = true;
 	}
 }
-check( 'harmonogram NIE zawiera Round of 32 (realne z importu)', false, $has_r32 );
+check( 'placeholdery: 16 meczów (R16 8 + ćwierć 4 + pół 2 + 3. miejsce 1 + finał 1)', 16, count( $placeholders ) );
+check( 'każdy placeholder ma etykiety home+away', true, $labels_ok );
+check( 'placeholdery NIE zawierają Round of 32 (realne z importu)', false, $ph_has_r32 );
+
+echo "\n=== NUMER MECZU PO (round,kickoff) ===\n";
+check( 'R32 mecz 73 (RPA vs Kanada, zwalidowany runtime)', 73, hajlajty_knockout_match_no( 'Round of 32', '2026-06-28 19:00:00' ) );
+check( 'R16 mecz 89', 89, hajlajty_knockout_match_no( 'Round of 16', '2026-07-04 21:00:00' ) );
+check( 'Final mecz 104', 104, hajlajty_knockout_match_no( 'Final', '2026-07-19 19:00:00' ) );
+check( 'godzina spoza bracketu → 0 (brak plakietki)', 0, hajlajty_knockout_match_no( 'Round of 32', '2026-06-28 18:00:00' ) );
+check( 'faza grupowa → 0', 0, hajlajty_knockout_match_no( 'Group Stage - 1', '2026-06-12 19:00:00' ) );
+check( 'null → 0', 0, hajlajty_knockout_match_no( null, null ) );
 
 printf( "\n=== WYNIK: %d/%d PASS ===\n", $pass, $pass + $fail );
 exit( $fail > 0 ? 1 : 0 );
