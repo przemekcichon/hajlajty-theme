@@ -68,6 +68,12 @@
   flex: 0 0 auto;
   width: 120px;
 }
+/* Ostatnia kolumna (mecz o 3. miejsce) szersza — nagłówek „Mecz o 3. miejsce"
+   nie mieści się w 120px. Celuje w nią po atrybucie data-round (render go ustawia),
+   więc zero zmian w markupie/JS. Wyższa specyficzność niż reguła mobilna → szeroka
+   wszędzie. */
+.bracket__col[data-round="3rd Place Final"] { width: 180px; }
+.bracket__col[data-round="3rd Place Final"] .bracket__round { white-space: nowrap; }
 .bracket__round {
   font-size: 13px;
   font-weight: 800;
