@@ -21,6 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 require_once __DIR__ . '/terms.php';
+require_once __DIR__ . '/knockout.php';
 
 /* ============================================================
    1a. ROUTING — ładne URL-e → archiwum CPT „mecz" + query var.
