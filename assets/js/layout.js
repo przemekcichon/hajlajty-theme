@@ -41,12 +41,25 @@
       setTimeout(function () { if (!scrim.classList.contains("is-open")) scrim.hidden = true; }, 260);
     };
     // Hamburger ma dwa tryby zależne od widoku:
-    //  - strona główna / archiwum przy ≥1100px → menu jest STAŁE: hamburger
+    //  - widoki z TRWAŁYM menu przy ≥1100px → menu jest STAŁE: hamburger
     //    zwija/rozwija kolumnę sidebara (body.nav-collapsed; layout w CSS),
     //  - single i mobile → klasyczny drawer off-canvas (open/close ze scrimem).
+    // Lista MUSI odzwierciedlać selektory z layout.css „WIDOKI Z TRWAŁYM MENU":
+    // home + archiwum CPT + Strony-szablony z sekcji „Mundial 2026" (terminarz,
+    // tabela grup, reprezentacje, faza pucharowa). Bez tego na tych Stronach
+    // hamburger trafiał w gałąź drawera, który przy ≥1100px nic nie robi (sidebar
+    // jest statyczny) — stąd „hamburger nie działa" na terminarzu/tabeli/drabince.
+    var PERSISTENT_NAV = [
+      "home",
+      "post-type-archive",
+      "hajlajty-terminarz",
+      "hajlajty-tabela-rozgrywek",
+      "hajlajty-reprezentacje",
+      "hajlajty-faza-pucharowa",
+    ];
     var isPersistentNav = function () {
-      return window.matchMedia("(min-width: 1100px)").matches &&
-        ( document.body.classList.contains("home") || document.body.classList.contains("post-type-archive") );
+      if (!window.matchMedia("(min-width: 1100px)").matches) return false;
+      return PERSISTENT_NAV.some(function (c) { return document.body.classList.contains(c); });
     };
     menuBtn.addEventListener("click", function () {
       if (isPersistentNav()) {
