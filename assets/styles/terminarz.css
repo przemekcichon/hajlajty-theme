@@ -196,13 +196,18 @@
 }
 .card--placeholder:hover { transform: none; box-shadow: none; }
 .card--placeholder .card__team-name {
+  display: flex;
+  flex-direction: column;     /* każde słowo etykiety w osobnej linii */
+  align-items: center;
+  gap: 1px;
   color: var(--text-muted);
   font-weight: 600;
   font-style: italic;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.2;
+  text-align: center;
+  overflow: visible;          /* pełna etykieta — bez przycięcia numeru meczu */
 }
+.card--placeholder .card__ph-word { display: block; }
 .card--placeholder .card__vs { color: var(--text-faint); }
 .card__tbd {
   margin: var(--space-sm) 0 0;

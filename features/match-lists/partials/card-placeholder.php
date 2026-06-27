@@ -44,6 +44,14 @@ $filter_attrs = hajlajty_match_lists_card_filter_attrs(
 		'away' => null,
 	)
 );
+
+// Etykieta placeholderowa („Zwycięzca meczu 74") bywa dłuższa niż kolumna karty —
+// rozbijamy na słowa, każde w osobnej linii (czytelność + zero przycięcia numeru).
+// Domknięcie w zmiennej (NIE deklaracja funkcji) — partial bywa include'owany wielokrotnie.
+$ph_words = static function ( string $label ): array {
+	$label = trim( $label );
+	return '' === $label ? array() : preg_split( '/\s+/', $label );
+};
 ?>
 <div class="card--preview card--placeholder"<?php echo $filter_attrs; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped — atrybuty escapowane w helperze. ?>>
 	<?php if ( '' !== $round_pl ) : ?>
@@ -54,11 +62,19 @@ $filter_attrs = hajlajty_match_lists_card_filter_attrs(
 	<?php endif; ?>
 	<div class="card__teams">
 		<div class="card__team">
-			<span class="card__team-name"><?php echo esc_html( $home ); ?></span>
+			<span class="card__team-name">
+				<?php foreach ( $ph_words( $home ) as $ph_w ) : ?>
+					<span class="card__ph-word"><?php echo esc_html( $ph_w ); ?></span>
+				<?php endforeach; ?>
+			</span>
 		</div>
 		<span class="card__vs">VS</span>
 		<div class="card__team">
-			<span class="card__team-name"><?php echo esc_html( $away ); ?></span>
+			<span class="card__team-name">
+				<?php foreach ( $ph_words( $away ) as $ph_w ) : ?>
+					<span class="card__ph-word"><?php echo esc_html( $ph_w ); ?></span>
+				<?php endforeach; ?>
+			</span>
 		</div>
 	</div>
 	<p class="card__tbd">Drużyny do ustalenia</p>
