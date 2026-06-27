@@ -41,6 +41,23 @@
     };
   }
 
+  // Łokieć od feedera F do konsumenta C, kierunek z geometrii (układ dwustronny):
+  //  - F na LEWO od C → wychodzi z prawej krawędzi F, wchodzi w lewą krawędź C,
+  //  - F na PRAWO od C → wychodzi z lewej krawędzi F, wchodzi w prawą krawędź C.
+  // Dla pary feederów z tej samej strony dwa łokcie łączą się pionowo na midX (belka);
+  // dla Finału (feederzy z dwóch stron) każdy rysuje własny łokieć do środka.
+  function elbow(F, C) {
+    if (F.right <= C.left) {
+      var ml = (F.right + C.left) / 2;
+      return "M" + F.right + "," + F.midY + "H" + ml + "V" + C.midY + "H" + C.left;
+    }
+    if (F.left >= C.right) {
+      var mr = (F.left + C.right) / 2;
+      return "M" + F.left + "," + F.midY + "H" + mr + "V" + C.midY + "H" + C.right;
+    }
+    return ""; // kolumny się nakładają w poziomie — pomiń.
+  }
+
   function draw() {
     var base = bracket.getBoundingClientRect();
     var w = bracket.scrollWidth;
@@ -58,35 +75,23 @@
     });
 
     cells().forEach(function (consumer) {
-      var fa = consumer.getAttribute("data-feeder-a");
-      var fb = consumer.getAttribute("data-feeder-b");
-      if (!fa || !fb) return;
-      var feedA = byNo[fa];
-      var feedB = byNo[fb];
-      if (!feedA || !feedB) return;
-
-      // Tylko feederzy z SĄSIEDNIEJ kolumny (mecz o 3. miejsce, którego feederzy są
-      // 2 kolumny wstecz, zostaje bez linii — nie przecinamy kolumny finału).
       var col = parseInt(consumer.getAttribute("data-col"), 10);
-      if (parseInt(feedA.getAttribute("data-col"), 10) !== col - 1) return;
-      if (parseInt(feedB.getAttribute("data-col"), 10) !== col - 1) return;
-
-      var c = rel(consumer, base);
-      var a = rel(feedA, base);
-      var b = rel(feedB, base);
-      var midX = (Math.max(a.right, b.right) + c.left) / 2;
-
-      // Dwa łokcie feederów → pionowa belka na midX → poziome wejście do konsumenta.
-      var d =
-        "M" + a.right + "," + a.midY + "H" + midX +
-        "M" + b.right + "," + b.midY + "H" + midX +
-        "M" + midX + "," + a.midY + "V" + b.midY +
-        "M" + midX + "," + c.midY + "H" + c.left;
-
-      var path = document.createElementNS(SVGNS, "path");
-      path.setAttribute("class", "bracket__line");
-      path.setAttribute("d", d);
-      svg.appendChild(path);
+      var C = rel(consumer, base);
+      ["data-feeder-a", "data-feeder-b"].forEach(function (attr) {
+        var fn = consumer.getAttribute(attr);
+        if (!fn) return;
+        var feeder = byNo[fn];
+        if (!feeder) return;
+        // Tylko feeder z SĄSIEDNIEJ kolumny (|Δcol|=1). Mecz o 3. miejsce nie ma
+        // atrybutów feeder (render je pomija) → zostaje niepołączony.
+        if (Math.abs(parseInt(feeder.getAttribute("data-col"), 10) - col) !== 1) return;
+        var d = elbow(rel(feeder, base), C);
+        if (!d) return;
+        var path = document.createElementNS(SVGNS, "path");
+        path.setAttribute("class", "bracket__line");
+        path.setAttribute("d", d);
+        svg.appendChild(path);
+      });
     });
   }
 

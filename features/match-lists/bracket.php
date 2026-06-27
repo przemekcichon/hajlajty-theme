@@ -178,3 +178,73 @@ function hajlajty_bracket_build( array $schedule ): array {
 
 	return $columns;
 }
+
+/**
+ * Dzieli liniowe kolumny drabinki (z `hajlajty_bracket_build`) na DWUSTRONNY układ
+ * Mundialu: górna połowa drabinki płynie w prawo, dolna w lewo, Finał na środku,
+ * mecz o 3. miejsce pod Finałem (osobno). Drabinka „maleje z dwóch stron".
+ *
+ * Połowy biorą się z porządku DRZEWA za darmo: BFS od Finału układa każdą rundę jako
+ * [poddrzewo półfinału A | poddrzewo półfinału B], więc PIERWSZA połowa cels rundy =
+ * lewa strona, DRUGA połowa = prawa. R32→8/8, R16→4/4, QF→2/2, SF→1/1.
+ *
+ * @param array $columns Wynik `hajlajty_bracket_build()`.
+ * @return array{
+ *   left:array<int,array{round:string,cells:array}>,
+ *   center:array{final:array,third:array},
+ *   right:array<int,array{round:string,cells:array}>
+ * } Lewe kolumny w kolejności R32→SF; prawe w kolejności SF→R32 (od środka na zewnątrz).
+ */
+function hajlajty_bracket_split( array $columns ): array {
+	$halves = array(); // round => array{ A:array, B:array }
+	$final  = array();
+	$third  = array();
+
+	foreach ( $columns as $col ) {
+		$round = $col['round'];
+		$cells = $col['cells'];
+		if ( 'Final' === $round ) {
+			$final = $cells;
+			continue;
+		}
+		if ( '3rd Place Final' === $round ) {
+			$third = $cells;
+			continue;
+		}
+		$mid              = intdiv( count( $cells ), 2 );
+		$halves[ $round ] = array(
+			'A' => array_slice( $cells, 0, $mid ),
+			'B' => array_slice( $cells, $mid ),
+		);
+	}
+
+	// Lewa strona: R32→SF (górne połowy). Prawa: SF→R32 (dolne połowy, od środka).
+	$order = array( 'Round of 32', 'Round of 16', 'Quarter-finals', 'Semi-finals' );
+	$left  = array();
+	$right = array();
+	foreach ( $order as $round ) {
+		if ( isset( $halves[ $round ] ) ) {
+			$left[] = array(
+				'round' => $round,
+				'cells' => $halves[ $round ]['A'],
+			);
+		}
+	}
+	foreach ( array_reverse( $order ) as $round ) {
+		if ( isset( $halves[ $round ] ) ) {
+			$right[] = array(
+				'round' => $round,
+				'cells' => $halves[ $round ]['B'],
+			);
+		}
+	}
+
+	return array(
+		'left'   => $left,
+		'center' => array(
+			'final' => $final,
+			'third' => $third,
+		),
+		'right'  => $right,
+	);
+}

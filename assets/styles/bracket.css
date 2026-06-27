@@ -49,36 +49,46 @@
 /* ============================================================
    1. UKŁAD DRABINKI — poziome kolumny rund z własnym scrollem
 ============================================================ */
+/* Drabinka w samodzielnym oknie scrolla: poziomy pasek przewijania zostaje PRZYPIĘTY
+   u dołu widocznego okna (nie ucieka pod zgięcie strony przy wysokiej drabince), a
+   pionowy scroll mieści się w tym samym oknie. */
 .bracket-scroll {
   margin-top: var(--space-lg);
-  overflow-x: auto;
-  overflow-y: hidden;
+  max-height: calc(100vh - var(--topbar-h) - var(--space-2xl));
+  overflow: auto;
+  overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-  padding-bottom: var(--space-sm);
 }
 .bracket {
   position: relative; /* układ odniesienia dla nakładki SVG z liniami łączącymi */
   display: flex;
   align-items: stretch; /* kolumny równej wysokości → mniejsze rundy rozkładają komórki na środku (efekt drzewa) */
-  gap: var(--space-lg);
+  gap: var(--space-md);
   min-width: min-content;
+  padding-block: var(--space-sm);
 }
 /* Linie łączące (bracket.js) — nakładka SVG POD komórkami (kolumny mają z-index > 0). */
 .bracket__lines { position: absolute; top: 0; left: 0; z-index: 0; pointer-events: none; overflow: visible; }
 .bracket__line { fill: none; stroke: var(--border-strong); stroke-width: 1.5; }
-.bracket__col { position: relative; z-index: 1; }
 .bracket__col {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   flex: 0 0 auto;
   width: 120px;
 }
-/* Ostatnia kolumna (mecz o 3. miejsce) szersza — nagłówek „Mecz o 3. miejsce"
-   nie mieści się w 120px. Celuje w nią po atrybucie data-round (render go ustawia),
-   więc zero zmian w markupie/JS. Wyższa specyficzność niż reguła mobilna → szeroka
-   wszędzie. */
-.bracket__col[data-round="3rd Place Final"] { width: 180px; }
-.bracket__col[data-round="3rd Place Final"] .bracket__round { white-space: nowrap; }
+/* Środek: Finał + (pod nim, osobno) mecz o 3. miejsce. Szerszy, bo nagłówek
+   „Mecz o 3. miejsce" nie mieści się w 120px. Centrowany pionowo, by Finał stał
+   w osi półfinałów. */
+.bracket__col--center {
+  width: 184px;
+  justify-content: center;
+  gap: var(--space-xl);
+}
+.bracket__col--center .bracket__cells { flex: 0 0 auto; }
+.bracket__col--center .bracket__round { white-space: nowrap; }
+.bracket__group { display: flex; flex-direction: column; flex: 0 0 auto; }
 .bracket__round {
   font-size: 13px;
   font-weight: 800;

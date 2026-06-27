@@ -143,5 +143,39 @@ foreach ( $columns as $col ) {
 check( 'mecz 103 feeder home = 101 (Przegrany meczu 101)', 101, $cell103['home_feeder'] );
 check( 'mecz 103 feeder away = 102 (Przegrany meczu 102)', 102, $cell103['away_feeder'] );
 
+echo "\n=== UKŁAD DWUSTRONNY (split: lewo / środek / prawo) ===\n";
+$sided = hajlajty_bracket_split( $columns );
+
+/** Skrót: numery komórek danej kolumny ze strony split. */
+function nos_of_col( array $side, int $i ): array {
+	if ( ! isset( $side[ $i ] ) ) {
+		return array();
+	}
+	return array_map(
+		static function ( $c ) {
+			return $c['no'];
+		},
+		$side[ $i ]['cells']
+	);
+}
+
+// Lewa strona: R32→SF, GÓRNE połowy.
+check( 'lewa: 4 kolumny (R32,R16,QF,SF)', 4, count( $sided['left'] ) );
+check( 'lewa[0] = Round of 32', 'Round of 32', $sided['left'][0]['round'] );
+check( 'lewa[3] = Semi-finals', 'Semi-finals', $sided['left'][3]['round'] );
+check( 'lewa R32 = górne 8 (74,77,73,75,83,84,81,82)', array( 74, 77, 73, 75, 83, 84, 81, 82 ), nos_of_col( $sided['left'], 0 ) );
+check( 'lewa SF = mecz 101', array( 101 ), nos_of_col( $sided['left'], 3 ) );
+
+// Prawa strona: SF→R32 (od środka na zewnątrz), DOLNE połowy.
+check( 'prawa: 4 kolumny (SF,QF,R16,R32)', 4, count( $sided['right'] ) );
+check( 'prawa[0] = Semi-finals (najbliżej środka)', 'Semi-finals', $sided['right'][0]['round'] );
+check( 'prawa[3] = Round of 32 (najdalej)', 'Round of 32', $sided['right'][3]['round'] );
+check( 'prawa SF = mecz 102', array( 102 ), nos_of_col( $sided['right'], 0 ) );
+check( 'prawa R32 = dolne 8 (76,78,79,80,86,88,85,87)', array( 76, 78, 79, 80, 86, 88, 85, 87 ), nos_of_col( $sided['right'], 3 ) );
+
+// Środek: Finał + mecz o 3. miejsce.
+check( 'środek: Finał = mecz 104', array( 104 ), array_map( static function ( $c ) { return $c['no']; }, $sided['center']['final'] ) );
+check( 'środek: 3. miejsce = mecz 103', array( 103 ), array_map( static function ( $c ) { return $c['no']; }, $sided['center']['third'] ) );
+
 printf( "\n=== WYNIK: %d/%d PASS ===\n", $pass, $pass + $fail );
 exit( $fail > 0 ? 1 : 0 );
