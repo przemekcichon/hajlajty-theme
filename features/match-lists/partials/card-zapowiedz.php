@@ -45,8 +45,10 @@ $when_label  = $kickoff_dt ? wp_date( 'j M Y · H:i', $kickoff_dt->getTimestamp(
 ?>
 <a class="card--preview" href="<?php echo esc_url( get_permalink( $post_id ) ); ?>"<?php echo '' !== $kickoff_iso ? ' data-kickoff="' . esc_attr( $kickoff_iso ) . '"' : ''; ?><?php echo hajlajty_match_lists_card_filter_attrs( $terms ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped — atrybuty escapowane w helperze. ?>>
 	<?php if ( '' !== $round_pl ) : ?>
-		<span class="card__phase">⚽ <?php echo esc_html( $round_pl ); ?></span>
-		<?php $hajl_no = isset( $args['match_no'] ) ? (int) $args['match_no'] : 0; if ( $hajl_no > 0 ) : ?><span class="card__matchno">Mecz <?php echo (int) $hajl_no; ?></span><?php endif; ?>
+		<div class="card__topline">
+			<span class="card__phase">⚽ <?php echo esc_html( $round_pl ); ?></span>
+			<?php $hajl_no = isset( $args['match_no'] ) ? (int) $args['match_no'] : 0; if ( $hajl_no > 0 ) : ?><span class="card__matchno">Mecz <?php echo (int) $hajl_no; ?></span><?php endif; ?>
+		</div>
 	<?php endif; ?>
 	<?php if ( '' !== $kickoff_iso ) : ?>
 		<div class="card__countdown" data-countdown>
