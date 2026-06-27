@@ -1,0 +1,186 @@
+/* ============================================================
+   HAJLAJTY — styles/bracket.css
+   ------------------------------------------------------------
+   Widok „Faza pucharowa" — drabinka R32 → … → Finał jako drzewo KOLUMN rund.
+   Ładowany TYLKO na Stronie z szablonem template-faza-pucharowa.php (warunkowy
+   enqueue w match-lists.php), zależny od match-lists.css (chrome kart/flagi,
+   keyframe pulse-live) i layout.css (tokeny + powłoka app-shell).
+
+   Powłoka pełnej szerokości + trwały sidebar idzie przez klasę body
+   `hajlajty-faza-pucharowa` (layout.css „WIDOKI Z TRWAŁYM MENU"), jak terminarz.
+
+   KLUCZOWE (plan DECYZJA 5): filtr drużyn działa na drabince przez PRZYGASZANIE
+   niewybranych meczów, NIE ukrywanie — drabinka ma zostać w CAŁOŚCI. Reguła na
+   końcu pliku reinterpretuje `.is-hidden-by-filter` (globalnie = display:none,
+   base.css) jako wygaszenie — wyłącznie w zasięgu tego widoku, bez regresji list.
+============================================================ */
+
+/* ---- Nagłówek strony + legenda (chrome współdzielony; redeklarowany per widok,
+        jak w terminarz.css/standings.css — bez zależności od tamtych plików) ---- */
+.page-head { margin-bottom: var(--space-lg); }
+.page-head__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent-strong);
+}
+[data-theme="dark"] .page-head__eyebrow { color: var(--accent); }
+.page-head__eyebrow .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+.page-head__title {
+  margin-top: var(--space-xs);
+  font-size: clamp(30px, 5vw, 46px);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+}
+.page-head__sub { margin-top: var(--space-sm); color: var(--text-muted); font-size: 16px; max-width: 58ch; text-wrap: pretty; }
+
+.legend { display: flex; flex-wrap: wrap; gap: var(--space-md); margin-top: var(--space-md); }
+.legend__item { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--text-muted); }
+.legend__dot { width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; }
+.legend__dot.skrot { background: var(--text-faint); }
+.legend__dot.live  { background: var(--live); animation: pulse-live 1.4s ease-in-out infinite; } /* @keyframes z match-lists.css */
+.legend__dot.soon  { background: var(--accent); }
+
+/* ============================================================
+   1. UKŁAD DRABINKI — poziome kolumny rund z własnym scrollem
+============================================================ */
+.bracket-scroll {
+  margin-top: var(--space-lg);
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: var(--space-sm);
+}
+.bracket {
+  display: flex;
+  align-items: stretch; /* kolumny równej wysokości → mniejsze rundy rozkładają komórki na środku (efekt drzewa) */
+  gap: var(--space-lg);
+  min-width: min-content;
+}
+.bracket__col {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 auto;
+  width: 220px;
+}
+.bracket__round {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding-bottom: var(--space-2xs);
+  margin-bottom: var(--space-sm);
+  border-bottom: 1px solid var(--border);
+  text-align: center;
+}
+/* Komórki wypełniają wysokość kolumny i rozkładają się równomiernie — feederzy
+   (sąsiadujący w porządku drzewa z hajlajty_bracket_build) trafiają mniej więcej
+   naprzeciw swojego meczu w kolejnej kolumnie. */
+.bracket__cells {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  gap: var(--space-sm);
+}
+
+/* ============================================================
+   2. KOMÓRKA — kompaktowa karta meczu (real / placeholder / tbd)
+============================================================ */
+.bracket-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  text-decoration: none;
+  color: var(--text);
+}
+.bracket-cell__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.bracket-cell__no {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+}
+.bracket-cell__live {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--live);
+}
+
+/* Realna komórka = klikalna karta (link do single). */
+a.bracket-cell--real { transition: border-color var(--t-fast), background var(--t-fast), transform var(--t-fast); }
+a.bracket-cell--real:hover { border-color: var(--border-strong); background: var(--surface-hover); transform: translateY(-1px); }
+.bracket-cell--real.is-live { border-color: var(--live); }
+
+.bracket-cell__team { display: flex; align-items: center; gap: 8px; }
+.bracket-cell__team .country-flag { flex: 0 0 auto; width: 20px; height: 14px; border-radius: 2px; object-fit: cover; }
+.bracket-cell__code { font-size: 14px; font-weight: 700; letter-spacing: 0.01em; }
+.bracket-cell__g {
+  margin-left: auto;
+  font-size: 15px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.bracket-cell__when,
+.bracket-cell__note { font-size: 11px; color: var(--text-muted); font-weight: 600; }
+.bracket-cell__note { color: var(--accent-strong); }
+[data-theme="dark"] .bracket-cell__note { color: var(--accent); }
+
+/* Placeholder / TBD = nieklikalne, przygaszone, bez flag. */
+.bracket-cell--placeholder,
+.bracket-cell--tbd {
+  border-style: dashed;
+  background: transparent;
+  color: var(--text-muted);
+}
+.bracket-cell__feeder { display: flex; flex-wrap: wrap; gap: 0 5px; font-size: 12px; font-weight: 700; color: var(--text-muted); }
+.bracket-cell__word { white-space: nowrap; }
+.bracket-cell__vs { font-size: 10px; font-weight: 800; letter-spacing: 0.1em; color: var(--text-faint); text-transform: uppercase; }
+.bracket-cell__tbd { font-size: 12px; font-weight: 700; color: var(--text-faint); }
+
+/* ============================================================
+   3. FILTR NA DRABINCE — PRZYGASZANIE, nie ukrywanie (plan DECYZJA 5)
+   ------------------------------------------------------------
+   filters.js przełącza `.is-hidden-by-filter` (base.css: display:none !important)
+   na komórkach [data-team-names] przy aktywnym filtrze drużyny. Na liście/terminarzu
+   to UKRYWANIE (i tak ma zostać). Na drabince display:none zburzyłoby drzewo, więc
+   tu REINTERPRETUJEMY ten stan jako wygaszenie — wyższa specyficzność + !important
+   biją regułę globalną, a zasięg `body.hajlajty-faza-pucharowa .bracket` gwarantuje
+   ZERO wpływu na zwykłe listy.
+============================================================ */
+body.hajlajty-faza-pucharowa .bracket .is-hidden-by-filter {
+  display: flex !important;   /* anuluje display:none z base.css, przywraca układ komórki */
+  opacity: 0.26 !important;
+  filter: grayscale(1) !important;
+  pointer-events: none !important;
+}
+/* Wybrane mecze („zapalone") podbite akcentem — TYLKO gdy filtr aktywny (czyli gdy
+   w drzewie jest jakaś wygaszona komórka). `:has()` wiąże podbicie z obecnością
+   wygaszenia, więc bez filtra nic się nie podświetla. (`:has()` wspierane w docelowych
+   przeglądarkach 2026; brak wsparcia = brak podbicia, degradacja łagodna.) */
+body.hajlajty-faza-pucharowa .bracket:has(.is-hidden-by-filter) .bracket-cell--real:not(.is-hidden-by-filter) {
+  border-color: var(--accent);
+}
+/* Komunikat „brak meczów" nie ma sensu przy samym przygaszaniu (drabinka zostaje
+   cała) — neutralizujemy go w zasięgu tego widoku, niezależnie od stanu JS [hidden]. */
+body.hajlajty-faza-pucharowa [data-filter-empty] { display: none !important; }
+
+/* ============================================================
+   4. RESPONSYWNOŚĆ — węższe kolumny na małych ekranach (scroll poziomy zostaje)
+============================================================ */
+@media (max-width: 768px) {
+  .bracket__col { width: 184px; }
+  .bracket { gap: var(--space-md); }
+}
