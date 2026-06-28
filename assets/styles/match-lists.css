@@ -227,14 +227,16 @@ main { padding-block: var(--space-xl) var(--space-2xl); }
   padding: var(--space-md);
 }
 
-/* Chip rozgrywki — overlay w LEWYM GÓRNYM rogu miniatury (MVP-h). Typografia jak
-   dawny chip pod wideo (.vcard__comp: r-pill, 12px/700), ale na ciemnej
-   półprzezroczystej warstwie (jak .card__channel) — czytelny na zdjęciu YT. */
-.vcard__chip {
+/* Chipy-overlay na miniaturze: rozgrywki w LEWYM górnym rogu, etap/runda w PRAWYM
+   górnym (MVP-h). Wspólny styl: ciemna półprzezroczysta warstwa (jak .card__channel),
+   typografia jak dawny chip pod wideo (r-pill, 12px/700) — czytelne na zdjęciu YT.
+   max-width 48% każdy, żeby nie nachodziły na siebie. */
+.vcard__chip,
+.vcard__phase {
   position: absolute;
-  left: 10px; top: 10px;
+  top: 10px;
   z-index: 2;
-  max-width: 70%;
+  max-width: 48%;
   display: inline-flex; align-items: center;
   padding: 3px 10px;
   border-radius: var(--r-pill);
@@ -246,28 +248,14 @@ main { padding-block: var(--space-xl) var(--space-2xl); }
   font-size: 12px; font-weight: 700; letter-spacing: 0.02em;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
+.vcard__chip { left: 10px; }
+.vcard__phase { right: 10px; }
 
-/* Górny pasek bloku meczowego: numer meczu (terminarz) + DATA ROZEGRANIA — w
-   miejscu, gdzie karta wyniku ma badge „Zakończony". */
+/* Górny pasek bloku meczowego: tylko numer meczu (terminarz). Bez fazy/daty —
+   faza wjechała na miniaturę, data usunięta (niższy dół karty). */
 .vcard__top {
   display: flex; align-items: center;
   gap: var(--space-sm);
-}
-/* Faza/runda — 1:1 z .rcard__phase (karta wyniku). */
-.vcard__phase {
-  font-size: 12px; font-weight: 700;
-  color: var(--text-muted);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.vcard__date {
-  margin-left: auto;
-  flex: 0 0 auto;
-  padding: 3px 10px;
-  border-radius: var(--r-pill);
-  background: var(--surface-2);
-  color: var(--text-muted);
-  font-size: 11px; font-weight: 800; letter-spacing: 0.04em;
-  white-space: nowrap;
 }
 
 /* Blok meczowy: flaga + nazwa | wynik | nazwa + flaga (kontrakt jak .rcard__match,

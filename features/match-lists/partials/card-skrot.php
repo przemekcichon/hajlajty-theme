@@ -5,11 +5,10 @@
  * (single-ft.php). JEDNO źródło markupu karty skrótu (MVP-h) — bez rozjazdu.
  * Cała karta linkuje do single meczu (NIE osadza playera — to robi single-ft).
  *
- * Układ scalony (MVP-h): GÓRA = miniatura/facade YouTube (chip rozgrywki w lewym
- * górnym rogu, kanał w lewym dolnym, czas trwania w prawym dolnym); DÓŁ = blok
- * meczowy jak w karcie WYNIKU (flagi + pełne nazwy państw + wynik) z DATĄ
- * ROZEGRANIA meczu (płaska meta `kickoff`, UTC→PL) w miejscu badge „Zakończony".
- * Datę DODANIA skrótu (`skrot_published_at`) świadomie IGNORUJEMY (MVP-h).
+ * Układ scalony (MVP-h): GÓRA = miniatura/facade YouTube zlana z dołem w jedną
+ * kartę (overlaye: chip rozgrywki w lewym górnym rogu, etap/runda w prawym górnym,
+ * kanał w lewym dolnym, czas trwania w prawym dolnym); DÓŁ = blok meczowy jak w
+ * karcie WYNIKU (flagi + pełne nazwy państw + wynik), bez daty — niski.
  *
  * Kontrakt: partial dostaje z ZEWNĄTRZ $post_id ORAZ rozwiązane termy
  * {home,away} (batch-resolver zrobił JEDEN get_terms na całą listę) — TU zero
@@ -63,14 +62,6 @@ $away_name  = hajlajty_match_lists_team_name( $terms['away'] );
 $goals_home = $data['goals']['home'] ?? null;
 $goals_away = $data['goals']['away'] ?? null;
 
-// DATA ROZEGRANIA = płaska meta `kickoff` (UTC, „Y-m-d H:i:s") → etykieta PL przez
-// wp_date (strefa serwisu), wzorzec spójny z card-zapowiedz. NIE skrot_published_at.
-$kickoff_raw = get_post_meta( $post_id, 'kickoff', true );
-$kickoff_dt  = ( is_string( $kickoff_raw ) && '' !== $kickoff_raw )
-	? date_create_immutable( $kickoff_raw, new DateTimeZone( 'UTC' ) )
-	: false;
-$played_label = $kickoff_dt ? wp_date( 'j M Y', $kickoff_dt->getTimestamp() ) : '';
-
 $match_no = isset( $args['match_no'] ) ? (int) $args['match_no'] : 0;
 ?>
 <a class="vcard card-video" href="<?php echo esc_url( get_permalink( $post_id ) ); ?>"<?php echo hajlajty_match_lists_card_filter_attrs( $terms ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped — atrybuty escapowane w helperze. ?>>
@@ -81,6 +72,9 @@ $match_no = isset( $args['match_no'] ) ? (int) $args['match_no'] : 0;
 		<?php if ( '' !== $roz_name ) : ?>
 			<span class="vcard__chip"><?php echo esc_html( $roz_name ); ?></span>
 		<?php endif; ?>
+		<?php if ( '' !== $round_pl ) : ?>
+			<span class="vcard__phase"><?php echo esc_html( $round_pl ); ?></span>
+		<?php endif; ?>
 		<?php if ( ! empty( $skrot_dur ) ) : ?>
 			<span class="thumb__dur"><?php echo esc_html( $skrot_dur ); ?></span>
 		<?php endif; ?>
@@ -90,11 +84,9 @@ $match_no = isset( $args['match_no'] ) ? (int) $args['match_no'] : 0;
 		<span class="thumb__play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
 	</div>
 	<div class="vcard__body">
-		<?php if ( '' !== $round_pl || 0 < $match_no || '' !== $played_label ) : ?>
+		<?php if ( 0 < $match_no ) : ?>
 			<div class="vcard__top">
-				<?php if ( '' !== $round_pl ) : ?><span class="vcard__phase">⚽ <?php echo esc_html( $round_pl ); ?></span><?php endif; ?>
-				<?php if ( 0 < $match_no ) : ?><span class="card__matchno">Mecz <?php echo (int) $match_no; ?></span><?php endif; ?>
-				<?php if ( '' !== $played_label ) : ?><span class="vcard__date"><?php echo esc_html( $played_label ); ?></span><?php endif; ?>
+				<span class="card__matchno">Mecz <?php echo (int) $match_no; ?></span>
 			</div>
 		<?php endif; ?>
 		<div class="vcard__match">
