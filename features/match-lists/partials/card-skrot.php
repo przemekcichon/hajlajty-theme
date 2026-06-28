@@ -65,7 +65,7 @@ $goals_away = $data['goals']['away'] ?? null;
 $match_no = isset( $args['match_no'] ) ? (int) $args['match_no'] : 0;
 ?>
 <a class="vcard card-video" href="<?php echo esc_url( get_permalink( $post_id ) ); ?>"<?php echo hajlajty_match_lists_card_filter_attrs( $terms ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped — atrybuty escapowane w helperze. ?>>
-	<div class="thumb<?php echo '' !== $poster ? ' has-poster' : ''; ?>">
+	<div class="thumb">
 		<?php if ( '' !== $poster ) : ?>
 			<img class="thumb__img" src="<?php echo esc_url( $poster ); ?>" alt="" loading="lazy" />
 		<?php endif; ?>

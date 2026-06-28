@@ -219,7 +219,8 @@ main { padding-block: var(--space-xl) var(--space-2xl); }
 /* Miniatura bez własnego zaokrąglenia — łączy się płynnie z dołem (rogi tnie .vcard). */
 .vcard .thumb { border-radius: 0; }
 /* DÓŁ karty = blok meczowy 1:1 z kartą wyniku (.rcard), BEZ własnej ramki/rogów
-   (te są na .vcard). Różnica vs karta wyniku: badge „Zakończony" → data (.vcard__date). */
+   (te są na .vcard). Różnica vs karta wyniku: bez badge/daty — faza wjechała na
+   miniaturę, więc dół jest niski (tylko blok meczowy). */
 .vcard__body {
   display: flex;
   flex-direction: column;

@@ -5,8 +5,9 @@
  * i enqueue'uje zasoby WIDOKU meczu warunkowo, tylko na single CPT „mecz".
  *
  * Granica wobec slice'a layout: layout = globalna powłoka (tokens/base/shell);
- * match-display = wszystko, co znika razem z widokiem meczu (match-single.css/js,
- * w tym kompaktowe wiersze .rvideo prawego aside). Zgodnie z CLAUDE.md (vertical slice).
+ * match-display = wszystko, co znika razem z widokiem meczu (match-single.css/js).
+ * Karty „Inne skróty" w aside reużywają wspólny partial card-skrot (slice
+ * match-lists). Zgodnie z CLAUDE.md (vertical slice).
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

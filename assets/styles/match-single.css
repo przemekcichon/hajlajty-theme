@@ -289,11 +289,8 @@
 [data-theme="dark"] .squad-row__in { color: var(--accent); }
 .squad-row__in svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2.8; stroke-linecap: round; stroke-linejoin: round; }
 
-/* ---- PRAWY ASIDE: kompaktowe wiersze „Inne skróty" (.rvideo) ----
-   Wyekstrahowane 1:1 z monolitu (.thumb 301-322, .aside-sec 663-669,
-   .rvideo 672-680, override .watch__aside 941-942, responsywny 1147).
-   Pozioma miniatura ~168px z lewej + treść z prawej — NIE duża karta
-   card-highlight (ta należy do home/list 3d). */
+/* ---- PRAWY ASIDE: „Inne skróty" ----
+   Sekcja aside; karty to wspólny partial card-skrot (.vcard) — patrz niżej. */
 .aside-sec { margin-bottom: var(--space-xl); }
 .aside-sec__title { display: flex; align-items: center; gap: var(--space-2xs); font-size: 15px; font-weight: 800; letter-spacing: -0.01em; margin-bottom: var(--space-md); }
 .aside-sec__title .kicker-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex: 0 0 auto; }
