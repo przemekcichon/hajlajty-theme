@@ -226,7 +226,7 @@
   letter-spacing: 0.03em;
   vertical-align: middle;
 }
-.vcard__meta .card__matchno { margin-left: 0; margin-right: 2px; }
+.vcard__top .card__matchno { margin-left: 0; }
 /* Numer w TEJ SAMEJ linii co chip fazy, dosunięty do prawej (nie nowa linia). */
 .card__topline { display: flex; align-items: center; gap: 8px; }
 .card__topline .card__matchno,

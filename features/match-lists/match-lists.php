@@ -245,16 +245,21 @@ function hajlajty_match_lists_terminarz_body_class( $classes ) {
 
 add_action( 'wp_enqueue_scripts', 'hajlajty_match_lists_enqueue' );
 /**
- * Zasoby LIST — archiwum „mecz", strona główna ORAZ terminarz (MVP-c reużywa te
- * same karty, więc potrzebuje tych samych stylów). CSS sportowany z designu do
+ * Zasoby LIST — archiwum „mecz", strona główna, terminarz (MVP-c reużywa te same
+ * karty) ORAZ single „mecz" (MVP-h: aside „Inne skróty" reużywa partial
+ * card-skrot, więc potrzebuje stylów karty). CSS sportowany z designu do
  * assets/styles/ motywu (NIE ładujemy z design/).
+ *
+ * Bezpieczeństwo na single: globalne reguły match-lists.css (`main`, `.section`,
+ * `.live-card`…) nie kolidują — single używa `<main class="watch">` (klasa wygrywa
+ * specyficznością nad `main`), a reszty selektorów na single nie ma.
  */
 function hajlajty_match_lists_enqueue() {
-	if ( ! is_post_type_archive( 'mecz' ) && ! is_front_page() && ! hajlajty_match_lists_is_terminarz() && ! hajlajty_match_lists_is_faza_pucharowa() ) {
+	if ( ! is_post_type_archive( 'mecz' ) && ! is_front_page() && ! hajlajty_match_lists_is_terminarz() && ! hajlajty_match_lists_is_faza_pucharowa() && ! is_singular( 'mecz' ) ) {
 		return;
 	}
 
-	// CSS współdzielony przez archiwum i stronę główną. Stylu paginacji NIE
+	// CSS współdzielony przez archiwum, stronę główną i single (aside). Stylu paginacji NIE
 	// ładujemy — archiwum nie stronicuje (cała lista stanu na jednej stronie,
 	// pod kliencki filtr 4A; patrz hajlajty_match_lists_pre_get_posts).
 	$styles = array(

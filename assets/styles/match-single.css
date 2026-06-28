@@ -9,8 +9,9 @@
    stopka) jest w layout.css; tokeny/reset w tokens.css/base.css.
 
    STUB-y 3b (realne dane po 3bi): kolory koszulek/strony — home=akcent,
-   away=neutral (NIE z danych). Karty „Inne skróty" (aside) używają
-   komponentu card-highlight (osobny plik), nie monolitowego .rvideo.
+   away=neutral (NIE z danych). Karty „Inne skróty" (aside) reużywają wspólny
+   partial card-skrot (.vcard) — chrome w match-lists.css (MVP-h: ładowany też
+   na single); tu zostaje tylko rytm pionowego stosu w sidebarze.
 ============================================================ */
 
 :root {
@@ -288,56 +289,18 @@
 [data-theme="dark"] .squad-row__in { color: var(--accent); }
 .squad-row__in svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2.8; stroke-linecap: round; stroke-linejoin: round; }
 
-/* ---- PRAWY ASIDE: kompaktowe wiersze „Inne skróty" (.rvideo) ----
-   Wyekstrahowane 1:1 z monolitu (.thumb 301-322, .aside-sec 663-669,
-   .rvideo 672-680, override .watch__aside 941-942, responsywny 1147).
-   Pozioma miniatura ~168px z lewej + treść z prawej — NIE duża karta
-   card-highlight (ta należy do home/list 3d). */
+/* ---- PRAWY ASIDE: „Inne skróty" ----
+   Sekcja aside; karty to wspólny partial card-skrot (.vcard) — patrz niżej. */
 .aside-sec { margin-bottom: var(--space-xl); }
 .aside-sec__title { display: flex; align-items: center; gap: var(--space-2xs); font-size: 15px; font-weight: 800; letter-spacing: -0.01em; margin-bottom: var(--space-md); }
 .aside-sec__title .kicker-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex: 0 0 auto; }
 
-/* Miniatura 16:9 (placeholder pasków) z czasem trwania + przyciskiem PLAY */
-.thumb {
-  position: relative; aspect-ratio: 16 / 9;
-  border-radius: var(--r-md); overflow: hidden;
-  background: repeating-linear-gradient(135deg, var(--thumb-a) 0 14px, var(--thumb-b) 14px 28px);
-}
-.thumb__dur {
-  position: absolute; right: 10px; bottom: 10px;
-  padding: 3px 8px; border-radius: 6px;
-  background: oklch(0 0 0 / 0.72); color: #fff;
-  font-size: 12px; font-weight: 700; letter-spacing: 0.02em;
-}
-.thumb__play {
-  position: absolute; inset: 0; margin: auto;
-  width: 48px; height: 48px;
-  display: grid; place-items: center; border-radius: 50%;
-  background: oklch(0 0 0 / 0.45); backdrop-filter: blur(2px);
-  border: 1.5px solid oklch(1 0 0 / 0.5);
-  transition: transform var(--t-med), background var(--t-med);
-}
-.thumb__play svg { width: 20px; height: 20px; fill: #fff; transform: translateX(1px); }
-.card-video:hover .thumb__play { transform: scale(1.08); background: var(--accent); }
-.card-video:hover .thumb__play svg { fill: var(--accent-ink); }
-
-/* Wiersz powiązanego skrótu — pozioma miniatura + treść */
-.rvideo { display: grid; grid-template-columns: 158px 1fr; gap: var(--space-sm); margin-bottom: var(--space-md); }
-.rvideo:last-child { margin-bottom: 0; }
-.rvideo .thumb { border-radius: var(--r-sm); }
-.rvideo__body { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.rvideo__title { font-size: 14px; font-weight: 700; line-height: 1.3; letter-spacing: -0.01em; text-wrap: pretty;
-  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.rvideo__meta { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; color: var(--text-muted); }
-.rvideo__comp { display: inline-flex; padding: 2px 8px; border-radius: var(--r-pill); background: var(--surface-2); color: var(--text-muted); font-size: 11px; font-weight: 700; }
-.rvideo__meta .dot-sep { width: 3px; height: 3px; border-radius: 50%; background: var(--text-faint); }
-
-/* Prawy sidebar „watch": szersza miniatura niż domyślny rvideo */
-.watch__aside .rvideo { grid-template-columns: 168px 1fr; }
-@media (max-width: 620px) {
-  .rvideo { grid-template-columns: 134px 1fr; }
-  .watch__aside .rvideo { grid-template-columns: 140px 1fr; }
-}
+/* Karty „Inne skróty" w aside = wspólny partial card-skrot (.vcard). Chrome
+   karty (miniatura .thumb*, .card-video, .vcard*) żyje w match-lists.css, który
+   MVP-h ładuje też na single (patrz hajlajty_match_lists_enqueue). Tu tylko rytm
+   pionowego stosu kart w wąskim sidebarze. */
+.watch__aside .vcard { margin-bottom: var(--space-lg); }
+.watch__aside .vcard:last-child { margin-bottom: 0; }
 
 /* ---- MOBILNY PLAYER PEŁNA SZEROKOŚĆ ---- */
 @media (max-width: 768px) {

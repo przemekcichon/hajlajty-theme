@@ -203,30 +203,86 @@ main { padding-block: var(--space-xl) var(--space-2xl); }
 /* ============================================================
    5. KARTA SKRÓTU (.vcard) — anchor (cała linkuje do meczu)
 ============================================================ */
-.vcard { display: flex; flex-direction: column; gap: var(--space-sm); color: inherit; text-decoration: none; }
-.vcard .thumb { transition: transform var(--t-med); }
-.vcard:hover .thumb { transform: translateY(-3px); }
-.vcard__body { display: flex; flex-direction: column; gap: 8px; }
-.vcard__title {
-  font-size: 16px; font-weight: 700;
-  letter-spacing: -0.01em;
-  line-height: 1.35;
-  text-wrap: pretty;
+/* Miniatura (góra) i blok meczowy (dół) tworzą JEDNĄ kartę: ramka, tło i
+   zaokrąglenie żyją na .vcard; overflow:hidden przycina zewnętrzne rogi, a
+   krawędź łącząca (dół miniatury / góra bloku) zostaje prosta. */
+.vcard {
+  display: flex; flex-direction: column;
+  color: inherit; text-decoration: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  transition: transform var(--t-med), border-color var(--t-med), box-shadow var(--t-med);
 }
-.vcard__meta {
-  display: flex; align-items: center; gap: 8px;
-  flex-wrap: wrap;
-  font-size: 13px; color: var(--text-muted); font-weight: 600;
+.vcard:hover { transform: translateY(-4px); border-color: var(--border-strong); box-shadow: var(--shadow); }
+/* Miniatura bez własnego zaokrąglenia — łączy się płynnie z dołem (rogi tnie .vcard). */
+.vcard .thumb { border-radius: 0; }
+/* DÓŁ karty = blok meczowy 1:1 z kartą wyniku (.rcard), BEZ własnej ramki/rogów
+   (te są na .vcard). Różnica vs karta wyniku: bez badge/daty — faza wjechała na
+   miniaturę, więc dół jest niski (tylko blok meczowy). */
+.vcard__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: var(--space-md);
 }
-.vcard__comp {
+
+/* Chipy-overlay na miniaturze: rozgrywki w LEWYM górnym rogu, etap/runda w PRAWYM
+   górnym (MVP-h). Wspólny styl: ciemna półprzezroczysta warstwa (jak .card__channel),
+   typografia jak dawny chip pod wideo (r-pill, 12px/700) — czytelne na zdjęciu YT.
+   max-width 48% każdy, żeby nie nachodziły na siebie. */
+.vcard__chip,
+.vcard__phase {
+  position: absolute;
+  top: 10px;
+  z-index: 2;
+  max-width: 48%;
   display: inline-flex; align-items: center;
   padding: 3px 10px;
   border-radius: var(--r-pill);
-  background: var(--surface-2);
-  color: var(--text-muted);
-  font-size: 12px; font-weight: 700;
+  background: oklch(0 0 0 / 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: 1px solid oklch(1 0 0 / 0.12);
+  color: oklch(0.92 0.003 250);
+  font-size: 12px; font-weight: 700; letter-spacing: 0.02em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.vcard__meta .dot-sep { width: 3px; height: 3px; border-radius: 50%; background: var(--text-faint); }
+.vcard__chip { left: 10px; }
+.vcard__phase { right: 10px; }
+
+/* Górny pasek bloku meczowego: tylko numer meczu (terminarz). Bez fazy/daty —
+   faza wjechała na miniaturę, data usunięta (niższy dół karty). */
+.vcard__top {
+  display: flex; align-items: center;
+  gap: var(--space-sm);
+}
+
+/* Blok meczowy: flaga + nazwa | wynik | nazwa + flaga (kontrakt jak .rcard__match,
+   ale skopiowany pod .vcard — terminarz.css z .rcard* nie ładuje się na listach). */
+.vcard__match {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: var(--space-sm);
+}
+.vcard__team {
+  display: flex; align-items: center; gap: 8px;
+  min-width: 0;
+  font-weight: 700; font-size: 15px;
+}
+.vcard__team--away { flex-direction: row-reverse; }
+.vcard__team .country-flag { flex: 0 0 auto; height: 20px; width: auto; border-radius: 2px; }
+.vcard__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vcard__score {
+  flex: 0 0 auto;
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 22px; font-weight: 800;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.vcard__sep { opacity: 0.55; }
 
 /* ============================================================
    6. PUSTY STAN (archiwum bez wyników)
