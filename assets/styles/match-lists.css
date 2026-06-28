@@ -206,7 +206,18 @@ main { padding-block: var(--space-xl) var(--space-2xl); }
 .vcard { display: flex; flex-direction: column; gap: var(--space-sm); color: inherit; text-decoration: none; }
 .vcard .thumb { transition: transform var(--t-med); }
 .vcard:hover .thumb { transform: translateY(-3px); }
-.vcard__body { display: flex; flex-direction: column; gap: var(--space-xs); }
+/* DÓŁ karty = blok meczowy 1:1 z kartą wyniku (.rcard z terminarz.css): tło
+   powierzchni, ramka, zaokrąglenie i padding. Różnica vs karta wyniku: badge
+   „Zakończony" zastąpiony datą rozegrania (.vcard__date). */
+.vcard__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+}
 
 /* Chip rozgrywki — overlay w LEWYM GÓRNYM rogu miniatury (MVP-h). Typografia jak
    dawny chip pod wideo (.vcard__comp: r-pill, 12px/700), ale na ciemnej
@@ -233,6 +244,12 @@ main { padding-block: var(--space-xl) var(--space-2xl); }
 .vcard__top {
   display: flex; align-items: center;
   gap: var(--space-sm);
+}
+/* Faza/runda — 1:1 z .rcard__phase (karta wyniku). */
+.vcard__phase {
+  font-size: 12px; font-weight: 700;
+  color: var(--text-muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .vcard__date {
   margin-left: auto;

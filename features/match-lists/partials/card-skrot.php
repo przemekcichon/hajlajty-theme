@@ -51,6 +51,9 @@ $kanal_name  = ( is_array( $kanal_terms ) && ! is_wp_error( $kanal_terms ) && ! 
 $roz_terms = get_the_terms( $post_id, 'rozgrywki' );
 $roz_name  = ( is_array( $roz_terms ) && ! is_wp_error( $roz_terms ) && ! empty( $roz_terms ) ) ? $roz_terms[0]->name : '';
 
+// Faza/runda (w bloku meczowym, jak karta wyniku) = match_data.round → PL.
+$round_pl = hajlajty_lookup_round( $data['round'] ?? null );
+
 // Blok meczowy: flagi + pełne nazwy + wynik (jak card-wynik). Drużyny z $terms,
 // wynik z match_data.goals (null przed/bez wyniku → „–").
 $home_flag  = hajlajty_flag_url( $terms['home'] );
@@ -87,8 +90,9 @@ $match_no = isset( $args['match_no'] ) ? (int) $args['match_no'] : 0;
 		<span class="thumb__play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
 	</div>
 	<div class="vcard__body">
-		<?php if ( 0 < $match_no || '' !== $played_label ) : ?>
+		<?php if ( '' !== $round_pl || 0 < $match_no || '' !== $played_label ) : ?>
 			<div class="vcard__top">
+				<?php if ( '' !== $round_pl ) : ?><span class="vcard__phase">⚽ <?php echo esc_html( $round_pl ); ?></span><?php endif; ?>
 				<?php if ( 0 < $match_no ) : ?><span class="card__matchno">Mecz <?php echo (int) $match_no; ?></span><?php endif; ?>
 				<?php if ( '' !== $played_label ) : ?><span class="vcard__date"><?php echo esc_html( $played_label ); ?></span><?php endif; ?>
 			</div>
