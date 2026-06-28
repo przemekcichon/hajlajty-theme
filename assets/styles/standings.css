@@ -145,7 +145,10 @@
   /* Poziomy scroll kolumn liczbowych; kolumny „#" i „Drużyna" przyklejone (sticky),
      więc nazwy zostają w miejscu, a M/Z/R/P/Br/Pkt przewijają się przy przeciąganiu. */
   .standings-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .standings { table-layout: auto; min-width: 480px; }
+  /* border-collapse:separate jest WARUNKIEM działania position:sticky na komórkach
+     (z collapse sticky pada na Safari/iOS). border-spacing:0 + border-top na td
+     zachowuje wygląd linii wierszy. */
+  .standings { table-layout: auto; min-width: 480px; border-collapse: separate; border-spacing: 0; }
   .standings th.pos, .standings td.pos {
     position: sticky; left: 0; z-index: 2;
     width: 30px; background: var(--surface);
