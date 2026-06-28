@@ -135,6 +135,8 @@
     margin-inline: calc(-1 * var(--gutter));
     border-inline: none;
     border-radius: 0;
+    /* Wąski padding poziomy (tylko mobile) → więcej miejsca na treść tabeli. */
+    padding: var(--space-md) var(--space-3xs);
   }
 
   /* Poziomy scroll kolumn liczbowych; kolumny „#" i „Drużyna" przyklejone (sticky),
