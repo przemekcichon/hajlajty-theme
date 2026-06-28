@@ -83,13 +83,20 @@
 }
 
 /* ---- TABELA ---- */
-.standings { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+/* table-layout: fixed → kolumny mają stałą szerokość, więc długie nazwy drużyn
+   NIE rozpychają tabeli; nadmiar nazwy ucina ellipsis na .nm (kolumna „team"
+   bierze całą resztę szerokości po odjęciu stałych kolumn liczbowych). */
+.standings { width: 100%; border-collapse: collapse; table-layout: fixed; font-variant-numeric: tabular-nums; }
 .standings thead th {
   font-size: 11px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase;
   color: var(--text-faint); text-align: center; padding: 0 4px 10px;
 }
 .standings thead th.pos { width: 28px; }
 .standings thead th.team { text-align: left; padding-left: 8px; }
+/* Stałe szerokości kolumn liczbowych (M Z R P Br Pkt); „team" = reszta. */
+.standings thead th:nth-child(n+3) { width: 34px; }
+.standings thead th:nth-child(7)   { width: 48px; } /* Br. = „gf:ga" */
+.standings thead th:nth-child(8)   { width: 38px; } /* Pkt */
 .standings tbody td {
   padding: 10px 4px; font-size: 14px; font-weight: 600; text-align: center;
   color: var(--text-muted); border-top: 1px solid var(--border);
@@ -117,4 +124,26 @@
 
 @media (max-width: 680px) {
   .groups-grid { grid-template-columns: 1fr; }
+
+  /* Karta grupy na pełną szerokość ekranu (jak wideo na mobile): wychodzi poza
+     gutter kontenera, bez bocznych ramek i zaokrągleń. Wewnętrzny padding karty
+     zostaje, więc treść nie cała przy krawędzi. */
+  .group-card {
+    margin-inline: calc(-1 * var(--gutter));
+    border-inline: none;
+    border-radius: 0;
+  }
+
+  /* Poziomy scroll kolumn liczbowych; kolumny „#" i „Drużyna" przyklejone (sticky),
+     więc nazwy zostają w miejscu, a M/Z/R/P/Br/Pkt przewijają się przy przeciąganiu. */
+  .standings-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .standings { table-layout: auto; min-width: 480px; }
+  .standings th.pos, .standings td.pos {
+    position: sticky; left: 0; z-index: 2;
+    width: 30px; background: var(--surface);
+  }
+  .standings th.team, .standings td.team {
+    position: sticky; left: 30px; z-index: 2;
+    min-width: 150px; background: var(--surface);
+  }
 }
