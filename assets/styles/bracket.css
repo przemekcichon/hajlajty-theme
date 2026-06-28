@@ -1,0 +1,236 @@
+/* ============================================================
+   HAJLAJTY — styles/bracket.css
+   ------------------------------------------------------------
+   Widok „Faza pucharowa" — drabinka R32 → … → Finał jako drzewo KOLUMN rund.
+   Ładowany TYLKO na Stronie z szablonem template-faza-pucharowa.php (warunkowy
+   enqueue w match-lists.php), zależny od match-lists.css (chrome kart/flagi,
+   keyframe pulse-live) i layout.css (tokeny + powłoka app-shell).
+
+   Powłoka pełnej szerokości + trwały sidebar idzie przez klasę body
+   `hajlajty-faza-pucharowa` (layout.css „WIDOKI Z TRWAŁYM MENU"), jak terminarz.
+
+   KLUCZOWE (plan DECYZJA 5): filtr drużyn działa na drabince przez PRZYGASZANIE
+   niewybranych meczów, NIE ukrywanie — drabinka ma zostać w CAŁOŚCI. Reguła na
+   końcu pliku reinterpretuje `.is-hidden-by-filter` (globalnie = display:none,
+   base.css) jako wygaszenie — wyłącznie w zasięgu tego widoku, bez regresji list.
+============================================================ */
+
+/* ---- Nagłówek strony + legenda (chrome współdzielony; redeklarowany per widok,
+        jak w terminarz.css/standings.css — bez zależności od tamtych plików) ---- */
+.page-head { margin-bottom: var(--space-lg); }
+.page-head__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent-strong);
+}
+[data-theme="dark"] .page-head__eyebrow { color: var(--accent); }
+.page-head__eyebrow .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+.page-head__title {
+  margin-top: var(--space-xs);
+  font-size: clamp(30px, 5vw, 46px);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+}
+.page-head__sub { margin-top: var(--space-sm); color: var(--text-muted); font-size: 16px; max-width: 58ch; text-wrap: pretty; }
+
+.legend { display: flex; flex-wrap: wrap; gap: var(--space-md); margin-top: var(--space-md); }
+.legend__item { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--text-muted); }
+.legend__dot { width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; }
+.legend__dot.skrot { background: var(--text-faint); }
+.legend__dot.live  { background: var(--live); animation: pulse-live 1.4s ease-in-out infinite; } /* @keyframes z match-lists.css */
+.legend__dot.soon  { background: var(--accent); }
+
+/* ============================================================
+   1. UKŁAD DRABINKI — poziome kolumny rund z własnym scrollem
+============================================================ */
+/* Pozioma przewijarka drabinki. Strona scrolluje się NORMALNIE w pionie (element jest
+   wysoki na całą drabinkę), więc natywny poziomy pasek siedzi u dołu wysokiej drabinki
+   — daleko. Dlatego bracket.js dokłada „sticky" proxy-pasek przyklejony do dołu EKRANU
+   (patrz .bracket-xscroll niżej), żeby dało się przewijać w prawo z dowolnej wysokości. */
+.bracket-scroll {
+  margin-top: var(--space-lg);
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: var(--space-sm);
+  cursor: grab; /* afordancja „złap i przeciągnij" (bracket.js panoramuje myszą) */
+}
+.bracket-scroll.is-grabbing { cursor: grabbing; user-select: none; -webkit-user-select: none; }
+.bracket-scroll.is-grabbing * { cursor: grabbing !important; }
+/* Sticky poziomy pasek (bracket.js): position:fixed u dołu ekranu, scrollLeft
+   zsynchronizowany z .bracket-scroll. Pokazywany tylko, gdy drabinka wystaje poza dół
+   ekranu (natywny pasek poza widokiem) i ma co przewijać w poziomie. */
+.bracket-xscroll {
+  position: fixed;
+  bottom: 0;
+  height: 16px;
+  z-index: 50;
+  overflow-x: auto;
+  overflow-y: hidden;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+}
+.bracket-xscroll[hidden] { display: none; }
+.bracket-xscroll__sizer { height: 1px; }
+.bracket {
+  position: relative; /* układ odniesienia dla nakładki SVG z liniami łączącymi */
+  display: flex;
+  align-items: stretch; /* kolumny równej wysokości → mniejsze rundy rozkładają komórki na środku (efekt drzewa) */
+  gap: var(--space-md);
+  min-width: min-content;
+  padding-block: var(--space-sm);
+}
+/* Linie łączące (bracket.js) — nakładka SVG POD komórkami (kolumny mają z-index > 0). */
+.bracket__lines { position: absolute; top: 0; left: 0; z-index: 0; pointer-events: none; overflow: visible; }
+.bracket__line { fill: none; stroke: var(--border-strong); stroke-width: 1.5; }
+.bracket__col {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 auto;
+  width: 120px;
+}
+/* Środek: Finał + (pod nim, osobno) mecz o 3. miejsce. Szerszy, bo nagłówek
+   „Mecz o 3. miejsce" nie mieści się w 120px. Centrowany pionowo, by Finał stał
+   w osi półfinałów. */
+.bracket__col--center {
+  width: 184px;
+  justify-content: center;
+  gap: var(--space-xl);
+}
+.bracket__col--center .bracket__cells { flex: 0 0 auto; }
+.bracket__col--center .bracket__round { white-space: nowrap; }
+.bracket__group { display: flex; flex-direction: column; flex: 0 0 auto; }
+.bracket__round {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding-bottom: var(--space-2xs);
+  margin-bottom: var(--space-sm);
+  border-bottom: 1px solid var(--border);
+  text-align: center;
+}
+/* Komórki wypełniają wysokość kolumny i rozkładają się równomiernie — feederzy
+   (sąsiadujący w porządku drzewa z hajlajty_bracket_build) trafiają mniej więcej
+   naprzeciw swojego meczu w kolejnej kolumnie. */
+.bracket__cells {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  gap: var(--space-sm);
+}
+
+/* ============================================================
+   2. KOMÓRKA — kompaktowa karta meczu (real / placeholder / tbd)
+============================================================ */
+.bracket-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  text-decoration: none;
+  color: var(--text);
+}
+.bracket-cell__head { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+.bracket-cell__live {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--live);
+}
+
+/* Realna komórka = klikalna karta (link do single). */
+a.bracket-cell--real { transition: border-color var(--t-fast), background var(--t-fast), transform var(--t-fast); }
+a.bracket-cell--real:hover { border-color: var(--border-strong); background: var(--surface-hover); transform: translateY(-1px); }
+.bracket-cell--real.is-live { border-color: var(--live); }
+
+/* Stała wysokość wiersza drużyny — KOMÓRKA pusta („?") i wypełniona muszą mieć tę
+   samą wysokość (inaczej tekst kodu/wyniku z inheritowanym line-height robił wiersz
+   wyższy niż sam kwadracik „?"). */
+.bracket-cell__team { display: flex; align-items: center; gap: 8px; height: 18px; }
+/* Flaga naturalnym proporcjom (height-based, jak standings/teams) — nie zniekształca. */
+.bracket-cell__team .country-flag { flex: 0 0 auto; height: 16px; width: auto; border-radius: 2px; }
+/* Prostokącik „?" w miejscu flagi — dopasowany WIELKOŚCIĄ do flagi (≈3:2 przy h=16). */
+.bracket-cell__qmark {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 16px;
+  border-radius: 2px;
+  border: 1px dashed var(--border-strong);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--text-faint);
+}
+.bracket-cell__code { font-size: 14px; font-weight: 700; letter-spacing: 0.01em; line-height: 1; }
+.bracket-cell__g {
+  margin-left: auto;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.bracket-cell__when,
+.bracket-cell__note { font-size: 11px; color: var(--text-muted); font-weight: 600; }
+.bracket-cell__note { color: var(--accent-strong); }
+[data-theme="dark"] .bracket-cell__note { color: var(--accent); }
+
+/* Obsada nieustalona (placeholder R16+ / TBD R32) = nieklikalne, dashed, bez flag —
+   ten sam układ co komórka realna, tylko z kwadracikami „?" zamiast flag. */
+.bracket-cell--placeholder,
+.bracket-cell--tbd {
+  border-style: dashed;
+  background: transparent;
+  color: var(--text-muted);
+}
+
+/* ============================================================
+   3. FILTR NA DRABINCE — PRZYGASZANIE, nie ukrywanie (plan DECYZJA 5)
+   ------------------------------------------------------------
+   filters.js przełącza `.is-hidden-by-filter` (base.css: display:none !important)
+   na komórkach [data-team-names] przy aktywnym filtrze drużyny. Na liście/terminarzu
+   to UKRYWANIE (i tak ma zostać). Na drabince display:none zburzyłoby drzewo, więc
+   tu REINTERPRETUJEMY ten stan jako wygaszenie — wyższa specyficzność + !important
+   biją regułę globalną, a zasięg `body.hajlajty-faza-pucharowa .bracket` gwarantuje
+   ZERO wpływu na zwykłe listy.
+============================================================ */
+body.hajlajty-faza-pucharowa .bracket .is-hidden-by-filter {
+  display: flex !important;   /* anuluje display:none z base.css, przywraca układ komórki */
+  opacity: 0.26 !important;
+  filter: grayscale(1) !important;
+  pointer-events: none !important;
+}
+/* Wybrane mecze („zapalone") podbite akcentem — TYLKO gdy filtr aktywny (czyli gdy
+   w drzewie jest jakaś wygaszona komórka). `:has()` wiąże podbicie z obecnością
+   wygaszenia, więc bez filtra nic się nie podświetla. (`:has()` wspierane w docelowych
+   przeglądarkach 2026; brak wsparcia = brak podbicia, degradacja łagodna.) */
+body.hajlajty-faza-pucharowa .bracket:has(.is-hidden-by-filter) .bracket-cell--real:not(.is-hidden-by-filter) {
+  border-color: var(--accent);
+}
+/* Komunikat „brak meczów" nie ma sensu przy samym przygaszaniu (drabinka zostaje
+   cała) — neutralizujemy go w zasięgu tego widoku, niezależnie od stanu JS [hidden]. */
+body.hajlajty-faza-pucharowa [data-filter-empty] { display: none !important; }
+
+/* ============================================================
+   4. RESPONSYWNOŚĆ — węższe kolumny na małych ekranach (scroll poziomy zostaje)
+============================================================ */
+@media (max-width: 768px) {
+  .bracket__col { width: 112px; }
+  .bracket { gap: var(--space-md); }
+}

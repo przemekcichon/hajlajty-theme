@@ -30,8 +30,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 						<h4>Mundial 2026</h4>
 						<a href="<?php echo esc_url( home_url( '/terminarz/' ) ); ?>">Terminarz</a>
 						<a href="<?php echo esc_url( home_url( '/tabele-grup/' ) ); ?>">Grupy</a>
-						<?php // Faza pucharowa i Strzelcy — ukryte do czasu realizacji (display:none, łatwe do przywrócenia). ?>
-						<a href="#" style="display:none">Faza pucharowa</a>
+						<a href="<?php echo esc_url( home_url( '/faza-pucharowa/' ) ); ?>">Faza pucharowa</a>
+						<?php // Strzelcy — ukryte do czasu realizacji (display:none, łatwe do przywrócenia). ?>
 						<a href="#" style="display:none">Strzelcy</a>
 					</div>
 					<div class="footer__col">
