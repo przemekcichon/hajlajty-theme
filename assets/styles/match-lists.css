@@ -203,20 +203,28 @@ main { padding-block: var(--space-xl) var(--space-2xl); }
 /* ============================================================
    5. KARTA SKRÓTU (.vcard) — anchor (cała linkuje do meczu)
 ============================================================ */
-.vcard { display: flex; flex-direction: column; gap: var(--space-sm); color: inherit; text-decoration: none; }
-.vcard .thumb { transition: transform var(--t-med); }
-.vcard:hover .thumb { transform: translateY(-3px); }
-/* DÓŁ karty = blok meczowy 1:1 z kartą wyniku (.rcard z terminarz.css): tło
-   powierzchni, ramka, zaokrąglenie i padding. Różnica vs karta wyniku: badge
-   „Zakończony" zastąpiony datą rozegrania (.vcard__date). */
+/* Miniatura (góra) i blok meczowy (dół) tworzą JEDNĄ kartę: ramka, tło i
+   zaokrąglenie żyją na .vcard; overflow:hidden przycina zewnętrzne rogi, a
+   krawędź łącząca (dół miniatury / góra bloku) zostaje prosta. */
+.vcard {
+  display: flex; flex-direction: column;
+  color: inherit; text-decoration: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  transition: transform var(--t-med), border-color var(--t-med), box-shadow var(--t-med);
+}
+.vcard:hover { transform: translateY(-4px); border-color: var(--border-strong); box-shadow: var(--shadow); }
+/* Miniatura bez własnego zaokrąglenia — łączy się płynnie z dołem (rogi tnie .vcard). */
+.vcard .thumb { border-radius: 0; }
+/* DÓŁ karty = blok meczowy 1:1 z kartą wyniku (.rcard), BEZ własnej ramki/rogów
+   (te są na .vcard). Różnica vs karta wyniku: badge „Zakończony" → data (.vcard__date). */
 .vcard__body {
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
   padding: var(--space-md);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-lg);
 }
 
 /* Chip rozgrywki — overlay w LEWYM GÓRNYM rogu miniatury (MVP-h). Typografia jak
