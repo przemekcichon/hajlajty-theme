@@ -138,6 +138,9 @@
     /* Wąski padding poziomy (tylko mobile) → więcej miejsca na treść tabeli. */
     padding: var(--space-md) var(--space-3xs);
   }
+  /* Nagłówek (badge „A" + tytuł) wyrównany do kolumny numerów tabeli — bez tego
+     przy 4px paddingu karty badge przyklejał się do krawędzi, na lewo od numerów. */
+  .group-card__head { padding-left: var(--space-xs); }
 
   /* Poziomy scroll kolumn liczbowych; kolumny „#" i „Drużyna" przyklejone (sticky),
      więc nazwy zostają w miejscu, a M/Z/R/P/Br/Pkt przewijają się przy przeciąganiu. */
