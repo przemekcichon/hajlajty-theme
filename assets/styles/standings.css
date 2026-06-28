@@ -147,8 +147,10 @@
   .standings-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   /* border-collapse:separate jest WARUNKIEM działania position:sticky na komórkach
      (z collapse sticky pada na Safari/iOS). border-spacing:0 + border-top na td
-     zachowuje wygląd linii wierszy. */
-  .standings { table-layout: auto; min-width: 480px; border-collapse: separate; border-spacing: 0; }
+     zachowuje wygląd linii wierszy. min-width WYRAŹNIE większy od ekranu telefonu,
+     żeby kolumny liczbowe NA PEWNO wystawały → poziomy scroll faktycznie się pojawia
+     i sięga „Br"/„Pkt" (480px ≈ szerokość ekranu testowego dawało scroll bliski zera). */
+  .standings { table-layout: auto; min-width: 520px; border-collapse: separate; border-spacing: 0; }
   .standings th.pos, .standings td.pos {
     position: sticky; left: 0; z-index: 2;
     width: 30px; background: var(--surface);
@@ -159,5 +161,6 @@
   .standings th.team, .standings td.team {
     position: sticky; left: 30px; z-index: 2;
     width: 100px; max-width: 100px; background: var(--surface);
+    border-right: 1px solid var(--border); /* oddziela zamrożony blok od przewijanych liczb */
   }
 }
