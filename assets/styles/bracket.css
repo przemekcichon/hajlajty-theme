@@ -59,7 +59,10 @@
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
   padding-bottom: var(--space-sm);
+  cursor: grab; /* afordancja „złap i przeciągnij" (bracket.js panoramuje myszą) */
 }
+.bracket-scroll.is-grabbing { cursor: grabbing; user-select: none; -webkit-user-select: none; }
+.bracket-scroll.is-grabbing * { cursor: grabbing !important; }
 /* Sticky poziomy pasek (bracket.js): position:fixed u dołu ekranu, scrollLeft
    zsynchronizowany z .bracket-scroll. Pokazywany tylko, gdy drabinka wystaje poza dół
    ekranu (natywny pasek poza widokiem) i ma co przewijać w poziomie. */

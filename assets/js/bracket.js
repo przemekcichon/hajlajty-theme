@@ -159,5 +159,44 @@
     window.addEventListener("resize", syncBar);
     window.addEventListener("load", syncBar);
     if (window.ResizeObserver) new ResizeObserver(syncBar).observe(bracket);
+
+    /* ---- Chwytanie myszą (panoramowanie): poziom = scroller, pion = strona ----
+       Tak jak palcem na komórce — łapiesz drabinkę i ciągniesz w dowolnym kierunku.
+       Próg DRAG odróżnia przeciągnięcie od kliknięcia karty (po dragu blokujemy click).
+       Tylko mysz: dotyk korzysta z natywnego przewijania (wzór: filters.js chipy). */
+    var DRAG = 5;
+    var down = false, dragged = false, sx = 0, sy = 0, sLeft = 0, sTop = 0;
+    var pageY = function () { return window.pageYOffset || document.documentElement.scrollTop || 0; };
+    scroller.addEventListener("mousedown", function (e) {
+      if (e.button !== 0) return;
+      down = true; dragged = false;
+      sx = e.clientX; sy = e.clientY;
+      sLeft = scroller.scrollLeft; sTop = pageY();
+    });
+    document.addEventListener("mousemove", function (e) {
+      if (!down) return;
+      var dx = e.clientX - sx, dy = e.clientY - sy;
+      if (!dragged && Math.max(Math.abs(dx), Math.abs(dy)) > DRAG) {
+        dragged = true;
+        scroller.classList.add("is-grabbing");
+      }
+      if (dragged) {
+        e.preventDefault();
+        scroller.scrollLeft = sLeft - dx;   // poziom: przewijarka drabinki
+        window.scrollTo(0, sTop - dy);       // pion: cała strona
+      }
+    });
+    var endDrag = function () {
+      if (!down) return;
+      down = false;
+      scroller.classList.remove("is-grabbing");
+      if (dragged) setTimeout(function () { dragged = false; }, 0);
+    };
+    document.addEventListener("mouseup", endDrag);
+    // Po przeciągnięciu NIE otwieraj karty (capture, zanim click dojdzie do <a>).
+    scroller.addEventListener("click", function (e) {
+      if (!dragged) return;
+      e.preventDefault(); e.stopPropagation(); dragged = false;
+    }, true);
   }
 })();
