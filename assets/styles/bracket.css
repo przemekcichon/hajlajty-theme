@@ -49,16 +49,32 @@
 /* ============================================================
    1. UKŁAD DRABINKI — poziome kolumny rund z własnym scrollem
 ============================================================ */
-/* Drabinka w samodzielnym oknie scrolla: poziomy pasek przewijania zostaje PRZYPIĘTY
-   u dołu widocznego okna (nie ucieka pod zgięcie strony przy wysokiej drabince), a
-   pionowy scroll mieści się w tym samym oknie. */
+/* Pozioma przewijarka drabinki. Strona scrolluje się NORMALNIE w pionie (element jest
+   wysoki na całą drabinkę), więc natywny poziomy pasek siedzi u dołu wysokiej drabinki
+   — daleko. Dlatego bracket.js dokłada „sticky" proxy-pasek przyklejony do dołu EKRANU
+   (patrz .bracket-xscroll niżej), żeby dało się przewijać w prawo z dowolnej wysokości. */
 .bracket-scroll {
   margin-top: var(--space-lg);
-  max-height: calc(100vh - var(--topbar-h) - var(--space-2xl));
-  overflow: auto;
-  overscroll-behavior: contain;
+  overflow-x: auto;
+  overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
+  padding-bottom: var(--space-sm);
 }
+/* Sticky poziomy pasek (bracket.js): position:fixed u dołu ekranu, scrollLeft
+   zsynchronizowany z .bracket-scroll. Pokazywany tylko, gdy drabinka wystaje poza dół
+   ekranu (natywny pasek poza widokiem) i ma co przewijać w poziomie. */
+.bracket-xscroll {
+  position: fixed;
+  bottom: 0;
+  height: 16px;
+  z-index: 50;
+  overflow-x: auto;
+  overflow-y: hidden;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+}
+.bracket-xscroll[hidden] { display: none; }
+.bracket-xscroll__sizer { height: 1px; }
 .bracket {
   position: relative; /* układ odniesienia dla nakładki SVG z liniami łączącymi */
   display: flex;

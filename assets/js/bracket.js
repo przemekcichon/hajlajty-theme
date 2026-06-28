@@ -109,4 +109,55 @@
     // doczytanie fontów, przeładowanie kart filtrem.
     new ResizeObserver(schedule).observe(bracket);
   }
+
+  /* ---------------------------------------------------------------------------
+     STICKY poziomy pasek przewijania — przyklejony do DOŁU EKRANU. Strona scrolluje
+     się normalnie w pionie; natywny poziomy pasek siedzi u dołu wysokiej drabinki
+     (daleko), więc na małym ekranie trzeba było zjechać na dół, przewinąć w prawo i
+     wrócić do góry. Proxy-pasek (position:fixed bottom:0) ze scrollLeft zsynchronizowanym
+     z .bracket-scroll usuwa ten problem: przewijasz w prawo z dowolnej wysokości.
+     --------------------------------------------------------------------------- */
+  var scroller = bracket.parentNode; // .bracket-scroll (pozioma przewijarka)
+  if (scroller && /bracket-scroll/.test(scroller.className || "")) {
+    var proxy = document.createElement("div");
+    proxy.className = "bracket-xscroll";
+    proxy.hidden = true;
+    var sizer = document.createElement("div");
+    sizer.className = "bracket-xscroll__sizer";
+    proxy.appendChild(sizer);
+    document.body.appendChild(proxy);
+
+    // Dwustronna synchronizacja scrollLeft (flaga przeciw pętli sprzężenia).
+    var lock = false;
+    proxy.addEventListener("scroll", function () {
+      if (lock) return;
+      lock = true; scroller.scrollLeft = proxy.scrollLeft; lock = false;
+    });
+    scroller.addEventListener("scroll", function () {
+      if (lock) return;
+      lock = true; proxy.scrollLeft = scroller.scrollLeft; lock = false;
+    }, { passive: true });
+
+    var syncBar = function () {
+      var hasOverflow = scroller.scrollWidth - scroller.clientWidth > 1;
+      var r = scroller.getBoundingClientRect();
+      var vh = window.innerHeight || document.documentElement.clientHeight;
+      // Pokaż, gdy: jest co przewijać w poziomie, drabinka jest w widoku, a jej DÓŁ
+      // jest poniżej dołu ekranu (czyli natywny pasek jest poza widokiem). Przy dojechaniu
+      // do dołu drabinki proxy znika — wtedy widać natywny pasek na jej dole.
+      var show = hasOverflow && r.top < vh && r.bottom > vh;
+      proxy.hidden = !show;
+      if (!show) return;
+      proxy.style.left = r.left + "px";
+      proxy.style.width = r.width + "px";
+      sizer.style.width = scroller.scrollWidth + "px";
+      if (!lock) { lock = true; proxy.scrollLeft = scroller.scrollLeft; lock = false; }
+    };
+
+    syncBar();
+    window.addEventListener("scroll", syncBar, { passive: true });
+    window.addEventListener("resize", syncBar);
+    window.addEventListener("load", syncBar);
+    if (window.ResizeObserver) new ResizeObserver(syncBar).observe(bracket);
+  }
 })();
