@@ -549,104 +549,32 @@ $match_label = $home_name . ' – ' . $away_name;
 		$other = new WP_Query( $other_args );
 
 		if ( $other->have_posts() ) :
-			// Zbierz dane meczów + WSZYSTKIE api_id, by rozwiązać drużyny JEDNYM
-			// get_terms (bez N+1). Meta primowane przez WP_Query (cache).
-			$cards   = array();
-			$api_ids = array();
-			foreach ( $other->posts as $rp ) {
-				$md = hajlajty_get_match_data( $rp->ID );
-				$h  = isset( $md['teams']['home']['api_id'] ) ? (int) $md['teams']['home']['api_id'] : 0;
-				$a  = isset( $md['teams']['away']['api_id'] ) ? (int) $md['teams']['away']['api_id'] : 0;
-				if ( $h ) {
-					$api_ids[] = $h;
-				}
-				if ( $a ) {
-					$api_ids[] = $a;
-				}
-				$cards[] = array(
-					'post'  => $rp,
-					'h_api' => $h,
-					'a_api' => $a,
-					'gh'    => $md['goals']['home'] ?? null,
-					'ga'    => $md['goals']['away'] ?? null,
-					'round' => hajlajty_lookup_round( $md['round'] ?? null ),
-				);
-			}
-
-			$term_by_api = array();
-			$api_ids     = array_values( array_unique( array_filter( $api_ids ) ) );
-			if ( ! empty( $api_ids ) ) {
-				$tt = get_terms(
-					array(
-						'taxonomy'   => 'druzyna',
-						'hide_empty' => false,
-						'meta_query' => array(
-							array(
-								'key'     => 'api_id',
-								'value'   => array_map( 'strval', $api_ids ),
-								'compare' => 'IN',
-							),
-						),
-					)
-				);
-				if ( ! is_wp_error( $tt ) ) {
-					foreach ( $tt as $t ) {
-						$term_by_api[ (int) get_term_meta( $t->term_id, 'api_id', true ) ] = $t;
-					}
-				}
-			}
-
-			// Wiersz .rvideo pokazuje wynik w tytule (bez flag) — potrzebne tylko nazwy.
-			$api_name = static function ( $api ) use ( $term_by_api ) {
-				return ( ! empty( $api ) && isset( $term_by_api[ $api ] ) ) ? $term_by_api[ $api ]->name : '—';
-			};
-
-			// Data publikacji skrótu po polsku — data BEZWZGLĘDNA, niezależna od locale
-			// WP (naprawia „1 day temu"). Mały słownik miesięcy w kodzie dozwolony
-			// („Lokalizacja nazw", CLAUDE.md).
-			$pl_date = static function ( $ts ) {
-				if ( ! $ts ) {
-					return '';
-				}
-				$months = array( 1 => 'stycznia', 'lutego', 'marca', 'kwietnia', 'maja', 'czerwca', 'lipca', 'sierpnia', 'września', 'października', 'listopada', 'grudnia' );
-				return (int) gmdate( 'j', $ts ) . ' ' . $months[ (int) gmdate( 'n', $ts ) ] . ' ' . gmdate( 'Y', $ts );
-			};
+			// Jedno źródło markupu karty skrótu (MVP-h): aside reużywa partial
+			// `card-skrot` (slice match-lists) zamiast własnego wiersza `.rvideo`.
+			// Drużyny rozwiązane JEDNYM batchem (zero N+1), jak na listach.
+			$other_ids      = wp_list_pluck( $other->posts, 'ID' );
+			$other_resolved = hajlajty_match_lists_resolve_terms( $other_ids );
 			?>
 			<aside class="watch__aside">
 				<section class="aside-sec">
 					<h2 class="aside-sec__title"><span class="kicker-dot"></span> Inne skróty</h2>
 					<?php
-					foreach ( $cards as $card ) :
-						$rp  = $card['post'];
-						$hn  = $api_name( $card['h_api'] );
-						$an  = $api_name( $card['a_api'] );
-						$gh  = null === $card['gh'] ? '–' : $card['gh'];
-						$ga  = null === $card['ga'] ? '–' : $card['ga'];
-						$dur = function_exists( 'get_field' ) ? get_field( 'skrot_duration', $rp->ID ) : get_post_meta( $rp->ID, 'skrot_duration', true );
-
-						// Data publikacji skrótu = ACF skrot_published_at; fallback: data wpisu.
-						$pub    = function_exists( 'get_field' ) ? get_field( 'skrot_published_at', $rp->ID ) : get_post_meta( $rp->ID, 'skrot_published_at', true );
-						$pub_ts = ( is_string( $pub ) && '' !== $pub ) ? strtotime( $pub ) : false;
-						if ( ! $pub_ts ) {
-							$pub_ts = (int) get_post_time( 'U', true, $rp );
-						}
-						$date_pl = $pl_date( $pub_ts );
-						?>
-						<a class="rvideo card-video" href="<?php echo esc_url( get_permalink( $rp ) ); ?>">
-							<div class="thumb">
-								<?php if ( ! empty( $dur ) ) : ?><span class="thumb__dur"><?php echo esc_html( $dur ); ?></span><?php endif; ?>
-								<span class="thumb__play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
-							</div>
-							<div class="rvideo__body">
-								<h3 class="rvideo__title"><?php echo esc_html( $hn . ' ' . $gh . '–' . $ga . ' ' . $an . ' · skrót' ); ?></h3>
-								<div class="rvideo__meta">
-									<?php if ( '' !== $card['round'] ) : ?><span class="rvideo__comp"><?php echo esc_html( $card['round'] ); ?></span><?php endif; ?>
-									<?php if ( '' !== $card['round'] && '' !== $date_pl ) : ?><span class="dot-sep"></span><?php endif; ?>
-									<?php echo esc_html( $date_pl ); ?>
-								</div>
-							</div>
-						</a>
-					<?php endforeach; ?>
+					foreach ( $other->posts as $rp ) :
+						$rid       = (int) $rp->ID;
+						$rid_terms = isset( $other_resolved[ $rid ] ) ? $other_resolved[ $rid ] : array(
+							'home' => null,
+							'away' => null,
+						);
+						get_template_part(
+							'features/match-lists/partials/card-skrot',
+							null,
+							array(
+								'post_id' => $rid,
+								'terms'   => $rid_terms,
+							)
+						);
+					endforeach;
+					?>
 				</section>
 				<?php // „Polecane dla Ciebie" (personalizacja) → Faza 4 (hajlajty-user). POMINIĘTE. ?>
 			</aside>
