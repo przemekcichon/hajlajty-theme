@@ -52,7 +52,7 @@
   --qual: var(--accent);
   --wait: oklch(0.8 0.14 80);
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(360px, 100%), 1fr));
   gap: var(--space-lg) var(--space-md);
   align-items: start;
 }
@@ -83,13 +83,22 @@
 }
 
 /* ---- TABELA ---- */
-.standings { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+/* table-layout: fixed → kolumny mają stałą szerokość, więc długie nazwy drużyn
+   NIE rozpychają tabeli; nadmiar nazwy ucina ellipsis na .nm (kolumna „team"
+   bierze całą resztę szerokości po odjęciu stałych kolumn liczbowych). */
+.standings { width: 100%; border-collapse: collapse; table-layout: fixed; font-variant-numeric: tabular-nums; }
 .standings thead th {
   font-size: 11px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase;
   color: var(--text-faint); text-align: center; padding: 0 4px 10px;
 }
-.standings thead th.pos { width: 28px; }
+.standings thead th.pos { width: 22px; }
 .standings thead th.team { text-align: left; padding-left: 8px; }
+/* WĄSKIE stałe kolumny liczbowe (1-cyfrowe wartości) → „team" dostaje całą resztę,
+   więc nazwa się skraca dopiero przy naprawdę długich (np. „Republika Połud…"),
+   a nie po 1 znaku. „team" = kolumna bez width (reszta szerokości tabeli). */
+.standings thead th:nth-child(n+3) { width: 22px; } /* M Z R P */
+.standings thead th:nth-child(7)   { width: 38px; } /* Br. = „gf:ga" */
+.standings thead th:nth-child(8)   { width: 26px; } /* Pkt */
 .standings tbody td {
   padding: 10px 4px; font-size: 14px; font-weight: 600; text-align: center;
   color: var(--text-muted); border-top: 1px solid var(--border);
@@ -97,7 +106,7 @@
 .standings tbody tr:first-child td { border-top: none; }
 
 .standings td.pos {
-  position: relative; width: 28px; text-align: center;
+  position: relative; width: 22px; text-align: center;
   font-weight: 800; color: var(--text-muted);
 }
 .standings td.pos::before {
@@ -109,7 +118,8 @@
 .standings tr.play td.pos::before { background: repeating-linear-gradient(to bottom, var(--wait) 0 4px, transparent 4px 8px); }
 
 .standings td.team { text-align: left; padding-left: 8px; }
-.std-team { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.std-team { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.std-team .nm { min-width: 0; }
 .std-team .country-flag { height: 15px; }
 .std-team .nm { font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .standings td.gf { color: var(--text-muted); }
@@ -117,4 +127,26 @@
 
 @media (max-width: 680px) {
   .groups-grid { grid-template-columns: 1fr; }
+
+  /* Karta grupy na pełną szerokość ekranu (jak wideo na mobile): wychodzi poza
+     gutter kontenera, bez bocznych ramek i zaokrągleń. Wewnętrzny padding karty
+     zostaje, więc treść nie cała przy krawędzi. */
+  .group-card {
+    margin-inline: calc(-1 * var(--gutter));
+    border-inline: none;
+    border-radius: 0;
+  }
+
+  /* Poziomy scroll kolumn liczbowych; kolumny „#" i „Drużyna" przyklejone (sticky),
+     więc nazwy zostają w miejscu, a M/Z/R/P/Br/Pkt przewijają się przy przeciąganiu. */
+  .standings-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .standings { table-layout: auto; min-width: 480px; }
+  .standings th.pos, .standings td.pos {
+    position: sticky; left: 0; z-index: 2;
+    width: 30px; background: var(--surface);
+  }
+  .standings th.team, .standings td.team {
+    position: sticky; left: 30px; z-index: 2;
+    min-width: 150px; background: var(--surface);
+  }
 }

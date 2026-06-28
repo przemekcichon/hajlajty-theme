@@ -6,7 +6,8 @@
  * warstwę slice'a i renderuje markup z designu (design/Hajlajty - Tabele Grup.html).
  *
  * Markup rdzenia: `.groups-grid` → `.group-card[data-group][data-label][data-teams]`
- * → `.group-card__head` → `<table class="standings">`. Strefy `.qual`/`.play`/brak
+ * → `.group-card__head` → `.standings-scroll` (wrapper poziomego scrollu na mobile)
+ * → `<table.standings>`. Strefy `.qual`/`.play`/brak
  * WYŁĄCZNIE po `rank` (zones.php). Kolumna `diff` z danych NIE jest renderowana
  * (design nie ma kolumny). Bez klas warstwy JS (.reveal/.is-focusing/.is-target).
  *
@@ -103,7 +104,7 @@ $hajlajty_teams = hajlajty_standings_resolve_teams( $hajlajty_team_ids );
 					<span class="group-card__title"><?php echo esc_html( 'Grupa ' . $hajlajty_letter ); ?></span>
 					<span class="group-card__meta">Rozegrane <?php echo esc_html( hajlajty_standings_played_label( $hajlajty_rows ) ); ?></span>
 				</div>
-				<table class="standings">
+				<div class="standings-scroll"><table class="standings">
 					<thead>
 						<tr>
 							<th class="pos" title="Pozycja">#</th>
@@ -140,7 +141,7 @@ $hajlajty_teams = hajlajty_standings_resolve_teams( $hajlajty_team_ids );
 							</tr>
 						<?php endforeach; ?>
 					</tbody>
-				</table>
+				</table></div>
 			</article>
 		<?php endforeach; ?>
 	</div>
