@@ -155,23 +155,43 @@
     };
 
     syncBar();
-    window.addEventListener("scroll", syncBar, { passive: true });
+    // Capture na document łapie scroll DOWOLNEGO elementu (scroll nie bąbelkuje) —
+    // okna ORAZ #content (pionowy scroller app-shell). Bez tego pasek nie nadążałby
+    // przy przewijaniu pionu w układzie ze stałym sidebarem.
+    document.addEventListener("scroll", syncBar, { capture: true, passive: true });
     window.addEventListener("resize", syncBar);
     window.addEventListener("load", syncBar);
     if (window.ResizeObserver) new ResizeObserver(syncBar).observe(bracket);
 
-    /* ---- Chwytanie myszą (panoramowanie): poziom = scroller, pion = strona ----
+    /* ---- Chwytanie myszą (panoramowanie): poziom = scroller, pion = element pionu ----
        Tak jak palcem na komórce — łapiesz drabinkę i ciągniesz w dowolnym kierunku.
        Próg DRAG odróżnia przeciągnięcie od kliknięcia karty (po dragu blokujemy click).
-       Tylko mysz: dotyk korzysta z natywnego przewijania (wzór: filters.js chipy). */
+       Tylko mysz: dotyk korzysta z natywnego przewijania (wzór: filters.js chipy).
+
+       PION: w app-shell (sidebar stały, ≥1100px) przewija się #content (layout.css),
+       NIE window — więc szukamy realnego elementu pionowego scrolla idąc w górę DOM;
+       brak → okno (mobile/drawer). */
     var DRAG = 5;
-    var down = false, dragged = false, sx = 0, sy = 0, sLeft = 0, sTop = 0;
-    var pageY = function () { return window.pageYOffset || document.documentElement.scrollTop || 0; };
+    var down = false, dragged = false, sx = 0, sy = 0, sLeft = 0, sTop = 0, vEl = null;
+    var winTop = function () { return window.pageYOffset || document.documentElement.scrollTop || 0; };
+    var pickVScroller = function () {
+      var el = scroller.parentNode;
+      while ( el && el.nodeType === 1 && el !== document.body ) {
+        var oy = getComputedStyle( el ).overflowY;
+        if ( ( oy === "auto" || oy === "scroll" ) && el.scrollHeight - el.clientHeight > 1 ) {
+          return el;
+        }
+        el = el.parentNode;
+      }
+      return null; // null = okno/strona
+    };
     scroller.addEventListener("mousedown", function (e) {
       if (e.button !== 0) return;
       down = true; dragged = false;
       sx = e.clientX; sy = e.clientY;
-      sLeft = scroller.scrollLeft; sTop = pageY();
+      sLeft = scroller.scrollLeft;
+      vEl = pickVScroller();
+      sTop = vEl ? vEl.scrollTop : winTop();
     });
     document.addEventListener("mousemove", function (e) {
       if (!down) return;
@@ -182,8 +202,9 @@
       }
       if (dragged) {
         e.preventDefault();
-        scroller.scrollLeft = sLeft - dx;   // poziom: przewijarka drabinki
-        window.scrollTo(0, sTop - dy);       // pion: cała strona
+        scroller.scrollLeft = sLeft - dx;            // poziom: przewijarka drabinki
+        if ( vEl ) { vEl.scrollTop = sTop - dy; }     // pion: element scrolla (np. #content)
+        else { window.scrollTo( 0, sTop - dy ); }     // pion: okno (mobile/drawer)
       }
     });
     var endDrag = function () {
