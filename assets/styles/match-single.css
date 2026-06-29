@@ -398,6 +398,50 @@
 .panel__title .kicker-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); flex: 0 0 auto; }
 
 /* ============================================================
+   ░░ P-b — LIVE: zamiana kolumn Oś czasu ↔ Statystyki ░░
+   single-live renderuje sekcje w JEDNYM płaskim gridzie (.watch__grid--live),
+   w kolejności ŹRÓDŁOWEJ = mobile: telebim → oś czasu → składy → statystyki →
+   inne mecze. To jedyny układ godzący trzy wymogi BEZ duplikatu markupu:
+   • mobile (1 kolumna): Oś czasu PIERWSZA po telebimie, PRZED składami;
+   • desktop (≥1220px): Oś czasu w prawym slocie (obok telebimu), Statystyki w
+     głównej kolumnie pod telebimem — przestawienie przez grid-template-areas;
+   • nagłówki „na pozycji": chrome .aside-sec__title (prawy slot) / .panel__title
+     (główny slot) renderuje live-fragment.php per część (zamiana chrome, nie sekcji).
+   Kotwice pollera (#hajlajty-live-*) zostają display:contents, więc replaceWith
+   podmienia sekcję W MIEJSCU (grid-item = wewnętrzny .board/.aside-sec/.panel). */
+.watch__grid--live { gap: var(--space-md); }
+/* Własne marginesy sekcji znosimy — rytm pionowy daje grid `gap` (oba breakpointy). */
+.watch__grid--live > .hf-actions,
+.watch__grid--live > .match-head,
+.watch__grid--live .live-sec--timeline,
+.watch__grid--live .live-sec--lineups,
+.watch__grid--live .live-sec--stats,
+.watch__grid--live .live-sec--others { margin: 0; }
+
+@media (min-width: 1220px) {
+  .watch__grid--live {
+    grid-template-columns: minmax(0, 1fr) var(--match-sidebar-width);
+    column-gap: var(--page-horizontal-margin);
+    grid-template-areas:
+      "board    timeline"
+      "actions  timeline"
+      "head     timeline"
+      "lineups  timeline"
+      "stats    others";
+  }
+  /* .board i .live-sec--* są grid-itemami przez display:contents wrappera kotwicy.
+     Oś czasu rozpięta nad rzędami głównej kolumny (board→składy = wysoka, pitch),
+     więc align-self:start przypina ją do góry bez wymuszania luk w lewej kolumnie. */
+  .watch__grid--live .board { grid-area: board; }
+  .watch__grid--live > .hf-actions { grid-area: actions; }
+  .watch__grid--live > .match-head { grid-area: head; }
+  .watch__grid--live .live-sec--timeline { grid-area: timeline; align-self: start; }
+  .watch__grid--live .live-sec--lineups { grid-area: lineups; }
+  .watch__grid--live .live-sec--stats { grid-area: stats; }
+  .watch__grid--live .live-sec--others { grid-area: others; align-self: start; }
+}
+
+/* ============================================================
    ZAPOWIEDŹ — PLAYER OCZEKIWANIA (ekran odliczania zamiast wideo)
 ============================================================ */
 .preview {

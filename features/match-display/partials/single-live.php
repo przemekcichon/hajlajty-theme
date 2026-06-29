@@ -73,8 +73,10 @@ $match_slug = get_post_field( 'post_name', $post_id );
 </div>
 
 <main class="watch container">
-	<div class="watch__grid">
-		<div class="watch__main">
+	<?php // P-b: jeden PŁASKI grid (bez .watch__main/.watch__aside). Kolejność
+	// ŹRÓDŁOWA = mobile (telebim → oś czasu → składy → statystyki → inne mecze);
+	// desktop przestawia w 2 kolumny przez grid-template-areas (match-single.css). ?>
+	<div class="watch__grid watch__grid--live">
 
 			<?php
 			// ===== TELEBIM ===== (żywy — wspólny partial, kotwica #hajlajty-live-board)
@@ -113,7 +115,10 @@ $match_slug = get_post_field( 'post_name', $post_id );
 			</div>
 
 			<?php
-			// ===== PANELE: Składy (statyczne, gdy lineups) + Oś czasu (żywa). =====
+			// ===== Składy (statyczne) + Oś czasu (żywa, partial) =====
+			// P-b: Oś czasu renderowana PRZED składami — w przepływie źródłowym to
+			// kolejność mobile (telebim → oś czasu → składy); na desktopie
+			// grid-template-areas przenosi Oś czasu do prawego slotu (match-single.css).
 			$lineups    = isset( $data['lineups'] ) && is_array( $data['lineups'] ) ? $data['lineups'] : array();
 			$has_home   = isset( $lineups['home'] ) && is_array( $lineups['home'] );
 			$has_away   = isset( $lineups['away'] ) && is_array( $lineups['away'] );
@@ -121,22 +126,21 @@ $match_slug = get_post_field( 'post_name', $post_id );
 
 			$player_idx = hajlajty_player_event_index( $data['events'] ?? array() );
 
-			// Czy są widoczne zdarzenia osi (Var pominięte) — decyduje o `.panels`,
-			// żeby panel nie pojawiał się pusty. Sam markup osi renderuje partial.
-			$timeline_visible = array_filter(
-				hajlajty_build_timeline( $data['events'] ?? array() ),
-				static function ( $it ) {
-					return 'var' !== $it['key'];
-				}
+			// ===== OŚ CZASU ===== (żywa — wspólny partial, kotwica #hajlajty-live-timeline)
+			// Self-guard w partialu: brak zdarzeń = pusty wrapper (display:contents) bez pudełka.
+			get_template_part(
+				'features/match-display/partials/live-fragment',
+				null,
+				array(
+					'post_id' => $post_id,
+					'data'    => $data,
+					'part'    => 'timeline',
+				)
 			);
-			$has_timeline = ! empty( $timeline_visible );
+			?>
 
-			if ( $has_lineup || $has_timeline ) :
-				?>
-				<div class="panels">
-
-					<?php if ( $has_lineup ) : ?>
-						<section class="panel reveal">
+			<?php if ( $has_lineup ) : ?>
+				<section class="panel reveal live-sec--lineups">
 							<h2 class="panel__title"><span class="kicker-dot"></span> Składy</h2>
 							<?php
 							// Markery gol/kartka z indeksu zdarzeń — wspólne dla boiska i ławki.
@@ -327,30 +331,22 @@ $match_slug = get_post_field( 'post_name', $post_id );
 						</section>
 					<?php endif; ?>
 
-					<?php
-					// ===== OŚ CZASU ===== (żywa — wspólny partial, kotwica #hajlajty-live-timeline)
-					get_template_part(
-						'features/match-display/partials/live-fragment',
-						null,
-						array(
-							'post_id' => $post_id,
-							'data'    => $data,
-							'part'    => 'timeline',
-						)
-					);
-					?>
-
-				</div>
-			<?php endif; ?>
-
-		</div><!-- /.watch__main -->
 
 		<?php
-		// ===== PRAWY ASIDE: Statystyki (żywe, partial) + „Inne mecze" (statyczne). =====
-		$stat_rows = hajlajty_build_stat_rows( $data );
-		$has_stats = ! empty( $stat_rows );
+		// ===== STATYSTYKI ===== (żywe — wspólny partial, kotwica #hajlajty-live-stats)
+		// P-b: główny slot pod telebimem (desktop); w przepływie źródłowym PO składach.
+		// Self-guard w partialu: brak statystyk = pusty wrapper (display:contents).
+		get_template_part(
+			'features/match-display/partials/live-fragment',
+			null,
+			array(
+				'post_id' => $post_id,
+				'data'    => $data,
+				'part'    => 'stats',
+			)
+		);
 
-		// „Inne mecze" w tych samych rozgrywkach (kickoff >= teraz), bez bieżącego.
+		// ===== „Inne mecze" ===== (statyczne) — te same rozgrywki, kickoff >= teraz, bez bieżącego.
 		$roz     = get_the_terms( $post_id, 'rozgrywki' );
 		$roz_ids = ( is_array( $roz ) && ! is_wp_error( $roz ) ) ? wp_list_pluck( $roz, 'term_id' ) : array();
 		$other_args = array(
@@ -380,27 +376,7 @@ $match_slug = get_post_field( 'post_name', $post_id );
 		}
 		$other        = new WP_Query( $other_args );
 		$has_other    = $other->have_posts();
-		$has_anything = $has_stats || $has_other;
-
-		if ( $has_anything ) :
-			?>
-			<aside class="watch__aside">
-
-				<?php
-				// ===== STATYSTYKI ===== (żywe — wspólny partial, kotwica #hajlajty-live-stats)
-				get_template_part(
-					'features/match-display/partials/live-fragment',
-					null,
-					array(
-						'post_id' => $post_id,
-						'data'    => $data,
-						'part'    => 'stats',
-					)
-				);
-				?>
-
-				<?php
-				if ( $has_other ) :
+			if ( $has_other ) :
 					$cards   = array();
 					$api_ids = array();
 					foreach ( $other->posts as $rp ) {
@@ -458,7 +434,7 @@ $match_slug = get_post_field( 'post_name', $post_id );
 						return $flag_url( $api_term( $api ) );
 					};
 					?>
-					<section class="aside-sec">
+					<section class="aside-sec live-sec--others">
 						<h2 class="aside-sec__title"><span class="kicker-dot"></span> Inne mecze</h2>
 						<?php
 						foreach ( $cards as $card ) :
@@ -485,10 +461,6 @@ $match_slug = get_post_field( 'post_name', $post_id );
 				endif;
 				?>
 
-			</aside>
-			<?php
-		endif;
-		?>
 
 	</div>
 </main>
