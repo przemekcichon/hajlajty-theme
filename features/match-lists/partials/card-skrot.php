@@ -6,9 +6,9 @@
  * Cała karta linkuje do single meczu (NIE osadza playera — to robi single-ft).
  *
  * Układ scalony (MVP-h): GÓRA = miniatura/facade YouTube zlana z dołem w jedną
- * kartę (overlaye: chip rozgrywki w lewym górnym rogu, etap/runda w prawym górnym,
- * kanał w lewym dolnym, czas trwania w prawym dolnym); DÓŁ = blok meczowy jak w
- * karcie WYNIKU (flagi + pełne nazwy państw + wynik), bez daty — niski.
+ * kartę (overlaye: kanał w lewym dolnym, czas trwania w prawym dolnym); DÓŁ =
+ * wiersz meta (rozgrywki · faza, cichy kicker) + symetryczny blok meczowy
+ * (flaga NAD pełną nazwą państwa, wynik w środku), bez daty i bez numeru meczu.
  *
  * Kontrakt: partial dostaje z ZEWNĄTRZ $post_id ORAZ rozwiązane termy
  * {home,away} (batch-resolver zrobił JEDEN get_terms na całą listę) — TU zero
@@ -19,7 +19,6 @@
  *   - $post_id int
  *   - $terms   array{home:?WP_Term,away:?WP_Term,...} (z hajlajty_match_lists_resolve_terms)
  *   - $data    array (opcjonalnie; gdy brak — dekodujemy z post_id)
- *   - $match_no int (opcjonalnie; numer meczu FIFA — tylko terminarz)
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -46,11 +45,11 @@ $poster    = '' !== $yt_id ? 'https://i.ytimg.com/vi/' . $yt_id . '/hqdefault.jp
 $kanal_terms = get_the_terms( $post_id, 'kanal' );
 $kanal_name  = ( is_array( $kanal_terms ) && ! is_wp_error( $kanal_terms ) && ! empty( $kanal_terms ) ) ? $kanal_terms[0]->name : '';
 
-// Chip rozgrywki (overlay na miniaturze) = pierwszy term taksonomii `rozgrywki`.
+// Rozgrywki (lewa część wiersza meta) = pierwszy term taksonomii `rozgrywki`.
 $roz_terms = get_the_terms( $post_id, 'rozgrywki' );
 $roz_name  = ( is_array( $roz_terms ) && ! is_wp_error( $roz_terms ) && ! empty( $roz_terms ) ) ? $roz_terms[0]->name : '';
 
-// Faza/runda (w bloku meczowym, jak karta wyniku) = match_data.round → PL.
+// Faza/runda (prawa część wiersza meta) = match_data.round → PL.
 $round_pl = hajlajty_lookup_round( $data['round'] ?? null );
 
 // Blok meczowy: flagi + pełne nazwy + wynik (jak card-wynik). Drużyny z $terms,
@@ -61,19 +60,11 @@ $home_name  = hajlajty_match_lists_team_name( $terms['home'] );
 $away_name  = hajlajty_match_lists_team_name( $terms['away'] );
 $goals_home = $data['goals']['home'] ?? null;
 $goals_away = $data['goals']['away'] ?? null;
-
-$match_no = isset( $args['match_no'] ) ? (int) $args['match_no'] : 0;
 ?>
 <a class="vcard card-video" href="<?php echo esc_url( get_permalink( $post_id ) ); ?>"<?php echo hajlajty_match_lists_card_filter_attrs( $terms ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped — atrybuty escapowane w helperze. ?>>
 	<div class="thumb">
 		<?php if ( '' !== $poster ) : ?>
 			<img class="thumb__img" src="<?php echo esc_url( $poster ); ?>" alt="" loading="lazy" />
-		<?php endif; ?>
-		<?php if ( '' !== $roz_name ) : ?>
-			<span class="vcard__chip"><?php echo esc_html( $roz_name ); ?></span>
-		<?php endif; ?>
-		<?php if ( '' !== $round_pl ) : ?>
-			<span class="vcard__phase"><?php echo esc_html( $round_pl ); ?></span>
 		<?php endif; ?>
 		<?php if ( ! empty( $skrot_dur ) ) : ?>
 			<span class="thumb__dur"><?php echo esc_html( $skrot_dur ); ?></span>
@@ -84,22 +75,27 @@ $match_no = isset( $args['match_no'] ) ? (int) $args['match_no'] : 0;
 		<span class="thumb__play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
 	</div>
 	<div class="vcard__body">
-		<?php if ( 0 < $match_no ) : ?>
-			<div class="vcard__top">
-				<span class="card__matchno">Mecz <?php echo (int) $match_no; ?></span>
+		<?php if ( '' !== $roz_name || '' !== $round_pl ) : ?>
+			<div class="vcard__meta">
+				<?php if ( '' !== $round_pl ) : ?>
+					<span class="vcard__phase"><?php echo esc_html( $round_pl ); ?></span>
+				<?php endif; ?>
+				<?php if ( '' !== $roz_name ) : ?>
+					<span class="vcard__competition"><?php echo esc_html( $roz_name ); ?></span>
+				<?php endif; ?>
 			</div>
 		<?php endif; ?>
-		<div class="vcard__match">
+		<div class="vcard__score">
 			<div class="vcard__team">
 				<?php if ( '' !== $home_flag ) : ?><img class="country-flag" src="<?php echo esc_url( $home_flag ); ?>" alt="" /><?php endif; ?>
-				<span class="vcard__name"><?php echo esc_html( $home_name ); ?></span>
+				<span class="vcard__team-name"><?php echo esc_html( $home_name ); ?></span>
 			</div>
-			<span class="vcard__score">
-				<b><?php echo esc_html( null === $goals_home ? '–' : $goals_home ); ?></b><span class="vcard__sep">:</span><b><?php echo esc_html( null === $goals_away ? '–' : $goals_away ); ?></b>
-			</span>
-			<div class="vcard__team vcard__team--away">
+			<div class="vcard__result">
+				<span><?php echo esc_html( null === $goals_home ? '–' : $goals_home ); ?></span><span class="vcard__sep">:</span><span><?php echo esc_html( null === $goals_away ? '–' : $goals_away ); ?></span>
+			</div>
+			<div class="vcard__team">
 				<?php if ( '' !== $away_flag ) : ?><img class="country-flag" src="<?php echo esc_url( $away_flag ); ?>" alt="" /><?php endif; ?>
-				<span class="vcard__name"><?php echo esc_html( $away_name ); ?></span>
+				<span class="vcard__team-name"><?php echo esc_html( $away_name ); ?></span>
 			</div>
 		</div>
 	</div>
