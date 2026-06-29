@@ -399,46 +399,44 @@
 
 /* ============================================================
    ░░ P-b — LIVE: zamiana kolumn Oś czasu ↔ Statystyki ░░
-   single-live renderuje sekcje w JEDNYM płaskim gridzie (.watch__grid--live),
-   w kolejności ŹRÓDŁOWEJ = mobile: telebim → oś czasu → składy → statystyki →
-   inne mecze. To jedyny układ godzący trzy wymogi BEZ duplikatu markupu:
-   • mobile (1 kolumna): Oś czasu PIERWSZA po telebimie, PRZED składami;
-   • desktop (≥1220px): Oś czasu w prawym slocie (obok telebimu), Statystyki w
-     głównej kolumnie pod telebimem — przestawienie przez grid-template-areas;
-   • nagłówki „na pozycji": chrome .aside-sec__title (prawy slot) / .panel__title
-     (główny slot) renderuje live-fragment.php per część (zamiana chrome, nie sekcji).
-   Kotwice pollera (#hajlajty-live-*) zostają display:contents, więc replaceWith
-   podmienia sekcję W MIEJSCU (grid-item = wewnętrzny .board/.aside-sec/.panel). */
+   single-live: kolumna GŁÓWNA (.watch__col--main: telebim, składy, statystyki)
+   + kolumna ASIDE (.watch__col--aside: oś czasu, inne mecze).
+   • Desktop (≥1220px): dwie NIEZALEŻNE kolumny (każda flex-column = własny
+     kontekst wysokości). Wysoka Oś czasu w prawej kolumnie NIE rozpycha rzędów
+     lewej — brak couplingu, który miałby jeden grid współdzielący rzędy.
+   • Mobile: obie kolumny `display:contents` → wszystkie sekcje w jednym stosie
+     gridu .watch__grid--live; `order` daje kolejność telebim → oś czasu →
+     składy → statystyki → inne mecze. Te same `order` rządzą też kolejnością
+     sekcji WEWNĄTRZ kolumn na desktopie — jedna deklaracja na oba układy.
+   • Nagłówki „na pozycji": chrome .aside-sec__title (aside) / .panel__title
+     (główna) renderuje live-fragment.php per część (zamiana chrome, nie sekcji).
+   Kotwice pollera (#hajlajty-live-*) zostają display:contents → replaceWith
+   podmienia sekcję W MIEJSCU w obu układach (grid-item/flex-item = .board/
+   .aside-sec/.panel wewnątrz kotwicy). */
 .watch__grid--live { gap: var(--space-md); }
-/* Własne marginesy sekcji znosimy — rytm pionowy daje grid `gap` (oba breakpointy). */
-.watch__grid--live > .hf-actions,
-.watch__grid--live > .match-head,
+.watch__col--main,
+.watch__col--aside { display: contents; }
+
+/* Kolejność: stos na mobile ORAZ sekcje w kolumnie na desktopie (jedna mapa). */
+.watch__grid--live .board              { order: 1; }
+.watch__grid--live .hf-actions         { order: 2; }
+.watch__grid--live .match-head         { order: 3; }
+.watch__grid--live .live-sec--timeline { order: 4; }
+.watch__grid--live .live-sec--lineups  { order: 5; }
+.watch__grid--live .live-sec--stats    { order: 6; }
+.watch__grid--live .live-sec--others   { order: 7; }
+/* Własne marginesy sekcji znosimy — rytm pionowy daje `gap`. */
+.watch__grid--live .hf-actions,
+.watch__grid--live .match-head,
 .watch__grid--live .live-sec--timeline,
 .watch__grid--live .live-sec--lineups,
 .watch__grid--live .live-sec--stats,
 .watch__grid--live .live-sec--others { margin: 0; }
 
 @media (min-width: 1220px) {
-  .watch__grid--live {
-    grid-template-columns: minmax(0, 1fr) var(--match-sidebar-width);
-    column-gap: var(--page-horizontal-margin);
-    grid-template-areas:
-      "board    timeline"
-      "actions  timeline"
-      "head     timeline"
-      "lineups  timeline"
-      "stats    others";
-  }
-  /* .board i .live-sec--* są grid-itemami przez display:contents wrappera kotwicy.
-     Oś czasu rozpięta nad rzędami głównej kolumny (board→składy = wysoka, pitch),
-     więc align-self:start przypina ją do góry bez wymuszania luk w lewej kolumnie. */
-  .watch__grid--live .board { grid-area: board; }
-  .watch__grid--live > .hf-actions { grid-area: actions; }
-  .watch__grid--live > .match-head { grid-area: head; }
-  .watch__grid--live .live-sec--timeline { grid-area: timeline; align-self: start; }
-  .watch__grid--live .live-sec--lineups { grid-area: lineups; }
-  .watch__grid--live .live-sec--stats { grid-area: stats; }
-  .watch__grid--live .live-sec--others { grid-area: others; align-self: start; }
+  .watch__grid--live { grid-template-columns: minmax(0, 1fr) var(--match-sidebar-width); column-gap: var(--page-horizontal-margin); }
+  .watch__col--main  { display: flex; flex-direction: column; gap: var(--space-md); grid-column: 1; min-width: 0; }
+  .watch__col--aside { display: flex; flex-direction: column; gap: var(--space-md); grid-column: 2; min-width: 0; }
 }
 
 /* ============================================================
