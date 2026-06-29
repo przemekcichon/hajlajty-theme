@@ -127,8 +127,27 @@
 
 @media (max-width: 680px) {
   .groups-grid { grid-template-columns: 1fr; }
-  /* Wąska kolumna nazwy (ellipsis) na telefonie — tabela mieści się w karcie.
-     Poziome przewijanie pojedynczych kart (z nieruchomym nagłówkiem) NIE jest tu
-     zaimplementowane — to osobne zadanie/sesja. */
-  .standings th.team, .standings td.team { width: 100px; max-width: 100px; }
+
+  /* Poziome przewijanie POJEDYNCZEJ karty na telefonie. Każda tabela przewija się
+     w bok WEWNĄTRZ swojego wrappera `.standings-scroll` (palcem — dotyk natywny,
+     bez JS, wzór: .bracket-scroll / .tabs). Bo `.standings-scroll` ma szerokość
+     karty (kolumna `1fr` = viewport), a `min-width` na tabeli wymusza przepełnienie
+     WEWNĄTRZ wrappera — więc nie rozpycha ani `.group-card`, ani `main`/`.content`,
+     ani `body` (na mobile nikt z przodków nie ucina overflow-x, layout.css robi to
+     dopiero ≥1100px). Skutek: scrolluje się sama tabela, a `.page-head` i reszta
+     strony stoją. Bez sticky/zamrażania kolumn (świadomie odrzucone). */
+  .standings-scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox — pasek ukryty */
+  }
+  .standings-scroll::-webkit-scrollbar { display: none; } /* WebKit/Blink — pasek ukryty */
+
+  /* min-width szerszy niż wąski telefon → tabela zawsze przepełnia kartę i daje się
+     przewinąć do „Br./Pkt". `table-layout: fixed` (reguła globalna) rozkłada szerokość:
+     stałe kolumny liczbowe (22/38/26px) + reszta na `th.team` → nazwa ma ~komfortowy
+     pas, a naprawdę długie nadal ucina ellipsis na `.nm`. Zdejmuje to potrzebę clampu
+     `team:100px` z PR #22 (dociskał tabelę „na siłę"; teraz miejsce daje scroll). */
+  .standings { min-width: 420px; }
 }
