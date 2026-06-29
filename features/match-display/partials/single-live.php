@@ -62,13 +62,13 @@ $match_label = $home_name . ' – ' . $away_name;
 
 $match_slug = get_post_field( 'post_name', $post_id );
 ?>
-<div class="watch-top container">
+<div class="watch-top watch-top--compact container">
 	<a class="back-link" href="<?php echo esc_url( home_url( '/' ) ); ?>">
 		<svg viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></svg>
 		Wróć
 	</a>
 	<?php if ( '' !== $round_pl ) : ?>
-		<span class="crumb">Na żywo · <b><?php echo esc_html( $round_pl ); ?></b></span>
+		<span class="match-phase">⚽ <?php echo esc_html( $round_pl ); ?></span>
 	<?php endif; ?>
 </div>
 
@@ -98,10 +98,7 @@ $match_slug = get_post_field( 'post_name', $post_id );
 			</div>
 
 			<!-- ===== METADANE MECZU (LIVE) — statyczne ===== -->
-			<div class="match-head">
-				<?php if ( '' !== $round_pl ) : ?>
-					<span class="match-phase">⚽ <?php echo esc_html( $round_pl ); ?></span>
-				<?php endif; ?>
+			<div class="match-head match-head--compact">
 				<h1 class="match-title"><?php echo esc_html( $match_label ); ?></h1>
 				<div class="match-facts">
 					<?php if ( '' !== $date_label ) : ?>

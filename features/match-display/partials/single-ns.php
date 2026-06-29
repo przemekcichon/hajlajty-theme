@@ -56,13 +56,13 @@ $match_label = $home_name . ' – ' . $away_name;
 // w 3c TYLKO markup data-*, brak JS/CSS tej warstwy — ją dostarcza hajlajty-user).
 $match_slug = get_post_field( 'post_name', $post_id );
 ?>
-<div class="watch-top container">
+<div class="watch-top watch-top--compact container">
 	<a class="back-link" href="<?php echo esc_url( home_url( '/' ) ); ?>">
 		<svg viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></svg>
 		Wróć
 	</a>
 	<?php if ( '' !== $round_pl ) : ?>
-		<span class="crumb">Zapowiedzi · <b><?php echo esc_html( $round_pl ); ?></b></span>
+		<span class="match-phase">⚽ <?php echo esc_html( $round_pl ); ?></span>
 	<?php endif; ?>
 </div>
 
@@ -115,10 +115,7 @@ $match_slug = get_post_field( 'post_name', $post_id );
 			</div>
 
 			<!-- ===== METADANE MECZU ===== -->
-			<div class="match-head">
-				<?php if ( '' !== $round_pl ) : ?>
-					<span class="match-phase">⚽ <?php echo esc_html( $round_pl ); ?></span>
-				<?php endif; ?>
+			<div class="match-head match-head--compact">
 				<h1 class="match-title"><?php echo esc_html( $match_label ); ?></h1>
 				<?php if ( '' !== $date_label || '' !== $time_label ) : ?>
 					<div class="match-facts">
@@ -126,7 +123,7 @@ $match_slug = get_post_field( 'post_name', $post_id );
 							<span class="fact"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M8 2v4M16 2v4M3 10h18"/></svg> <b><?php echo esc_html( $date_label ); ?></b></span>
 						<?php endif; ?>
 						<?php if ( '' !== $time_label ) : ?>
-							<span class="fact"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> <b><?php echo esc_html( $time_label ); ?></b> (czasu PL)</span>
+							<span class="fact"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> <b><?php echo esc_html( $time_label ); ?></b></span>
 						<?php endif; ?>
 					</div>
 				<?php endif; ?>
