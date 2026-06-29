@@ -128,4 +128,21 @@
       player.appendChild(ifr);
     });
   }
+
+  /* ---------- WRÓĆ: cofnij do poprzedniej strony (nie zawsze home) ----------
+     Progressive enhancement: href=home_url('/') zostaje jako fallback (brak JS
+     LUB brak historii w serwisie). Gdy istnieje historia z TEJ SAMEJ domeny —
+     przejmujemy klik i robimy history.back(). Wejście bezpośrednie / z nowej
+     karty / z zewnętrznej strony → referer nie pasuje → link prowadzi na home. */
+  var backLink = $(".back-link");
+  if (backLink && history.length > 1 && document.referrer) {
+    var sameOrigin = false;
+    try { sameOrigin = new URL(document.referrer).origin === location.origin; } catch (e) { sameOrigin = false; }
+    if (sameOrigin) {
+      backLink.addEventListener("click", function (e) {
+        e.preventDefault();
+        history.back();
+      });
+    }
+  }
 })();
