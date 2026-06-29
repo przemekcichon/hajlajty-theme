@@ -73,10 +73,17 @@ $match_slug = get_post_field( 'post_name', $post_id );
 </div>
 
 <main class="watch container">
-	<?php // P-b: jeden PŁASKI grid (bez .watch__main/.watch__aside). Kolejność
-	// ŹRÓDŁOWA = mobile (telebim → oś czasu → składy → statystyki → inne mecze);
-	// desktop przestawia w 2 kolumny przez grid-template-areas (match-single.css). ?>
+	<?php // P-b: dwie NIEZALEŻNE kolumny (.watch__col--main / --aside) zamiast
+	// .watch__main/.watch__aside. Desktop = osobne flex-column (brak couplingu
+	// wysokości: długa Oś czasu nie rozpycha lewej kolumny). Mobile = obie kolumny
+	// display:contents, a `order` daje stos telebim → oś → składy → statystyki →
+	// inne mecze (match-single.css). ?>
 	<div class="watch__grid watch__grid--live">
+		<?php // P-b: kolumna GŁÓWNA. Na desktopie osobny kontekst wysokości (flex
+		// column) — niezależny od prawej kolumny, więc wysoka Oś czasu nie rozpycha
+		// rzędów pod telebimem. Na mobile display:contents spłaszcza obie kolumny,
+		// a `order` ustawia kolejność stosu (match-single.css). ?>
+		<div class="watch__col--main">
 
 			<?php
 			// ===== TELEBIM ===== (żywy — wspólny partial, kotwica #hajlajty-live-board)
@@ -115,28 +122,16 @@ $match_slug = get_post_field( 'post_name', $post_id );
 			</div>
 
 			<?php
-			// ===== Składy (statyczne) + Oś czasu (żywa, partial) =====
-			// P-b: Oś czasu renderowana PRZED składami — w przepływie źródłowym to
-			// kolejność mobile (telebim → oś czasu → składy); na desktopie
-			// grid-template-areas przenosi Oś czasu do prawego slotu (match-single.css).
+			// ===== Składy (statyczne) — kolumna główna =====
+			// Oś czasu renderowana w kolumnie ASIDE (niżej w DOM); kolejność
+			// desktop (prawy slot) vs mobile (po telebimie, przed składami) steruje
+			// `order` (match-single.css), nie pozycja w DOM.
 			$lineups    = isset( $data['lineups'] ) && is_array( $data['lineups'] ) ? $data['lineups'] : array();
 			$has_home   = isset( $lineups['home'] ) && is_array( $lineups['home'] );
 			$has_away   = isset( $lineups['away'] ) && is_array( $lineups['away'] );
 			$has_lineup = $has_home || $has_away;
 
 			$player_idx = hajlajty_player_event_index( $data['events'] ?? array() );
-
-			// ===== OŚ CZASU ===== (żywa — wspólny partial, kotwica #hajlajty-live-timeline)
-			// Self-guard w partialu: brak zdarzeń = pusty wrapper (display:contents) bez pudełka.
-			get_template_part(
-				'features/match-display/partials/live-fragment',
-				null,
-				array(
-					'post_id' => $post_id,
-					'data'    => $data,
-					'part'    => 'timeline',
-				)
-			);
 			?>
 
 			<?php if ( $has_lineup ) : ?>
@@ -345,8 +340,29 @@ $match_slug = get_post_field( 'post_name', $post_id );
 				'part'    => 'stats',
 			)
 		);
+		?>
 
-		// ===== „Inne mecze" ===== (statyczne) — te same rozgrywki, kickoff >= teraz, bez bieżącego.
+		</div><!-- /.watch__col--main -->
+
+		<?php // P-b: kolumna ASIDE (prawy slot na desktopie). Osobny kontekst
+		// wysokości — Oś czasu i „Inne mecze" płyną tu niezależnie od kolumny
+		// głównej, więc długa oś NIE rozpycha rzędów pod telebimem. ?>
+		<div class="watch__col--aside">
+
+			<?php
+			// ===== OŚ CZASU ===== (żywa — wspólny partial, kotwica #hajlajty-live-timeline)
+			// Self-guard w partialu: brak zdarzeń = pusty wrapper (display:contents).
+			get_template_part(
+				'features/match-display/partials/live-fragment',
+				null,
+				array(
+					'post_id' => $post_id,
+					'data'    => $data,
+					'part'    => 'timeline',
+				)
+			);
+
+			// ===== „Inne mecze" ===== (statyczne) — te same rozgrywki, kickoff >= teraz, bez bieżącego.
 		$roz     = get_the_terms( $post_id, 'rozgrywki' );
 		$roz_ids = ( is_array( $roz ) && ! is_wp_error( $roz ) ) ? wp_list_pluck( $roz, 'term_id' ) : array();
 		$other_args = array(
@@ -461,6 +477,8 @@ $match_slug = get_post_field( 'post_name', $post_id );
 				endif;
 				?>
 
+
+		</div><!-- /.watch__col--aside -->
 
 	</div>
 </main>
