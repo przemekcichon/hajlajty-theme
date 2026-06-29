@@ -127,32 +127,8 @@
 
 @media (max-width: 680px) {
   .groups-grid { grid-template-columns: 1fr; }
-
-  /* Karta grupy na pełną szerokość ekranu (jak wideo na mobile): wychodzi poza
-     gutter kontenera, bez bocznych ramek i zaokrągleń. Wewnętrzny padding karty
-     zostaje, więc treść nie cała przy krawędzi. */
-  .group-card {
-    margin-inline: calc(-1 * var(--gutter));
-    border-inline: none;
-    border-radius: 0;
-    /* Wąski padding poziomy (tylko mobile) → więcej miejsca na treść tabeli. */
-    padding: var(--space-md) var(--space-3xs);
-  }
-  /* Nagłówek (badge „A" + tytuł) wyrównany do kolumny numerów tabeli — bez tego
-     przy 4px paddingu karty badge przyklejał się do krawędzi, na lewo od numerów. */
-  .group-card__head { padding-left: var(--space-xs); }
-
-  /* CAŁA tabela przewijana poziomo jednym przeciągnięciem — bez sticky, bez
-     nakładania nazw. Na dotyku działa natywny swipe; pasek scrolla ukryty. */
-  .standings-scroll {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;      /* Firefox */
-    -ms-overflow-style: none;   /* dawny Edge */
-  }
-  .standings-scroll::-webkit-scrollbar { display: none; } /* WebKit/Blink */
-  /* min-width > ekran telefonu → tabela wystaje poza ekran i jest co przeciągać. */
-  .standings { table-layout: auto; min-width: 520px; }
-  /* Nazwa nadal skrócona (ellipsis), ale NIE przyklejona — jedzie z całością. */
+  /* Wąska kolumna nazwy (ellipsis) na telefonie — tabela mieści się w karcie.
+     Poziome przewijanie pojedynczych kart (z nieruchomym nagłówkiem) NIE jest tu
+     zaimplementowane — to osobne zadanie/sesja. */
   .standings th.team, .standings td.team { width: 100px; max-width: 100px; }
 }
