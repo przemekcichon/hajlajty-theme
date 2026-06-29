@@ -127,6 +127,15 @@
 
 @media (max-width: 680px) {
   .groups-grid { grid-template-columns: 1fr; }
+
+  /* FULL-BLEED karty grupy na telefonie — boki kleją się do krawędzi ekranu,
+     bez zaokrągleń i bocznych ramek. Wzorzec 1:1 z match-single.css
+     (.player16 / .preview / .board): ujemny margines boczny = padding kontenera
+     (--gutter na main.container), więc karta sięga dokładnie krawędzi viewportu,
+     bez przekraczania (bez poziomego scrolla). Wewnętrzny padding karty ZOSTAJE —
+     treść tabeli nie klei się do krawędzi. */
+  .group-card { margin-inline: calc(-1 * var(--gutter)); border-radius: 0; border-inline: none; }
+
   /* Wąska kolumna nazwy (ellipsis) na telefonie — tabela mieści się w karcie.
      Poziome przewijanie pojedynczych kart (z nieruchomym nagłówkiem) NIE jest tu
      zaimplementowane — to osobne zadanie/sesja. */
