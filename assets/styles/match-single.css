@@ -355,6 +355,18 @@
 .match-facts svg { width: 18px; height: 18px; stroke: var(--text-faint); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: 0 0 auto; }
 .match-facts b { color: var(--text); font-weight: 700; }
 
+/* P-a: zakresowany redesign metadanych (ns/live/canc). single-ft świadomie POZA. */
+.watch-top--compact { justify-content: flex-start; }
+@media (max-width: 620px) { .watch-top--compact { justify-content: space-between; } }
+
+.match-head--compact { display: flex; align-items: center; justify-content: space-around; }
+.match-head--compact .match-facts { margin-top: 0; }
+/* h1 zostaje dla SEO/a11y, ukryty wizualnie (motyw nie ma utility sr-only). */
+.match-head--compact .match-title {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+
 /* ---- AKCJE KIBICA (fav / „Przypomnij mi") ----
    Skopiowane 1:1 z designowego hajlajty-fav.js (tylko istniejące tokeny).
    STOPGAP 3c: warstwa zachowania (hajlajty-fav.js) należy do hajlajty-user
