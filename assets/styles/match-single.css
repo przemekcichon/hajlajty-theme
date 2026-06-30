@@ -245,7 +245,12 @@
   transition: background var(--t-fast), color var(--t-fast); }
 .lineup-tab .country-flag { height: 14px; border-radius: 2px; }
 .lineup-tab:hover { color: var(--text); }
-.lineup-tab.is-active { background: var(--surface-hover); color: var(--text); box-shadow: 0 1px 2px oklch(0 0 0 / 0.15); }
+.lineup-tab.is-active { color: var(--text); box-shadow: 0 1px 2px oklch(0 0 0 / 0.15); }
+/* Aktywny segment WYRAŹNIE jaśniejszy od tracku (--surface-2 0.27). Brak tokenu
+   ~0.39 w palecie, więc wartość wprost; w jasnym motywie biały „thumb" na szarym
+   tracku (czytelny bez magic-value). */
+[data-theme="dark"]  .lineup-tab.is-active { background: oklch(0.39 0.02 250); }
+[data-theme="light"] .lineup-tab.is-active { background: var(--surface); }
 .lineup-meta { display: flex; align-items: center; justify-content: space-between; gap: var(--space-sm); margin-bottom: var(--space-md); font-size: 13px; font-weight: 600; color: var(--text-muted); }
 .lineup-meta b { color: var(--text); font-weight: 800; }
 .lineup-pane { display: none; }
