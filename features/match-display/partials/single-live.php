@@ -21,31 +21,6 @@ $data    = isset( $args['data'] ) && is_array( $args['data'] ) ? $args['data'] :
 
 $round_pl = hajlajty_lookup_round( $data['round'] ?? null );
 $terms    = hajlajty_match_get_team_terms( $post_id );
-$status   = hajlajty_lookup_status( $data['status']['short'] ?? null );
-
-// --- Czas: data meczu z PŁASKIEJ meta `kickoff` (etykieta w faktach). ---
-$kickoff_raw = get_post_meta( $post_id, 'kickoff', true );
-$kickoff_dt  = ( is_string( $kickoff_raw ) && '' !== $kickoff_raw )
-	? date_create_immutable( $kickoff_raw, new DateTimeZone( 'UTC' ) )
-	: false;
-$date_label  = $kickoff_dt ? wp_date( 'l, j F Y', $kickoff_dt->getTimestamp() ) : '';
-
-// --- Linia statusu LIVE dla FAKTÓW nagłówka (statyczna — telebim ją odświeża). ---
-$short       = $data['status']['short'] ?? null;
-$elapsed     = $data['status']['elapsed'] ?? null;
-$extra       = $data['status']['extra'] ?? null;
-$half_labels = array(
-	'1H' => '1. połowa',
-	'2H' => '2. połowa',
-	'ET' => 'Dogrywka',
-);
-$minute_txt = '';
-if ( $status['show_minute'] && null !== $elapsed ) {
-	$minute_txt = $elapsed . ( ( null !== $extra && '' !== $extra ) ? '+' . $extra : '' ) . "'";
-}
-$half_label = ( $status['show_minute'] && isset( $half_labels[ $short ] ) ) ? $half_labels[ $short ] : '';
-$live_label = $status['live_label'];
-
 // --- Lokalne helpery renderu (closures, jak w single-ft.php) ---
 $flag_url  = static function ( $term ) {
 	return hajlajty_flag_url( $term );
@@ -106,19 +81,11 @@ $match_slug = get_post_field( 'post_name', $post_id );
 				</button>
 			</div>
 
-			<!-- ===== METADANE MECZU (LIVE) — statyczne ===== -->
+			<?php // METADANE LIVE: zostaje TYLKO ukryty h1 (SEO/a11y). Blok faktów
+			// (data + „połowa, minuta") wycięty — duplikował telebim (placeholder wideo
+			// niesie minutę i połowę), a data meczu nie jest istotna w trakcie live. ?>
 			<div class="match-head match-head--compact">
 				<h1 class="match-title"><?php echo esc_html( $match_label ); ?></h1>
-				<div class="match-facts">
-					<?php if ( '' !== $date_label ) : ?>
-						<span class="fact"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M8 2v4M16 2v4M3 10h18"/></svg> <b><?php echo esc_html( $date_label ); ?></b></span>
-					<?php endif; ?>
-					<?php if ( $status['show_minute'] && '' !== $minute_txt ) : ?>
-						<span class="fact"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> <?php echo esc_html( '' !== $half_label ? $half_label . ', ' : '' ); ?><b><?php echo esc_html( $minute_txt ); ?></b></span>
-					<?php elseif ( '' !== (string) $live_label ) : ?>
-						<span class="fact"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> <b><?php echo esc_html( $live_label ); ?></b></span>
-					<?php endif; ?>
-				</div>
 			</div>
 
 			<?php

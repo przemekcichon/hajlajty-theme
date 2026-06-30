@@ -448,12 +448,20 @@
 .watch__grid--live .live-sec--others   { order: 8; }
 /* Własne marginesy sekcji znosimy — rytm pionowy daje `gap`. */
 .watch__grid--live .hf-actions,
-.watch__grid--live .match-head,
 .watch__grid--live .tabs,
 .watch__grid--live .live-sec--timeline,
 .watch__grid--live .live-sec--lineups,
 .watch__grid--live .live-sec--stats,
 .watch__grid--live .live-sec--others { margin: 0; }
+
+/* P-f: na live match-head to już TYLKO ukryty h1 (blok faktów wycięty — duplikat
+   telebimu: minuta + połowa są na telebimie, a data nie jest istotna w live).
+   `display:contents` usuwa PUSTY box nagłówka (h1 sr-only zostaje w DOM i dla AT),
+   więc nie dokłada zdublowanego `gap` (md+md) w stosie; `margin-top` na zakładkach
+   domyka odstęp przycisk fav → zakładki do xs (zamiast md) — działa tak samo we
+   flexie (desktop) i gridzie (mobile). */
+.watch__grid--live .match-head { display: contents; }
+.watch__grid--live .tabs { margin-top: calc(var(--space-xs) - var(--space-md)); }
 
 /* Oś czasu: nagłówek .panel__title pokazujemy tylko na desktopie (na mobile rolę
    tytułu pełni przycisk zakładki „Oś czasu"). */
