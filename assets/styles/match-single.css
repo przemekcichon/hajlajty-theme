@@ -232,14 +232,20 @@
 
 /* ---- SKŁADY (render E5) ---- */
 .lineup-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-md); margin-bottom: var(--space-lg); flex-wrap: wrap; }
-.lineup-tabs { display: flex; gap: var(--space-2xs); margin-bottom: var(--space-md); }
+/* P-e: przełącznik składów (home/away) jako zwarty SEGMENTOWANY control —
+   subtelniejszy niż pełne pill-e z akcentem. Jeden track (.lineup-tabs) z dwoma
+   segmentami; aktywny = lekkie wypełnienie (--surface-hover) zamiast krzykliwego
+   zielonego fillu. Wspólny dla single-ft/live/ns (#lineupTabs, ten sam markup). */
+.lineup-tabs { display: inline-flex; gap: 2px; padding: 3px; margin-bottom: var(--space-md);
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r-sm); }
 .lineup-head .lineup-tabs { margin-bottom: 0; }
-.lineup-tab { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px;
-  border-radius: var(--r-pill); background: var(--surface-2); border: 1px solid var(--border);
-  color: var(--text); font-weight: 700; font-size: 14px; transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast); }
-.lineup-tab .country-flag { height: 16px; border-radius: 2px; }
-.lineup-tab:hover { border-color: var(--border-strong); }
-.lineup-tab.is-active { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.lineup-tab { display: inline-flex; align-items: center; gap: 7px; height: 30px; padding: 0 12px;
+  border: 0; background: transparent; border-radius: calc(var(--r-sm) - 3px);
+  color: var(--text-muted); font-weight: 700; font-size: 13px; cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast); }
+.lineup-tab .country-flag { height: 14px; border-radius: 2px; }
+.lineup-tab:hover { color: var(--text); }
+.lineup-tab.is-active { background: var(--surface-hover); color: var(--text); box-shadow: 0 1px 2px oklch(0 0 0 / 0.15); }
 .lineup-meta { display: flex; align-items: center; justify-content: space-between; gap: var(--space-sm); margin-bottom: var(--space-md); font-size: 13px; font-weight: 600; color: var(--text-muted); }
 .lineup-meta b { color: var(--text); font-weight: 800; }
 .lineup-pane { display: none; }
