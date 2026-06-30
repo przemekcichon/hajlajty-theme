@@ -53,6 +53,30 @@
     requestAnimationFrame(animateStats);
   });
 
+  /* ---------- LIVE (P-d): oś czasu jako przewijalny panel wysokości telebimu ----------
+     Desktop (≥1220px): max-height kontenera listy osi = wysokość .board (telebimu),
+     żeby długa oś nie rozciągała strony i mieściła się obok telebimu. Mierzymy w JS,
+     bo oś żyje w prawej kolumnie o innej szerokości niż telebim — czystym CSS nie da
+     się sięgnąć jego piksela. Kontener scrolla (.live-timeline-scroll) jest STABILNY
+     (poza kotwicą pollera), więc wartość przeżywa podmianę; mimo to re-synchronizujemy
+     po każdym odświeżeniu (telebim mógł zmienić rozmiar) i przy resize. Poza desktopem
+     czyścimy max-height — oś jest wtedy zwykłą zakładką w przepływie. Null-safe. */
+  var timelineScroll = $(".live-timeline-scroll");
+  if (timelineScroll) {
+    var desktopMq = window.matchMedia ? window.matchMedia("(min-width: 1220px)") : null;
+    var syncTimelineHeight = function () {
+      var board = $(".board");
+      if (board && (!desktopMq || desktopMq.matches)) {
+        timelineScroll.style.maxHeight = board.offsetHeight + "px";
+      } else {
+        timelineScroll.style.maxHeight = "";
+      }
+    };
+    requestAnimationFrame(syncTimelineHeight);
+    window.addEventListener("resize", syncTimelineHeight);
+    document.addEventListener("hajlajty:live-updated", syncTimelineHeight);
+  }
+
   /* ---------- SKŁADY: przełącznik paneli home/away ---------- */
   var lineupTabs = $$("#lineupTabs .lineup-tab");
   if (lineupTabs.length) {

@@ -182,13 +182,13 @@ $anchor    = static function ( $id ) use ( $post_id, $live_attr ) {
 	$has_timeline = ! empty( $visible );
 	?>
 	<div <?php echo $anchor( 'hajlajty-live-timeline' ); // phpcs:ignore — atrybuty zescape'owane ?>>
-		<?php if ( $has_timeline ) : ?>
-			<?php // P-b: prawy slot (desktop) — oprawa pozostaje na pozycji: chrome
-			// .aside-sec__title + karta .panel (jak miały Statystyki); treść = Oś czasu. ?>
-			<section class="aside-sec live-sec--timeline reveal">
-				<h2 class="aside-sec__title"><span class="kicker-dot"></span> Oś czasu</h2>
-				<div class="panel" style="padding: var(--space-md)">
-				<?php
+		<?php if ( ! $has_timeline ) : ?>
+			<p class="live-empty">Brak zarejestrowanych zdarzeń.</p>
+		<?php else : ?>
+			<?php
+				// P-d: BARE lista osi czasu — oprawa (karta + nagłówek na desktopie,
+				// zakładka na mobile) żyje w single-live.php, POZA kotwicą pollera.
+				// Tu zostaje wyłącznie to, co poller podmienia po `id`: lista zdarzeń.
 				$event_icon = static function ( $key ) {
 					switch ( $key ) {
 						case 'goal':
@@ -304,9 +304,7 @@ $anchor    = static function ( $id ) use ( $post_id, $live_attr ) {
 						</div>
 					<?php endforeach; ?>
 				</div>
-				</div><!-- /.panel (P-b: karta prawego slotu) -->
-			</section>
-		<?php endif; ?>
+			<?php endif; ?>
 	</div>
 <?php endif; ?>
 
@@ -322,11 +320,12 @@ $anchor    = static function ( $id ) use ( $post_id, $live_attr ) {
 	};
 	?>
 	<div <?php echo $anchor( 'hajlajty-live-stats' ); // phpcs:ignore — atrybuty zescape'owane ?>>
-		<?php if ( ! empty( $stat_rows ) ) : ?>
-			<?php // P-b: główny slot pod telebimem (desktop) — oprawa pozostaje na
-			// pozycji: chrome .panel/.panel__title (jak miała Oś czasu); treść = Statystyki. ?>
-			<section class="panel live-sec--stats reveal">
-				<h2 class="panel__title"><span class="kicker-dot"></span> Statystyki na żywo</h2>
+		<?php if ( empty( $stat_rows ) ) : ?>
+			<p class="live-empty">Brak statystyk dla tego meczu.</p>
+		<?php else : ?>
+			<?php // P-d: BARE statystyki (jak w skrócie) — oprawę („Statystyki" jako
+			// zakładka) niesie single-live.php; tu tylko treść podmieniana pollerem. ?>
+			<div class="stats-wrap">
 					<div class="stats-head">
 						<span class="side home"><span class="swatch home"></span><?php if ( '' !== $home_flag ) : ?><img class="country-flag" src="<?php echo esc_url( $home_flag ); ?>" alt="" /><?php endif; ?> <?php echo esc_html( $team_code( $terms['home'] ) ); ?></span>
 						<span class="side away"><?php echo esc_html( $team_code( $terms['away'] ) ); ?> <?php if ( '' !== $away_flag ) : ?><img class="country-flag" src="<?php echo esc_url( $away_flag ); ?>" alt="" /><?php endif; ?><span class="swatch away"></span></span>
@@ -345,7 +344,7 @@ $anchor    = static function ( $id ) use ( $post_id, $live_attr ) {
 							<div class="stat__bar"><span class="stat__fill home"></span><span class="stat__fill away"></span></div>
 						</div>
 					<?php endforeach; ?>
-			</section>
+			</div>
 		<?php endif; ?>
 	</div>
 <?php endif; ?>

@@ -177,6 +177,15 @@
 .tab.is-active { color: var(--text); }
 .tab.is-active::after { transform: scaleX(1); }
 
+/* P-d (pkt 6): kompaktowy pasek na telefonie — WSPÓLNY dla skrótu i live (ten sam
+   `.tabs`), bo na mobile live ma 3 zakładki i ciaśniej musi się zmieścić. */
+@media (max-width: 768px) {
+  .tabs { gap: 0; }
+  .tab { padding: var(--space-xs) var(--space-sm); font-size: 13px; gap: 5px; }
+  .tab svg { width: 16px; height: 16px; }
+  .tab::after { left: var(--space-sm); right: var(--space-sm); }
+}
+
 .tabpanels { margin-top: var(--space-lg); }
 .tabpanel { display: none; }
 .tabpanel.is-active { display: block; animation: tabIn 320ms var(--ease) both; }
@@ -398,21 +407,21 @@
 .panel__title .kicker-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); flex: 0 0 auto; }
 
 /* ============================================================
-   ░░ P-b — LIVE: zamiana kolumn Oś czasu ↔ Statystyki ░░
-   single-live: kolumna GŁÓWNA (.watch__col--main: telebim, składy, statystyki)
-   + kolumna ASIDE (.watch__col--aside: oś czasu, inne mecze).
-   • Desktop (≥1220px): dwie NIEZALEŻNE kolumny (każda flex-column = własny
-     kontekst wysokości). Wysoka Oś czasu w prawej kolumnie NIE rozpycha rzędów
-     lewej — brak couplingu, który miałby jeden grid współdzielący rzędy.
-   • Mobile: obie kolumny `display:contents` → wszystkie sekcje w jednym stosie
-     gridu .watch__grid--live; `order` daje kolejność telebim → oś czasu →
-     składy → statystyki → inne mecze. Te same `order` rządzą też kolejnością
-     sekcji WEWNĄTRZ kolumn na desktopie — jedna deklaracja na oba układy.
-   • Nagłówki „na pozycji": chrome .aside-sec__title (aside) / .panel__title
-     (główna) renderuje live-fragment.php per część (zamiana chrome, nie sekcji).
-   Kotwice pollera (#hajlajty-live-*) zostają display:contents → replaceWith
-   podmienia sekcję W MIEJSCU w obu układach (grid-item/flex-item = .board/
-   .aside-sec/.panel wewnątrz kotwicy). */
+   ░░ P-b/P-d — LIVE: telebim + zakładki + przewijalna oś czasu ░░
+   single-live: kolumna GŁÓWNA (.watch__col--main: telebim, wspólny pasek
+   zakładek, Składy/Statystyki w zakładkach) + kolumna ASIDE
+   (.watch__col--aside: oś czasu jako osobny panel, „Inne mecze").
+   • Desktop (≥1220px): dwie NIEZALEŻNE kolumny (flex-column = własny kontekst
+     wysokości). Oś czasu to samodzielny, PRZEWIJALNY panel (max-height = telebim,
+     liczone w match-display.js) — długa oś NIE rozpycha lewej kolumny. Pasek
+     zakładek pokazuje Składy | Statystyki (przycisk „Oś czasu" ukryty); pod
+     telebimem aktywna zakładka.
+   • Mobile: obie kolumny display:contents → jeden stos gridu; `order` daje
+     kolejność telebim → pasek zakładek → (oś/składy/statystyki jako 3 zakładki)
+     → inne mecze. Oś czasu wpada do zestawu zakładek (nie osobny panel).
+   Kotwice pollera (#hajlajty-live-*) zostają display:contents wewnątrz zakładek/
+   panelu → replaceWith podmienia sekcję W MIEJSCU; stan zakładki (is-active) i
+   pozycja scrolla osi żyją na STABILNYCH wrapperach POZA kotwicą. */
 .watch__grid--live { gap: var(--space-md); }
 .watch__col--main,
 .watch__col--aside { display: contents; }
@@ -421,23 +430,47 @@
 .watch__grid--live .board              { order: 1; }
 .watch__grid--live .hf-actions         { order: 2; }
 .watch__grid--live .match-head         { order: 3; }
-.watch__grid--live .live-sec--timeline { order: 4; }
-.watch__grid--live .live-sec--lineups  { order: 5; }
-.watch__grid--live .live-sec--stats    { order: 6; }
-.watch__grid--live .live-sec--others   { order: 7; }
+.watch__grid--live .tabs               { order: 4; }
+.watch__grid--live .live-sec--timeline { order: 5; }
+.watch__grid--live .live-sec--lineups  { order: 6; }
+.watch__grid--live .live-sec--stats    { order: 7; }
+.watch__grid--live .live-sec--others   { order: 8; }
 /* Własne marginesy sekcji znosimy — rytm pionowy daje `gap`. */
 .watch__grid--live .hf-actions,
 .watch__grid--live .match-head,
+.watch__grid--live .tabs,
 .watch__grid--live .live-sec--timeline,
 .watch__grid--live .live-sec--lineups,
 .watch__grid--live .live-sec--stats,
 .watch__grid--live .live-sec--others { margin: 0; }
 
+/* Oś czasu: nagłówek .panel__title pokazujemy tylko na desktopie (na mobile rolę
+   tytułu pełni przycisk zakładki „Oś czasu"). */
+.watch__grid--live .live-sec--timeline .panel__title { display: none; }
+
 @media (min-width: 1220px) {
   .watch__grid--live { grid-template-columns: minmax(0, 1fr) var(--match-sidebar-width); column-gap: var(--page-horizontal-margin); }
   .watch__col--main  { display: flex; flex-direction: column; gap: var(--space-md); grid-column: 1; min-width: 0; }
   .watch__col--aside { display: flex; flex-direction: column; gap: var(--space-md); grid-column: 2; min-width: 0; }
+
+  /* Przycisk „Oś czasu" znika z paska — oś jest osobnym panelem w prawej kolumnie. */
+  .watch__grid--live .tabs .tab[data-tab="timeline"] { display: none; }
+
+  /* Oś czasu = samodzielny, ZAWSZE widoczny panel (poza systemem zakładek). Wygrywa
+     z .tabpanel{display:none} specyficznością (0,2,0 > 0,1,0). */
+  .watch__grid--live .live-sec--timeline {
+    display: block;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r-lg); padding: var(--space-md);
+  }
+  .watch__grid--live .live-sec--timeline .panel__title { display: flex; }
+  /* Przewijalny obszar listy: max-height = wysokość telebimu (ustawia match-display.js).
+     Kontener STABILNY (poza kotwicą) → scroll i max-height przeżywają podmianę pollera. */
+  .watch__grid--live .live-timeline-scroll { overflow-y: auto; overscroll-behavior: contain; }
 }
+
+/* Placeholder pustej żywej sekcji (oś/statystyki przed pojawieniem się danych). */
+.live-empty { color: var(--text-muted); font-size: 14px; }
 
 /* ============================================================
    ZAPOWIEDŹ — PLAYER OCZEKIWANIA (ekran odliczania zamiast wideo)
