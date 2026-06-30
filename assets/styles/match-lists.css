@@ -312,6 +312,11 @@ main { padding-block: var(--space-xl) var(--space-2xl); }
 .rvideo { display: grid; grid-template-columns: 158px 1fr; gap: var(--space-sm); margin-bottom: var(--space-md); }
 .rvideo:last-child { margin-bottom: 0; }
 .rvideo .thumb { border-radius: var(--r-sm); }
+/* Mniejszy guzik play na kompaktowej miniaturze sidebara — jak w designie „-2"
+   (48/20). Współdzielone .thumb__play (60/24) jest skrojone pod dużą .vcard i na
+   wąskiej miniaturze .rvideo wygląda na za duże; zakresujemy TYLKO do .rvideo. */
+.rvideo .thumb__play { width: 48px; height: 48px; }
+.rvideo .thumb__play svg { width: 20px; height: 20px; }
 .rvideo__body { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 /* Meta sidebaru: cichy, rozstrzelony kicker (mniejszy, --text-faint, bez pigułki). */
 .rvideo__meta {
