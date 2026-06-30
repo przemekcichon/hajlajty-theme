@@ -302,6 +302,44 @@ main { padding-block: var(--space-xl) var(--space-2xl); }
 }
 
 /* ============================================================
+   5b. KARTA SKRÓTU „RAIL" (.rvideo) — POZIOMA, sidebarowa (P-c)
+   Współistnieje z pionową .vcard (sekcja 5): .vcard = listy/gridy/home,
+   .rvideo = wąskie kolumny aside („Inne skróty"). Miniatura po lewej + meta/
+   wynik po prawej; .rvideo__row--lose przygasza przegranego. Chrome miniatury
+   (.thumb*, .card-video) wspólny z sekcją 1. Port 1:1 z „Skrót Meczu -2".
+   `.rvideo` (grid) bije `.card-video` (block) bo jest niżej w pliku.
+============================================================ */
+.rvideo { display: grid; grid-template-columns: 158px 1fr; gap: var(--space-sm); margin-bottom: var(--space-md); }
+.rvideo:last-child { margin-bottom: 0; }
+.rvideo .thumb { border-radius: var(--r-sm); }
+.rvideo__body { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+/* Meta sidebaru: cichy, rozstrzelony kicker (mniejszy, --text-faint, bez pigułki). */
+.rvideo__meta {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0;
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--text-faint);
+}
+.rvideo__comp { color: var(--text-faint); font-weight: 700; }
+.rvideo__meta .dot-sep { flex: none; width: 3px; height: 3px; border-radius: 50%; background: var(--text-faint); }
+/* Mini-tabela wyniku: jeden grid na obie linie → kolumny (nazwa | wynik) wyrównane;
+   szerokość do treści, więc wynik trzyma się nazw zamiast uciekać na krawędź. */
+.rvideo__match {
+  display: grid; grid-template-columns: minmax(0, max-content) auto;
+  column-gap: 16px; row-gap: 5px; align-items: center;
+  width: max-content; max-width: 100%; margin-top: 3px;
+}
+.rvideo__row { display: contents; }
+.rvideo__team { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 13.5px; font-weight: 700; letter-spacing: -0.01em; }
+.rvideo__team .country-flag { height: 15px; }
+.rvideo__tname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rvideo__num { justify-self: end; font-variant-numeric: tabular-nums; font-weight: 800; font-size: 14px; color: var(--text); }
+.rvideo__row--lose { color: var(--text-muted); }
+.rvideo__row--lose .rvideo__num { color: var(--text-muted); }
+/* W kolumnie aside miniatura nieco szersza; węższe ekrany — proporcjonalnie mniej. */
+.watch__aside .rvideo { grid-template-columns: 168px 1fr; }
+@media (max-width: 620px) { .watch__aside .rvideo { grid-template-columns: 140px 1fr; } }
+
+/* ============================================================
    6. PUSTY STAN (archiwum bez wyników)
 ============================================================ */
 .empty-state {

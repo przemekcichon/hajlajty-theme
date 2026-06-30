@@ -549,9 +549,9 @@ $match_label = $home_name . ' – ' . $away_name;
 		$other = new WP_Query( $other_args );
 
 		if ( $other->have_posts() ) :
-			// Jedno źródło markupu karty skrótu (MVP-h): aside reużywa partial
-			// `card-skrot` (slice match-lists) zamiast własnego wiersza `.rvideo`.
-			// Drużyny rozwiązane JEDNYM batchem (zero N+1), jak na listach.
+			// P-c: aside używa POZIOMEJ karty sidebarowej `card-skrot-rail` (.rvideo),
+			// nie pionowej `.vcard` — ta zostaje kartą list/gridów. Oba partiale żyją
+			// w slice match-lists. Drużyny rozwiązane JEDNYM batchem (zero N+1).
 			$other_ids      = wp_list_pluck( $other->posts, 'ID' );
 			$other_resolved = hajlajty_match_lists_resolve_terms( $other_ids );
 			?>
@@ -566,7 +566,7 @@ $match_label = $home_name . ' – ' . $away_name;
 							'away' => null,
 						);
 						get_template_part(
-							'features/match-lists/partials/card-skrot',
+							'features/match-lists/partials/card-skrot-rail',
 							null,
 							array(
 								'post_id' => $rid,
