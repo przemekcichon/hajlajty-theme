@@ -53,6 +53,44 @@
     requestAnimationFrame(animateStats);
   });
 
+  /* ---------- LIVE (P-d): oś czasu jako przewijalny panel wysokości telebimu ----------
+     Desktop (≥1220px): max-height kontenera listy osi = wysokość .board (telebimu),
+     żeby długa oś nie rozciągała strony i mieściła się obok telebimu. Mierzymy w JS,
+     bo oś żyje w prawej kolumnie o innej szerokości niż telebim — czystym CSS nie da
+     się sięgnąć jego piksela. Kontener scrolla (.live-timeline-scroll) jest STABILNY
+     (poza kotwicą pollera), więc wartość przeżywa podmianę; mimo to re-synchronizujemy
+     po każdym odświeżeniu (telebim mógł zmienić rozmiar) i przy resize. Poza desktopem
+     czyścimy max-height — oś jest wtedy zwykłą zakładką w przepływie. Null-safe. */
+  var timelineScroll = $(".live-timeline-scroll");
+  if (timelineScroll) {
+    var desktopMq = window.matchMedia ? window.matchMedia("(min-width: 1220px)") : null;
+    var syncTimelineHeight = function () {
+      var board = $(".board");
+      if (board && (!desktopMq || desktopMq.matches)) {
+        timelineScroll.style.maxHeight = board.offsetHeight + "px";
+      } else {
+        timelineScroll.style.maxHeight = "";
+      }
+    };
+    // Po zmianie breakpointu aktywna zakładka może mieć UKRYTY przycisk (na
+    // desktopie „Oś czasu" znika z paska — oś jest osobnym panelem). Wtedy główna
+    // kolumna zostałaby bez treści (np. user kliknął „Oś czasu" w wąskim oknie,
+    // potem je poszerzył ≥1220px). Przełącz wtedy na pierwszą WIDOCZNĄ zakładkę.
+    // Ogólne: single-ft nie chowa żadnego przycisku, więc tam nigdy nie zadziała.
+    var ensureVisibleActiveTab = function () {
+      var active = $(".tabs .tab.is-active");
+      if (active && active.offsetParent === null) {
+        for (var i = 0; i < tabs.length; i++) {
+          if (tabs[i].offsetParent !== null) { activateTab(tabs[i].dataset.tab); break; }
+        }
+      }
+    };
+    var onViewport = function () { syncTimelineHeight(); ensureVisibleActiveTab(); };
+    requestAnimationFrame(onViewport);
+    window.addEventListener("resize", onViewport);
+    document.addEventListener("hajlajty:live-updated", syncTimelineHeight);
+  }
+
   /* ---------- SKŁADY: przełącznik paneli home/away ---------- */
   var lineupTabs = $$("#lineupTabs .lineup-tab");
   if (lineupTabs.length) {

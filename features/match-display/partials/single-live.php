@@ -73,8 +73,17 @@ $match_slug = get_post_field( 'post_name', $post_id );
 </div>
 
 <main class="watch container">
-	<div class="watch__grid">
-		<div class="watch__main">
+	<?php // P-b: dwie NIEZALEŻNE kolumny (.watch__col--main / --aside) zamiast
+	// .watch__main/.watch__aside. Desktop = osobne flex-column (brak couplingu
+	// wysokości: długa Oś czasu nie rozpycha lewej kolumny). Mobile = obie kolumny
+	// display:contents, a `order` daje stos telebim → oś → składy → statystyki →
+	// inne mecze (match-single.css). ?>
+	<div class="watch__grid watch__grid--live">
+		<?php // P-b: kolumna GŁÓWNA. Na desktopie osobny kontekst wysokości (flex
+		// column) — niezależny od prawej kolumny, więc wysoka Oś czasu nie rozpycha
+		// rzędów pod telebimem. Na mobile display:contents spłaszcza obie kolumny,
+		// a `order` ustawia kolejność stosu (match-single.css). ?>
+		<div class="watch__col--main">
 
 			<?php
 			// ===== TELEBIM ===== (żywy — wspólny partial, kotwica #hajlajty-live-board)
@@ -113,31 +122,35 @@ $match_slug = get_post_field( 'post_name', $post_id );
 			</div>
 
 			<?php
-			// ===== PANELE: Składy (statyczne, gdy lineups) + Oś czasu (żywa). =====
+			// ===== ZAKŁADKI (P-d) — wspólny pasek (single-ft + single-live). =====
+			// Desktop: widoczne tylko Składy | Statystyki (przycisk „Oś czasu" ukrywa
+			// CSS w kontekście .watch__grid--live — oś to osobny panel w prawej kolumnie).
+			// Mobile: trzy zakładki (Oś czasu | Składy | Statystyki). Domyślnie aktywne
+			// „Składy" — na desktopie to treść głównej kolumny pod telebimem.
+			get_template_part(
+				'features/match-display/partials/tabs-bar',
+				null,
+				array( 'active' => 'lineups' )
+			);
+			?>
+
+			<?php
+			// ===== Składy (statyczne) — zakładka „Składy" w kolumnie głównej. =====
+			// Zawsze renderowana jako zakładka (spójny zestaw 2/3); brak składów →
+			// komunikat. Oś czasu/Statystyki to żywe sekcje (live-fragment) w osobnych
+			// zakładkach; kolejność stosu i przydział kolumn steruje `order`/grid (CSS).
 			$lineups    = isset( $data['lineups'] ) && is_array( $data['lineups'] ) ? $data['lineups'] : array();
 			$has_home   = isset( $lineups['home'] ) && is_array( $lineups['home'] );
 			$has_away   = isset( $lineups['away'] ) && is_array( $lineups['away'] );
 			$has_lineup = $has_home || $has_away;
 
 			$player_idx = hajlajty_player_event_index( $data['events'] ?? array() );
+			?>
 
-			// Czy są widoczne zdarzenia osi (Var pominięte) — decyduje o `.panels`,
-			// żeby panel nie pojawiał się pusty. Sam markup osi renderuje partial.
-			$timeline_visible = array_filter(
-				hajlajty_build_timeline( $data['events'] ?? array() ),
-				static function ( $it ) {
-					return 'var' !== $it['key'];
-				}
-			);
-			$has_timeline = ! empty( $timeline_visible );
-
-			if ( $has_lineup || $has_timeline ) :
-				?>
-				<div class="panels">
-
-					<?php if ( $has_lineup ) : ?>
-						<section class="panel reveal">
-							<h2 class="panel__title"><span class="kicker-dot"></span> Składy</h2>
+			<section class="tabpanel live-sec--lineups is-active" data-tab="lineups" role="tabpanel" aria-label="Składy">
+				<?php if ( ! $has_lineup ) : ?>
+					<p class="live-empty">Brak składów dla tego meczu.</p>
+				<?php else : ?>
 							<?php
 							// Markery gol/kartka z indeksu zdarzeń — wspólne dla boiska i ławki.
 							$marks_goal_card = static function ( $pid ) use ( $player_idx ) {
@@ -324,11 +337,51 @@ $match_slug = get_post_field( 'post_name', $post_id );
 									</div>
 								</div>
 							<?php endforeach; ?>
-						</section>
-					<?php endif; ?>
+				<?php endif; ?>
+			</section>
 
+			<?php
+			// ===== STATYSTYKI ===== (żywe — zakładka „Statystyki", kolumna główna).
+			// Treść z live-fragment (kotwica #hajlajty-live-stats, podmieniana pollerem);
+			// oprawę zakładki (tabpanel) niesie ten plik — kotwica zostaje display:contents.
+			?>
+			<section class="tabpanel live-sec--stats" data-tab="stats" role="tabpanel" aria-label="Statystyki">
+				<?php
+				get_template_part(
+					'features/match-display/partials/live-fragment',
+					null,
+					array(
+						'post_id' => $post_id,
+						'data'    => $data,
+						'part'    => 'stats',
+					)
+				);
+				?>
+			</section>
+
+		</div><!-- /.watch__col--main -->
+
+		<?php // P-b: kolumna ASIDE (prawy slot na desktopie). Osobny kontekst
+		// wysokości — Oś czasu i „Inne mecze" płyną tu niezależnie od kolumny
+		// głównej, więc długa oś NIE rozpycha rzędów pod telebimem. ?>
+		<div class="watch__col--aside">
+
+			<?php
+			// ===== OŚ CZASU ===== (żywa — wspólny partial, kotwica #hajlajty-live-timeline)
+			// P-d: na desktopie OŚ to SAMODZIELNY, przewijalny panel w prawej kolumnie
+			// (nagłówek .panel__title, max-height = wysokość telebimu liczona w
+			// match-display.js); na mobile ta SAMA sekcja działa jako zakładka „Oś czasu"
+			// (nagłówek ukryty, steruje nią wspólny pasek zakładek). Jeden markup, dwa
+			// układy — różnicę robi CSS (display/order/grid). Kontener przewijania
+			// (.live-timeline-scroll) jest STABILNY: poller podmienia tylko wnętrze
+			// kotwicy #hajlajty-live-timeline, więc pozycja scrolla i max-height przeżywają
+			// odświeżenie. Bez `is-active` — domyślna zakładka to Składy; na desktopie oś
+			// i tak jest zawsze widoczna (CSS), na mobile pokazuje ją klik w pasku.
+			?>
+			<section class="tabpanel live-sec--timeline" data-tab="timeline" role="tabpanel" aria-label="Oś czasu">
+				<h2 class="panel__title"><span class="kicker-dot"></span> Oś czasu</h2>
+				<div class="live-timeline-scroll">
 					<?php
-					// ===== OŚ CZASU ===== (żywa — wspólny partial, kotwica #hajlajty-live-timeline)
 					get_template_part(
 						'features/match-display/partials/live-fragment',
 						null,
@@ -339,18 +392,11 @@ $match_slug = get_post_field( 'post_name', $post_id );
 						)
 					);
 					?>
-
 				</div>
-			<?php endif; ?>
+			</section>
 
-		</div><!-- /.watch__main -->
-
-		<?php
-		// ===== PRAWY ASIDE: Statystyki (żywe, partial) + „Inne mecze" (statyczne). =====
-		$stat_rows = hajlajty_build_stat_rows( $data );
-		$has_stats = ! empty( $stat_rows );
-
-		// „Inne mecze" w tych samych rozgrywkach (kickoff >= teraz), bez bieżącego.
+			<?php
+			// ===== „Inne mecze" ===== (statyczne) — te same rozgrywki, kickoff >= teraz, bez bieżącego.
 		$roz     = get_the_terms( $post_id, 'rozgrywki' );
 		$roz_ids = ( is_array( $roz ) && ! is_wp_error( $roz ) ) ? wp_list_pluck( $roz, 'term_id' ) : array();
 		$other_args = array(
@@ -380,27 +426,7 @@ $match_slug = get_post_field( 'post_name', $post_id );
 		}
 		$other        = new WP_Query( $other_args );
 		$has_other    = $other->have_posts();
-		$has_anything = $has_stats || $has_other;
-
-		if ( $has_anything ) :
-			?>
-			<aside class="watch__aside">
-
-				<?php
-				// ===== STATYSTYKI ===== (żywe — wspólny partial, kotwica #hajlajty-live-stats)
-				get_template_part(
-					'features/match-display/partials/live-fragment',
-					null,
-					array(
-						'post_id' => $post_id,
-						'data'    => $data,
-						'part'    => 'stats',
-					)
-				);
-				?>
-
-				<?php
-				if ( $has_other ) :
+			if ( $has_other ) :
 					$cards   = array();
 					$api_ids = array();
 					foreach ( $other->posts as $rp ) {
@@ -458,7 +484,7 @@ $match_slug = get_post_field( 'post_name', $post_id );
 						return $flag_url( $api_term( $api ) );
 					};
 					?>
-					<section class="aside-sec">
+					<section class="aside-sec live-sec--others">
 						<h2 class="aside-sec__title"><span class="kicker-dot"></span> Inne mecze</h2>
 						<?php
 						foreach ( $cards as $card ) :
@@ -485,10 +511,8 @@ $match_slug = get_post_field( 'post_name', $post_id );
 				endif;
 				?>
 
-			</aside>
-			<?php
-		endif;
-		?>
+
+		</div><!-- /.watch__col--aside -->
 
 	</div>
 </main>
