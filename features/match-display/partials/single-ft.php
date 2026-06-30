@@ -116,12 +116,14 @@ $match_label = $home_name . ' – ' . $away_name;
 				</div>
 			</div>
 
-			<!-- ===== ZAKŁADKI ===== -->
-			<div class="tabs" role="tablist" aria-label="Szczegóły meczu">
-				<button class="tab is-active" data-tab="timeline" role="tab" aria-selected="true" type="button"><svg viewBox="0 0 24 24"><path d="M12 8v4l2.5 2.5"/><circle cx="12" cy="12" r="9"/></svg> Oś czasu</button>
-				<button class="tab" data-tab="lineups" role="tab" aria-selected="false" type="button"><svg viewBox="0 0 24 24"><path d="M6 4h12v3a6 6 0 0 1-12 0z"/><path d="M9 14h6M10 14v4M14 14v4M8 21h8"/></svg> Składy</button>
-				<button class="tab" data-tab="stats" role="tab" aria-selected="false" type="button"><svg viewBox="0 0 24 24"><path d="M5 20V10M12 20V4M19 20v-7"/></svg> Statystyki</button>
-			</div>
+			<!-- ===== ZAKŁADKI (wspólny pasek — P-d, jedno źródło markupu z single-live) ===== -->
+			<?php
+			get_template_part(
+				'features/match-display/partials/tabs-bar',
+				null,
+				array( 'active' => 'timeline' )
+			);
+			?>
 
 			<!-- ===== PANELE ZAKŁADEK ===== -->
 			<div class="tabpanels">
