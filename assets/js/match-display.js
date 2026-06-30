@@ -72,8 +72,22 @@
         timelineScroll.style.maxHeight = "";
       }
     };
-    requestAnimationFrame(syncTimelineHeight);
-    window.addEventListener("resize", syncTimelineHeight);
+    // Po zmianie breakpointu aktywna zakładka może mieć UKRYTY przycisk (na
+    // desktopie „Oś czasu" znika z paska — oś jest osobnym panelem). Wtedy główna
+    // kolumna zostałaby bez treści (np. user kliknął „Oś czasu" w wąskim oknie,
+    // potem je poszerzył ≥1220px). Przełącz wtedy na pierwszą WIDOCZNĄ zakładkę.
+    // Ogólne: single-ft nie chowa żadnego przycisku, więc tam nigdy nie zadziała.
+    var ensureVisibleActiveTab = function () {
+      var active = $(".tabs .tab.is-active");
+      if (active && active.offsetParent === null) {
+        for (var i = 0; i < tabs.length; i++) {
+          if (tabs[i].offsetParent !== null) { activateTab(tabs[i].dataset.tab); break; }
+        }
+      }
+    };
+    var onViewport = function () { syncTimelineHeight(); ensureVisibleActiveTab(); };
+    requestAnimationFrame(onViewport);
+    window.addEventListener("resize", onViewport);
     document.addEventListener("hajlajty:live-updated", syncTimelineHeight);
   }
 
