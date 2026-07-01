@@ -45,6 +45,24 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 <body <?php body_class(); ?>>
 
+	<?php /* Przywrócenie stanu menu (rail vs pełne) PRZED pierwszym paintem powłoki
+	         — analogicznie do anti-FOUC motywu w <head>, ale klasa siedzi na <body>,
+	         więc skrypt jest TUŻ po <body> (document.body już istnieje). Klasa
+	         nav-collapsed siada zanim parser dojdzie do .shell/.sidebar, więc nie
+	         ma błysku pełnego menu, gdy redaktor zostawił szynę. Klucz z
+	         hajlajty_nav_store_key() — TO SAMO źródło, którego layout.js (toggle)
+	         używa przez wp_localize_script. CSS reaguje tylko ≥1100px na widokach z
+	         trwałym menu, więc na mobile/single klasa jest nieszkodliwa. */ ?>
+	<script>
+		(function () {
+			try {
+				if (localStorage.getItem(<?php echo wp_json_encode( hajlajty_nav_store_key() ); ?>) === "collapsed") {
+					document.body.classList.add("nav-collapsed");
+				}
+			} catch (e) {}
+		})();
+	</script>
+
 	<!-- ============================ TOP BAR ============================ -->
 	<header class="topbar">
 		<div class="topbar__inner container">
