@@ -11,7 +11,10 @@
 (function () {
   "use strict";
 
-  var STORE = { theme: "hajlajty:theme" };
+  // Klucz motywu z PHP (wp_localize_script w layout.php) — TO SAMO źródło co
+  // skrypt anti-FOUC w <head>, więc toggle zapisuje pod tym samym kluczem, który
+  // head odczytuje. Fallback tylko na wypadek braku localize (nie powinien wystąpić).
+  var STORE = { theme: (window.hajlajtyLayout && window.hajlajtyLayout.themeKey) || "hajlajty:theme" };
   var $ = function (s, c) { return (c || document).querySelector(s); };
   var $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
 

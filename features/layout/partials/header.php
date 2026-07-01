@@ -22,13 +22,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<meta charset="<?php bloginfo( 'charset' ); ?>" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<?php /* Anti-FOUC: musi być PIERWSZY i SYNCHRONICZNY (bez defer/async ani
-	         wp_enqueue), żeby wykonał się przed pierwszym paintem. Klucz
-	         "hajlajty:theme" współdzielony z assets/js/layout.js (toggle). */ ?>
+	         wp_enqueue), żeby wykonał się przed pierwszym paintem. Klucz motywu
+	         z hajlajty_theme_store_key() — TO SAMO źródło, którego layout.js
+	         (toggle) używa przez wp_localize_script. */ ?>
 	<script>
 		(function () {
 			try {
-				var saved = localStorage.getItem("hajlajty:theme");
-				var theme = saved
+				var saved = localStorage.getItem(<?php echo wp_json_encode( hajlajty_theme_store_key() ); ?>);
+				// Ufaj tylko znanym wartościom — inaczej brak pasującego bloku
+				// [data-theme=...] w tokens.css i strona maluje się bez kolorów.
+				var theme = (saved === "dark" || saved === "light")
 					? saved
 					: (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
 				document.documentElement.setAttribute("data-theme", theme);
