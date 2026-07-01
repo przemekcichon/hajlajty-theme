@@ -223,20 +223,46 @@
     transition: grid-template-columns var(--t-med);
   }
 
-  /* Hamburger zwija kolumnę sidebara do 0 (klasę body.nav-collapsed nadaje
-     layout.js). Treść przejmuje całą szerokość. */
+  /* P-h/3 — zwinięcie „jak YouTube": hamburger (klasa body.nav-collapsed z
+     layout.js) kurczy kolumnę sidebara do wąskiej SZYNY (rail) z samymi IKONAMI
+     linków — etykiety, nagłówki sekcji i teaser „wkrótce" znikają, ikony zostają
+     klikalne i nawigują. Transition grid-template-columns (wyżej) animuje
+     zwężenie. Dotyczy tylko widoków z trwałym menu; single (drawer) chowa się w
+     całości osobną gałęzią w layout.js. */
   body.home.nav-collapsed .shell,
   body.post-type-archive.nav-collapsed .shell,
   body.hajlajty-terminarz.nav-collapsed .shell,
   body.hajlajty-tabela-rozgrywek.nav-collapsed .shell,
   body.hajlajty-reprezentacje.nav-collapsed .shell,
-  body.hajlajty-faza-pucharowa.nav-collapsed .shell { grid-template-columns: 0 minmax(0, 1fr); }
+  body.hajlajty-faza-pucharowa.nav-collapsed .shell { grid-template-columns: var(--sidebar-rail) minmax(0, 1fr); }
+
+  /* Sidebar zostaje WIDOCZNY (koniec z opacity/pointer-events z poprzedniej
+     wersji, które chowały całe menu); wąski symetryczny padding pod rail. */
   body.home.nav-collapsed .sidebar,
   body.post-type-archive.nav-collapsed .sidebar,
   body.hajlajty-terminarz.nav-collapsed .sidebar,
   body.hajlajty-tabela-rozgrywek.nav-collapsed .sidebar,
   body.hajlajty-reprezentacje.nav-collapsed .sidebar,
-  body.hajlajty-faza-pucharowa.nav-collapsed .sidebar { opacity: 0; pointer-events: none; }
+  body.hajlajty-faza-pucharowa.nav-collapsed .sidebar { padding-inline: var(--space-2xs); }
+
+  /* Ikona linku zostaje (ma explicit width/height), goły węzeł tekstowy gaśnie
+     przez font-size:0, odstęp ikona–tekst zerujemy, link centrujemy w szynie.
+     Nazwa dostępna linku to nadal ten sam węzeł tekstowy (czytniki ekranu
+     ignorują font-size), więc a11y zachowane bez dokładania title/aria-label.
+     Klasa nav-collapsed pojawia się TYLKO na widokach z trwałym menu (gwarancja
+     w layout.js, isPersistentNav), więc krótki prefiks body.nav-collapsed
+     wystarcza i wygrywa specyficznością nad bazowym .nav-link. */
+  body.nav-collapsed .nav-link {
+    justify-content: center;
+    gap: 0;
+    padding-inline: 0;
+    font-size: 0;
+  }
+  /* Etykiety sekcji, badge LIVE i cały teaser „wkrótce" (ostatnia grupa
+     sidebara — patrz coming-soon.php) znikają w trybie rail. */
+  body.nav-collapsed .sidebar__label,
+  body.nav-collapsed .nav-link .badge-live,
+  body.nav-collapsed .sidebar .sidebar__group:last-child { display: none; }
 
   /* Topbar pełnej szerokości — logo licuje z lewą krawędzią, nad sidebarem
      (na single topbar pozostaje zawężony do pasma widoku). */
