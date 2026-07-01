@@ -245,19 +245,28 @@
   body.hajlajty-reprezentacje.nav-collapsed .sidebar,
   body.hajlajty-faza-pucharowa.nav-collapsed .sidebar { padding-inline: var(--space-2xs); }
 
-  /* Ikona linku zostaje (ma explicit width/height), goły węzeł tekstowy gaśnie
-     przez font-size:0, odstęp ikona–tekst zerujemy, link centrujemy w szynie.
-     Nazwa dostępna linku to nadal ten sam węzeł tekstowy (czytniki ekranu
-     ignorują font-size), więc a11y zachowane bez dokładania title/aria-label.
-     Klasa nav-collapsed pojawia się TYLKO na widokach z trwałym menu (gwarancja
-     w layout.js, isPersistentNav), więc krótki prefiks body.nav-collapsed
-     wystarcza i wygrywa specyficznością nad bazowym .nav-link. */
-  body.nav-collapsed .nav-link {
-    justify-content: center;
-    gap: 0;
-    padding-inline: 0;
-    font-size: 0;
-  }
+  /* Etykiety linków w trwałym menu NIE zawijają się — dzięki temu przy animacji
+     szerokości (rozwijanie z railu) tekst pojawia się przycięty do bieżącej
+     szerokości i płynnie się odsłania, zamiast zawijać w wielolinijkowy blok
+     w wąskiej kolumnie i skakać wysokością. Współpracuje z overflow-x:hidden
+     na sidebarze. */
+  body.home .sidebar .nav-link,
+  body.post-type-archive .sidebar .nav-link,
+  body.hajlajty-terminarz .sidebar .nav-link,
+  body.hajlajty-tabela-rozgrywek .sidebar .nav-link,
+  body.hajlajty-reprezentacje .sidebar .nav-link,
+  body.hajlajty-faza-pucharowa .sidebar .nav-link { white-space: nowrap; }
+
+  /* Rail: ikona linku zostaje (ma explicit width/height), goły węzeł tekstowy
+     gaśnie przez font-size:0. NIE centrujemy ikony ani nie zerujemy jej paddingu
+     — ikona ma zostać DOKŁADNIE tam, gdzie w stanie rozwiniętym (x=24px: sidebar
+     padding-left 8 + nav-link padding-left 16), żeby przy animacji szerokości
+     kolumny nie „odskakiwała" w bok i z powrotem. W szynie 72px i tak wypada
+     niemal na środku (środek ikony 34.5 vs środek szyny 36). Nazwa dostępna to
+     nadal ten węzeł tekstowy (czytniki ekranu ignorują font-size), więc a11y
+     zachowane bez title/aria-label. nav-collapsed występuje TYLKO na widokach z
+     trwałym menu (gwarancja isPersistentNav w layout.js). */
+  body.nav-collapsed .nav-link { font-size: 0; }
   /* Etykiety sekcji, badge LIVE i cały teaser „wkrótce" (ostatnia grupa
      sidebara — patrz coming-soon.php) znikają w trybie rail. */
   body.nav-collapsed .sidebar__label,
@@ -323,6 +332,10 @@
     height: 100%;
     box-shadow: none;
     overflow-y: auto;
+    /* Podczas animacji szerokości kolumny (rozwijanie z railu) etykiety linków
+       mają być PRZYCINANE do bieżącej szerokości sidebara, nie zawijać się ani
+       nie wylewać na kolumnę treści — patrz white-space:nowrap na nav-link niżej. */
+    overflow-x: hidden;
     border-right: 1px solid var(--border);
     transition: opacity var(--t-med);
     /* P-h/2 — ikony linków bliżej lewej krawędzi: lewy padding maleje z
