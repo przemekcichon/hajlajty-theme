@@ -264,8 +264,11 @@
      kolumny nie „odskakiwała" w bok i z powrotem. W szynie 72px i tak wypada
      niemal na środku (środek ikony 34.5 vs środek szyny 36). Nazwa dostępna to
      nadal ten węzeł tekstowy (czytniki ekranu ignorują font-size), więc a11y
-     zachowane bez title/aria-label. nav-collapsed występuje TYLKO na widokach z
-     trwałym menu (gwarancja isPersistentNav w layout.js). */
+     zachowane bez title/aria-label. Nieoscope'owane selektory body.nav-collapsed
+     są bezpieczne, bo klasa występuje TYLKO na widokach z trwałym menu: skrypt
+     anti-FOUC (header.php) odtwarza ją wszędzie, ale layout.js zdejmuje ją na
+     stronach spoza trwałego menu (isPersistentNavPage) — inaczej rail „zjadałby"
+     tekst w drawerze na single. */
   body.nav-collapsed .nav-link { font-size: 0; }
   /* Etykiety sekcji, badge LIVE i cały teaser „wkrótce" (ostatnia grupa
      sidebara — patrz coming-soon.php) znikają w trybie rail. */
