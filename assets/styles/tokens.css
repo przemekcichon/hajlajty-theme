@@ -63,6 +63,9 @@
 
 /* ---- MOTYW CIEMNY (domyślny) ---- */
 [data-theme="dark"] {
+  /* Natywny UI (scrollbary, kontrolki, domyślne tło okna) w tonie motywu —
+     bez tego przeglądarka błyska białym zanim pomaluje --bg (element P-g). */
+  color-scheme: dark;
   --bg:            oklch(0.17 0.008 250);
   --bg-elev:       oklch(0.205 0.009 250);
   --surface:       oklch(0.225 0.01 250);
@@ -82,6 +85,7 @@
 
 /* ---- MOTYW JASNY ---- */
 [data-theme="light"] {
+  color-scheme: light;
   --bg:            oklch(0.985 0.003 250);
   --bg-elev:       oklch(1 0 0);
   --surface:       oklch(1 0 0);

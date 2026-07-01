@@ -15,9 +15,11 @@
   var $ = function (s, c) { return (c || document).querySelector(s); };
   var $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
 
-  /* ---------- MOTYW (wspólny klucz na całym serwisie) ---------- */
+  /* ---------- MOTYW (wspólny klucz na całym serwisie) ----------
+     PIERWSZY paint ustawia blokujący skrypt inline w <head> (anti-FOUC, P-g):
+     to on czyta STORE.theme z localStorage przed renderem <body>. Tu został już
+     tylko TOGGLE — czyta aktualny data-theme (ustawiony w <head>) i przełącza. */
   var root = document.documentElement;
-  try { var saved = localStorage.getItem(STORE.theme); if (saved) root.setAttribute("data-theme", saved); } catch (e) {}
   var themeBtn = $("#themeBtn");
   if (themeBtn) {
     themeBtn.addEventListener("click", function () {

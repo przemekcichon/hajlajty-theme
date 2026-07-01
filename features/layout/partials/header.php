@@ -4,8 +4,12 @@
  * otwarcie .shell/.content). Szablon w roocie woła go przez get_template_part,
  * renderuje swoją treść wewnątrz .content, a domyka footer.php.
  *
- * data-theme="dark" domyślnie; layout.js nadpisuje zapisanym motywem z
- * localStorage tuż po starcie (akceptowalny mikro-FOUC — jak w monolicie).
+ * data-theme="dark" w markupie = fallback bez JS (marka). O motywie przy
+ * PIERWSZYM paincie decyduje BLOKUJĄCY skrypt inline na samym początku <head>
+ * (patrz niżej): ustawia data-theme ZANIM przeglądarka wyrenderuje <body>, więc
+ * nie ma ciemnego błysku, gdy redaktor wybrał motyw jasny (P-g). Skrypt jest
+ * synchroniczny i cache-safe (HTML identyczny dla każdego; motyw = stan per-
+ * użytkownik czytany po stronie klienta, zgodnie z zasadą cache z planu).
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -17,6 +21,20 @@ if ( ! defined( 'ABSPATH' ) ) {
 <head>
 	<meta charset="<?php bloginfo( 'charset' ); ?>" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<?php /* Anti-FOUC: musi być PIERWSZY i SYNCHRONICZNY (bez defer/async ani
+	         wp_enqueue), żeby wykonał się przed pierwszym paintem. Klucz
+	         "hajlajty:theme" współdzielony z assets/js/layout.js (toggle). */ ?>
+	<script>
+		(function () {
+			try {
+				var saved = localStorage.getItem("hajlajty:theme");
+				var theme = saved
+					? saved
+					: (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+				document.documentElement.setAttribute("data-theme", theme);
+			} catch (e) {}
+		})();
+	</script>
 	<link rel="preconnect" href="https://fonts.googleapis.com" />
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 	<?php wp_head(); ?>
