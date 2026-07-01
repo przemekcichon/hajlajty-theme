@@ -91,7 +91,11 @@
   transform: translateX(-100%);
   transition: transform var(--t-med);
   display: flex; flex-direction: column;
-  padding: var(--space-sm) var(--space-sm) var(--space-lg);
+  /* Lewy padding --space-2xs (8px) < prawy/górny --space-sm (16px): ikony linków
+     siadają bliżej lewej krawędzi. Dotyczy KAŻDEGO sidebara (drawer single/mobile
+     ORAZ stały ≥1100) — świadomie spójnie po zniesieniu zasady „single bez zmian"
+     (decyzja z hotfixa: single ma wyglądać tak jak archiwa). */
+  padding: var(--space-sm) var(--space-sm) var(--space-lg) var(--space-2xs);
   overflow-y: auto;
 }
 .sidebar.is-open { transform: translateX(0); }
@@ -183,6 +187,19 @@
     margin-inline: auto;
     padding-inline: var(--page-horizontal-margin, var(--gutter));
   }
+
+  /* Ciasny klaster nagłówka (logo tuż przy hamburgerze) na WSZYSTKICH widokach
+     ≥1100px — także single, żeby jego topbar wyglądał jak na archiwach (decyzja
+     z hotfixa). Geometria dokładnego wyrównania odnosi się do widoków z trwałym
+     menu, gdzie ikony linków sidebara stoją PONIŻEJ hamburgera (sidebar
+     padding-left 8 + nav-link padding-left 16 → ikona @24px; margin -3 sadza
+     ikonę hamburgera na tej samej osi; logo padding --space-3xs=4px domyka tekst
+     logo na osi etykiet @61px). Na single sidebar to drawer (nie stoi pod
+     hamburgerem), więc te same reguły dają po prostu identyczny, ciasny klaster
+     w zawężonym pasmie watch — bez wyrównania do fizycznej krawędzi ekranu. */
+  .topbar__left { gap: 0; }
+  .topbar__left > .icon-btn:first-child { margin-left: -3px; }
+  .logo { padding-inline: var(--space-3xs); }
 
   .shell { flex: 1 1 auto; min-height: 0; width: 100%; display: block; }
   .content { height: 100%; overflow-y: auto; overflow-x: hidden; }
@@ -289,37 +306,10 @@
     padding-inline: var(--space-sm);
   }
 
-  /* P-h/1 — logo dosunięte do hamburgera i zlicowane z etykietami linków, a
-     hamburger zlicowany z ikonami linków sidebara. Geometria (x od lewej krawędzi
-     ekranu, ≥1100px):
-       sidebar: padding-left 8 (--space-2xs) + nav-link padding-inline 16
-                → ikona linku @24px; tekst linku @24+21(ikona)+16(gap) = 61px
-       topbar:  padding-inline 16 (--space-sm) + hamburger margin-left -3
-                → ikona hamburgera @24px (licuje z ikonami linków)
-       logo:    16 -3 +44(icon-btn) +0(gap) +4(padding) = 61px (licuje z tekstem)
-     Odstęp topbar__left → 0 dosuwa logo do hamburgera; logo padding-inline →
-     --space-3xs (4px) domyka tekst logo dokładnie na osi 61px. Tylko trwałe menu
-     — single „mecz" (drawer) zachowuje bazowe wartości. */
-  body.home .topbar__left,
-  body.post-type-archive .topbar__left,
-  body.hajlajty-terminarz .topbar__left,
-  body.hajlajty-tabela-rozgrywek .topbar__left,
-  body.hajlajty-reprezentacje .topbar__left,
-  body.hajlajty-faza-pucharowa .topbar__left { gap: 0; }
-
-  body.home .topbar__left > .icon-btn:first-child,
-  body.post-type-archive .topbar__left > .icon-btn:first-child,
-  body.hajlajty-terminarz .topbar__left > .icon-btn:first-child,
-  body.hajlajty-tabela-rozgrywek .topbar__left > .icon-btn:first-child,
-  body.hajlajty-reprezentacje .topbar__left > .icon-btn:first-child,
-  body.hajlajty-faza-pucharowa .topbar__left > .icon-btn:first-child { margin-left: -3px; }
-
-  body.home .logo,
-  body.post-type-archive .logo,
-  body.hajlajty-terminarz .logo,
-  body.hajlajty-tabela-rozgrywek .logo,
-  body.hajlajty-reprezentacje .logo,
-  body.hajlajty-faza-pucharowa .logo { padding-inline: var(--space-3xs); }
+  /* Ciasny klaster nagłówka (topbar__left gap 0, hamburger -3, logo padding
+     --space-3xs) żyje teraz w ogólnym bloku ≥1100 wyżej — wspólny dla single i
+     widoków z trwałym menu. Tu zostają już tylko różnice specyficzne dla trwałego
+     menu (pełna szerokość topbara wyżej, statyczny sidebar niżej). */
 
   /* Sidebar STAŁY: statyczna kolumna z własnym scrollem (nie drawer). */
   body.home .sidebar,
@@ -341,12 +331,8 @@
     overflow-x: hidden;
     border-right: 1px solid var(--border);
     transition: opacity var(--t-med);
-    /* P-h/2 — ikony linków bliżej lewej krawędzi: lewy padding maleje z
-       --space-sm (16px) do --space-2xs (8px). SCOPE: świadome odstępstwo od
-       planu, który kazał zmienić bazowe `.sidebar` — bazowa reguła stroi też
-       DRAWER (single/mobile), a plan wymaga „single bez zmian". Dlatego skracamy
-       padding TYLKO na widokach z trwałym menu. */
-    padding-left: var(--space-2xs);
+    /* Lewy padding 8px pochodzi teraz z bazowego `.sidebar` (wspólny dla drawera
+       i menu stałego) — override tutaj już niepotrzebny. */
   }
 
   /* Logo żyje w topbarze; nagłówek sidebara (z „zamknij") zbędny. Hamburger
