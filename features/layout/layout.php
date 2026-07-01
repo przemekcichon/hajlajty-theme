@@ -18,6 +18,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 add_action( 'wp_enqueue_scripts', 'hajlajty_layout_enqueue' );
 
 /**
+ * Klucz localStorage motywu — JEDNO źródło prawdy. Używają go DWA miejsca:
+ * skrypt anti-FOUC w <head> (partials/header.php, wypisuje go inline przed
+ * pierwszym paintem) oraz toggle w assets/js/layout.js (dostaje go przez
+ * wp_localize_script — patrz niżej). Wcześniej literał "hajlajty:theme" żył w
+ * obu plikach; rename jednego cicho rozjechałby czytelnika (head) z zapisującym
+ * (toggle) i przywrócił FOUC. Teraz oba wywodzą się stąd.
+ */
+function hajlajty_theme_store_key() {
+	return 'hajlajty:theme';
+}
+
+/**
  * Globalne zasoby powłoki. Wersjonowanie po filemtime, żeby cache nie trzymał
  * starego CSS po edycji (dev-friendly; produkcyjnie i tak działa). Kolejność
  * ładowania CSS pilnowana zależnościami: base po tokens, layout po base.
@@ -57,5 +69,13 @@ function hajlajty_layout_enqueue() {
 		array(),
 		is_readable( $js_path ) ? (string) filemtime( $js_path ) : '0.1.0',
 		true // w stopce: DOM gotowy, uchwyty istnieją.
+	);
+
+	// Klucz motywu do toggle'a — z tego samego źródła co skrypt w <head>, żeby
+	// zapisujący (toggle) i czytelnik (head) nie mogły się rozjechać.
+	wp_localize_script(
+		'hajlajty-layout',
+		'hajlajtyLayout',
+		array( 'themeKey' => hajlajty_theme_store_key() )
 	);
 }
