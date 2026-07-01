@@ -65,10 +65,23 @@
       "hajlajty-reprezentacje",
       "hajlajty-faza-pucharowa",
     ];
-    var isPersistentNav = function () {
-      if (!window.matchMedia("(min-width: 1100px)").matches) return false;
+    var isPersistentNavPage = function () {
       return PERSISTENT_NAV.some(function (c) { return document.body.classList.contains(c); });
     };
+    var isPersistentNav = function () {
+      return window.matchMedia("(min-width: 1100px)").matches && isPersistentNavPage();
+    };
+    // nav-collapsed opisuje rail — stan WYŁĄCZNIE widoków z trwałym menu. Skrypt
+    // anti-FOUC w header.php odtwarza go z localStorage na KAŻDEJ stronie (przed
+    // paintem), więc na single/innych widokach klasa ląduje omyłkowo, a rail-owe
+    // reguły CSS (font-size:0 na etykietach itd.) „zjadałyby" tekst w drawerze.
+    // Zdejmujemy ją wg TYPU strony (klasa body), NIE szerokości — preferencja w
+    // localStorage zostaje nietknięta, więc na widoku z trwałym menu rail wraca.
+    // To przywraca inwariant „nav-collapsed tylko na trwałym menu", na którym
+    // opierają się nieoscope'owane selektory rail w layout.css.
+    if (!isPersistentNavPage()) {
+      document.body.classList.remove("nav-collapsed");
+    }
     menuBtn.addEventListener("click", function () {
       if (isPersistentNav()) {
         var collapsed = document.body.classList.toggle("nav-collapsed");
