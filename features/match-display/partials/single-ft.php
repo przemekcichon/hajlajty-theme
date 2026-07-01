@@ -64,15 +64,14 @@ $kickoff_dt  = ( is_string( $kickoff_raw ) && '' !== $kickoff_raw )
 	? date_create_immutable( $kickoff_raw, new DateTimeZone( 'UTC' ) )
 	: false;
 $kickoff_ts  = $kickoff_dt ? $kickoff_dt->getTimestamp() : 0;
-$date_corner = $kickoff_ts ? wp_date( 'j.m.Y · H:i', $kickoff_ts ) : ''; // prawy górny róg.
+$date_corner = $kickoff_ts ? wp_date( 'j M y · H:i', $kickoff_ts ) : ''; // P-górny róg: jak mini zapowiedzi (+ rok 2-cyfr).
 $date_full   = $kickoff_ts ? wp_date( 'l, j F Y', $kickoff_ts ) : '';    // fakty pod placeholderem.
 
 // Wynik do wyświetlenia (null → „–"); status meczu = literał renderu (lookup zna
 // tylko stan ZAKONCZONY, bez tekstu PL). „Po meczu" = parytet z „LIVE"/„Zapowiedź".
 $score_h   = null === $goals_home ? '–' : (string) $goals_home;
 $score_a   = null === $goals_away ? '–' : (string) $goals_away;
-$score_mid = $score_h . ' – ' . $score_a;                                   // środek placeholdera.
-$score_h1  = $home_name . ' ' . $score_h . '–' . $score_a . ' ' . $away_name; // h1 (SEO/a11y).
+$score_h1  = $home_name . ' ' . $score_h . '–' . $score_a . ' ' . $away_name; // h1 (SEO/a11y, ukryty wizualnie).
 $status_pl = 'Po meczu';
 ?>
 <div class="watch-top watch-top--compact container">
@@ -102,7 +101,8 @@ $status_pl = 'Po meczu';
 				$away_name,
 				$home_flag,
 				$away_flag,
-				$score_mid,
+				$score_h,
+				$score_a,
 				$status_pl,
 				$date_corner,
 				$kanal_name,
@@ -116,13 +116,14 @@ $status_pl = 'Po meczu';
 					<span class="player16__date"><?php echo esc_html( $date_corner ); ?></span>
 				<?php endif; ?>
 
+				<?php // Środek: home (flaga+nazwa+gole) | play/glif | away — liczba goli POD drużyną. ?>
 				<div class="player16__center">
 					<div class="team-slot">
 						<?php if ( '' !== $home_flag ) : ?><img class="country-flag team-slot__flag" src="<?php echo esc_url( $home_flag ); ?>" alt="" /><?php endif; ?>
 						<span class="team-slot__name"><?php echo esc_html( $home_name ); ?></span>
+						<span class="player16__goals"><?php echo esc_html( $score_h ); ?></span>
 					</div>
 					<div class="player16__mid">
-						<span class="player16__score"><?php echo esc_html( $score_mid ); ?></span>
 						<?php if ( $has_skrot ) : ?>
 							<span class="player16__play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span>
 						<?php else : ?>
@@ -132,6 +133,7 @@ $status_pl = 'Po meczu';
 					<div class="team-slot">
 						<?php if ( '' !== $away_flag ) : ?><img class="country-flag team-slot__flag" src="<?php echo esc_url( $away_flag ); ?>" alt="" /><?php endif; ?>
 						<span class="team-slot__name"><?php echo esc_html( $away_name ); ?></span>
+						<span class="player16__goals"><?php echo esc_html( $score_a ); ?></span>
 					</div>
 				</div>
 
@@ -166,8 +168,11 @@ $status_pl = 'Po meczu';
 				<?php endif; ?>
 			</div>
 
-			<!-- ===== NAGŁÓWEK + FAKTY (pod placeholderem, wzorem zapowiedzi) ===== -->
-			<div class="match-head">
+			<!-- ===== NAGŁÓWEK + FAKTY (pod placeholderem, wzorem zapowiedzi/live) =====
+			     h1 = tekst „{home} {gh}–{ga} {away}" DLA SEO/a11y, ukryty wizualnie
+			     (--compact). Widoczne pod telebimem tylko fakty: data + status,
+			     wyśrodkowane jak w NS/live (NIE dublujemy nazw/wyniku — są na telebimie). -->
+			<div class="match-head match-head--compact">
 				<h1 class="match-title"><?php echo esc_html( $score_h1 ); ?></h1>
 				<div class="match-facts">
 					<?php if ( '' !== $date_full ) : ?>

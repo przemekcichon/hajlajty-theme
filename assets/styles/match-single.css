@@ -86,22 +86,18 @@
 /* Fasada jest przyciskiem — resetujemy natywne style. */
 .player16__facade { text-align: inherit; color: inherit; cursor: pointer; }
 
-/* ---- Środek: home | (wynik nad play) | away ---- */
+/* ---- Środek: home (flaga+nazwa+gole) | play | away ---- */
+/* Sloty drużyn reużywają `.team-slot` z zapowiedzi 1:1 (te same rozmiary flag/nazw
+   — bez zawężania). Liczba goli POD nazwą: większa od nazwy, ale proporcjonalna. */
 .player16__center {
   display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
-  gap: clamp(10px, 3vw, 44px); width: 100%; max-width: 680px;
+  gap: clamp(16px, 4vw, 56px); width: 100%; max-width: 760px;
 }
-.player16__mid { display: flex; flex-direction: column; align-items: center; gap: clamp(8px, 1.4vh, 14px); }
-/* Wynik = zwięzły, STONOWANY caption tuż nad play (nie dominujący blok). */
-.player16__score {
-  font-size: clamp(15px, 2.2vw, 22px); font-weight: 800; letter-spacing: 0.02em;
-  font-variant-numeric: tabular-nums; color: var(--text);
+.player16__mid { display: flex; align-items: center; justify-content: center; }
+.player16__goals {
+  font-size: clamp(26px, 4.2vw, 46px); font-weight: 800; line-height: 1;
+  letter-spacing: -0.01em; font-variant-numeric: tabular-nums; color: var(--text);
 }
-/* Środek placeholdera reużywa `.team-slot` z zapowiedzi — przestronne sloty, ale
-   ciaśniej niż na pełnym ekranie odliczania (obok jest play + rogi). */
-.player16 .team-slot { gap: clamp(6px, 1.2vh, 12px); }
-.player16 .team-slot__flag { height: clamp(30px, 5.4vw, 56px); }
-.player16 .team-slot__name { font-size: clamp(13px, 1.8vw, 20px); }
 
 .player16__play {
   width: clamp(56px, 9vw, 76px); aspect-ratio: 1; display: grid; place-items: center; border-radius: 50%;
@@ -338,10 +334,9 @@
 @media (max-width: 768px) {
   body { overflow-x: hidden; overflow-x: clip; }
   .player16 { width: auto; margin-inline: calc(-1 * var(--gutter)); border-radius: 0; border-inline: none; }
-  /* P-i: na wąskim 16:9 dociskamy klaster środka i zmniejszamy rogi, żeby się nie tłoczył. */
+  /* P-i: na wąskim 16:9 dociskamy odstępy klastra i zmniejszamy rogi (flagi/nazwy
+     zostają w rozmiarze zapowiedzi — clamp i tak skaluje je z vw). */
   .player16__center { gap: clamp(6px, 3.4vw, 18px); }
-  .player16 .team-slot__flag { height: clamp(26px, 7.4vw, 40px); }
-  .player16 .team-slot__name { font-size: clamp(12px, 3.4vw, 15px); }
   .player16__badge, .player16__date, .player16__src, .player16__soon { font-size: 11px; padding: 5px 10px; }
   .player16__dur { font-size: 12px; }
 }
