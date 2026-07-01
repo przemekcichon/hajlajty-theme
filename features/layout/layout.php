@@ -30,6 +30,18 @@ function hajlajty_theme_store_key() {
 }
 
 /**
+ * Klucz localStorage stanu zwinięcia menu (rail vs pełne) — JEDNO źródło prawdy,
+ * analogicznie do hajlajty_theme_store_key(). Używają go DWA miejsca: skrypt
+ * przywracający stan PRZED pierwszym paintem (partials/header.php, tuż po <body>)
+ * oraz toggle w assets/js/layout.js (dostaje go przez wp_localize_script). Stan
+ * zwinięcia to preferencja per-użytkownik po stronie klienta — tak samo jak
+ * motyw — więc NIE dotyka bazy i jest cache-safe (HTML identyczny dla każdego).
+ */
+function hajlajty_nav_store_key() {
+	return 'hajlajty:nav-collapsed';
+}
+
+/**
  * Globalne zasoby powłoki. Wersjonowanie po filemtime, żeby cache nie trzymał
  * starego CSS po edycji (dev-friendly; produkcyjnie i tak działa). Kolejność
  * ładowania CSS pilnowana zależnościami: base po tokens, layout po base.
@@ -76,6 +88,9 @@ function hajlajty_layout_enqueue() {
 	wp_localize_script(
 		'hajlajty-layout',
 		'hajlajtyLayout',
-		array( 'themeKey' => hajlajty_theme_store_key() )
+		array(
+			'themeKey' => hajlajty_theme_store_key(),
+			'navKey'   => hajlajty_nav_store_key(),
+		)
 	);
 }

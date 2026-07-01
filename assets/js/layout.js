@@ -14,7 +14,10 @@
   // Klucz motywu z PHP (wp_localize_script w layout.php) — TO SAMO źródło co
   // skrypt anti-FOUC w <head>, więc toggle zapisuje pod tym samym kluczem, który
   // head odczytuje. Fallback tylko na wypadek braku localize (nie powinien wystąpić).
-  var STORE = { theme: (window.hajlajtyLayout && window.hajlajtyLayout.themeKey) || "hajlajty:theme" };
+  var STORE = {
+    theme: (window.hajlajtyLayout && window.hajlajtyLayout.themeKey) || "hajlajty:theme",
+    nav: (window.hajlajtyLayout && window.hajlajtyLayout.navKey) || "hajlajty:nav-collapsed",
+  };
   var $ = function (s, c) { return (c || document).querySelector(s); };
   var $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
 
@@ -70,10 +73,19 @@
       if (isPersistentNav()) {
         var collapsed = document.body.classList.toggle("nav-collapsed");
         menuBtn.setAttribute("aria-expanded", collapsed ? "false" : "true");
+        // Zapamiętaj stan zwinięcia (rail vs pełne) — preferencja per-użytkownik,
+        // tak samo jak motyw. Skrypt w header.php odtwarza go przed paintem.
+        try { localStorage.setItem(STORE.nav, collapsed ? "collapsed" : "expanded"); } catch (e) {}
         return;
       }
       if (sidebar.classList.contains("is-open")) closeSidebar(); else openSidebar();
     });
+    // Stan zwinięcia mógł zostać odtworzony przez skrypt w header.php (klasa
+    // nav-collapsed na body) — zsynchronizuj aria-expanded na starcie w trybie
+    // trwałego menu (w trybie drawera aria startuje jako zamknięte i tak zostaje).
+    if (isPersistentNav()) {
+      menuBtn.setAttribute("aria-expanded", document.body.classList.contains("nav-collapsed") ? "false" : "true");
+    }
     var closeBtn = $("#sidebarClose");
     if (closeBtn) closeBtn.addEventListener("click", closeSidebar);
     scrim.addEventListener("click", closeSidebar);

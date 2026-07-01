@@ -33,6 +33,7 @@
   --gutter: clamp(16px, 3vw, 40px);
   --topbar-h: 72px;
   --sidebar-w: 288px;
+  --sidebar-rail: 72px; /* P-h/3 — szerokość zwiniętego sidebara (rail z ikonami) */
   --chips-pad-y: 14px;
 
   /* ---- SKALA ODSTĘPÓW ---- */

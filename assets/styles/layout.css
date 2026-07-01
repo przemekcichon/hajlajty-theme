@@ -223,20 +223,55 @@
     transition: grid-template-columns var(--t-med);
   }
 
-  /* Hamburger zwija kolumnę sidebara do 0 (klasę body.nav-collapsed nadaje
-     layout.js). Treść przejmuje całą szerokość. */
+  /* P-h/3 — zwinięcie „jak YouTube": hamburger (klasa body.nav-collapsed z
+     layout.js) kurczy kolumnę sidebara do wąskiej SZYNY (rail) z samymi IKONAMI
+     linków — etykiety, nagłówki sekcji i teaser „wkrótce" znikają, ikony zostają
+     klikalne i nawigują. Transition grid-template-columns (wyżej) animuje
+     zwężenie. Dotyczy tylko widoków z trwałym menu; single (drawer) chowa się w
+     całości osobną gałęzią w layout.js. */
   body.home.nav-collapsed .shell,
   body.post-type-archive.nav-collapsed .shell,
   body.hajlajty-terminarz.nav-collapsed .shell,
   body.hajlajty-tabela-rozgrywek.nav-collapsed .shell,
   body.hajlajty-reprezentacje.nav-collapsed .shell,
-  body.hajlajty-faza-pucharowa.nav-collapsed .shell { grid-template-columns: 0 minmax(0, 1fr); }
+  body.hajlajty-faza-pucharowa.nav-collapsed .shell { grid-template-columns: var(--sidebar-rail) minmax(0, 1fr); }
+
+  /* Sidebar zostaje WIDOCZNY (koniec z opacity/pointer-events z poprzedniej
+     wersji, które chowały całe menu); wąski symetryczny padding pod rail. */
   body.home.nav-collapsed .sidebar,
   body.post-type-archive.nav-collapsed .sidebar,
   body.hajlajty-terminarz.nav-collapsed .sidebar,
   body.hajlajty-tabela-rozgrywek.nav-collapsed .sidebar,
   body.hajlajty-reprezentacje.nav-collapsed .sidebar,
-  body.hajlajty-faza-pucharowa.nav-collapsed .sidebar { opacity: 0; pointer-events: none; }
+  body.hajlajty-faza-pucharowa.nav-collapsed .sidebar { padding-inline: var(--space-2xs); }
+
+  /* Etykiety linków w trwałym menu NIE zawijają się — dzięki temu przy animacji
+     szerokości (rozwijanie z railu) tekst pojawia się przycięty do bieżącej
+     szerokości i płynnie się odsłania, zamiast zawijać w wielolinijkowy blok
+     w wąskiej kolumnie i skakać wysokością. Współpracuje z overflow-x:hidden
+     na sidebarze. */
+  body.home .sidebar .nav-link,
+  body.post-type-archive .sidebar .nav-link,
+  body.hajlajty-terminarz .sidebar .nav-link,
+  body.hajlajty-tabela-rozgrywek .sidebar .nav-link,
+  body.hajlajty-reprezentacje .sidebar .nav-link,
+  body.hajlajty-faza-pucharowa .sidebar .nav-link { white-space: nowrap; }
+
+  /* Rail: ikona linku zostaje (ma explicit width/height), goły węzeł tekstowy
+     gaśnie przez font-size:0. NIE centrujemy ikony ani nie zerujemy jej paddingu
+     — ikona ma zostać DOKŁADNIE tam, gdzie w stanie rozwiniętym (x=24px: sidebar
+     padding-left 8 + nav-link padding-left 16), żeby przy animacji szerokości
+     kolumny nie „odskakiwała" w bok i z powrotem. W szynie 72px i tak wypada
+     niemal na środku (środek ikony 34.5 vs środek szyny 36). Nazwa dostępna to
+     nadal ten węzeł tekstowy (czytniki ekranu ignorują font-size), więc a11y
+     zachowane bez title/aria-label. nav-collapsed występuje TYLKO na widokach z
+     trwałym menu (gwarancja isPersistentNav w layout.js). */
+  body.nav-collapsed .nav-link { font-size: 0; }
+  /* Etykiety sekcji, badge LIVE i cały teaser „wkrótce" (ostatnia grupa
+     sidebara — patrz coming-soon.php) znikają w trybie rail. */
+  body.nav-collapsed .sidebar__label,
+  body.nav-collapsed .nav-link .badge-live,
+  body.nav-collapsed .sidebar .sidebar__group:last-child { display: none; }
 
   /* Topbar pełnej szerokości — logo licuje z lewą krawędzią, nad sidebarem
      (na single topbar pozostaje zawężony do pasma widoku). */
@@ -250,6 +285,38 @@
     margin-inline: 0;
     padding-inline: var(--space-sm);
   }
+
+  /* P-h/1 — logo dosunięte do hamburgera i zlicowane z etykietami linków, a
+     hamburger zlicowany z ikonami linków sidebara. Geometria (x od lewej krawędzi
+     ekranu, ≥1100px):
+       sidebar: padding-left 8 (--space-2xs) + nav-link padding-inline 16
+                → ikona linku @24px; tekst linku @24+21(ikona)+16(gap) = 61px
+       topbar:  padding-inline 16 (--space-sm) + hamburger margin-left -3
+                → ikona hamburgera @24px (licuje z ikonami linków)
+       logo:    16 -3 +44(icon-btn) +0(gap) +4(padding) = 61px (licuje z tekstem)
+     Odstęp topbar__left → 0 dosuwa logo do hamburgera; logo padding-inline →
+     --space-3xs (4px) domyka tekst logo dokładnie na osi 61px. Tylko trwałe menu
+     — single „mecz" (drawer) zachowuje bazowe wartości. */
+  body.home .topbar__left,
+  body.post-type-archive .topbar__left,
+  body.hajlajty-terminarz .topbar__left,
+  body.hajlajty-tabela-rozgrywek .topbar__left,
+  body.hajlajty-reprezentacje .topbar__left,
+  body.hajlajty-faza-pucharowa .topbar__left { gap: 0; }
+
+  body.home .topbar__left > .icon-btn:first-child,
+  body.post-type-archive .topbar__left > .icon-btn:first-child,
+  body.hajlajty-terminarz .topbar__left > .icon-btn:first-child,
+  body.hajlajty-tabela-rozgrywek .topbar__left > .icon-btn:first-child,
+  body.hajlajty-reprezentacje .topbar__left > .icon-btn:first-child,
+  body.hajlajty-faza-pucharowa .topbar__left > .icon-btn:first-child { margin-left: -3px; }
+
+  body.home .logo,
+  body.post-type-archive .logo,
+  body.hajlajty-terminarz .logo,
+  body.hajlajty-tabela-rozgrywek .logo,
+  body.hajlajty-reprezentacje .logo,
+  body.hajlajty-faza-pucharowa .logo { padding-inline: var(--space-3xs); }
 
   /* Sidebar STAŁY: statyczna kolumna z własnym scrollem (nie drawer). */
   body.home .sidebar,
@@ -265,8 +332,18 @@
     height: 100%;
     box-shadow: none;
     overflow-y: auto;
+    /* Podczas animacji szerokości kolumny (rozwijanie z railu) etykiety linków
+       mają być PRZYCINANE do bieżącej szerokości sidebara, nie zawijać się ani
+       nie wylewać na kolumnę treści — patrz white-space:nowrap na nav-link niżej. */
+    overflow-x: hidden;
     border-right: 1px solid var(--border);
     transition: opacity var(--t-med);
+    /* P-h/2 — ikony linków bliżej lewej krawędzi: lewy padding maleje z
+       --space-sm (16px) do --space-2xs (8px). SCOPE: świadome odstępstwo od
+       planu, który kazał zmienić bazowe `.sidebar` — bazowa reguła stroi też
+       DRAWER (single/mobile), a plan wymaga „single bez zmian". Dlatego skracamy
+       padding TYLKO na widokach z trwałym menu. */
+    padding-left: var(--space-2xs);
   }
 
   /* Logo żyje w topbarze; nagłówek sidebara (z „zamknij") zbędny. Hamburger
