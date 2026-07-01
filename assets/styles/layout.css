@@ -251,6 +251,38 @@
     padding-inline: var(--space-sm);
   }
 
+  /* P-h/1 — logo dosunięte do hamburgera i zlicowane z etykietami linków, a
+     hamburger zlicowany z ikonami linków sidebara. Geometria (x od lewej krawędzi
+     ekranu, ≥1100px):
+       sidebar: padding-left 8 (--space-2xs) + nav-link padding-inline 16
+                → ikona linku @24px; tekst linku @24+21(ikona)+16(gap) = 61px
+       topbar:  padding-inline 16 (--space-sm) + hamburger margin-left -3
+                → ikona hamburgera @24px (licuje z ikonami linków)
+       logo:    16 -3 +44(icon-btn) +0(gap) +4(padding) = 61px (licuje z tekstem)
+     Odstęp topbar__left → 0 dosuwa logo do hamburgera; logo padding-inline →
+     --space-3xs (4px) domyka tekst logo dokładnie na osi 61px. Tylko trwałe menu
+     — single „mecz" (drawer) zachowuje bazowe wartości. */
+  body.home .topbar__left,
+  body.post-type-archive .topbar__left,
+  body.hajlajty-terminarz .topbar__left,
+  body.hajlajty-tabela-rozgrywek .topbar__left,
+  body.hajlajty-reprezentacje .topbar__left,
+  body.hajlajty-faza-pucharowa .topbar__left { gap: 0; }
+
+  body.home .topbar__left > .icon-btn:first-child,
+  body.post-type-archive .topbar__left > .icon-btn:first-child,
+  body.hajlajty-terminarz .topbar__left > .icon-btn:first-child,
+  body.hajlajty-tabela-rozgrywek .topbar__left > .icon-btn:first-child,
+  body.hajlajty-reprezentacje .topbar__left > .icon-btn:first-child,
+  body.hajlajty-faza-pucharowa .topbar__left > .icon-btn:first-child { margin-left: -3px; }
+
+  body.home .logo,
+  body.post-type-archive .logo,
+  body.hajlajty-terminarz .logo,
+  body.hajlajty-tabela-rozgrywek .logo,
+  body.hajlajty-reprezentacje .logo,
+  body.hajlajty-faza-pucharowa .logo { padding-inline: var(--space-3xs); }
+
   /* Sidebar STAŁY: statyczna kolumna z własnym scrollem (nie drawer). */
   body.home .sidebar,
   body.post-type-archive .sidebar,
@@ -267,6 +299,12 @@
     overflow-y: auto;
     border-right: 1px solid var(--border);
     transition: opacity var(--t-med);
+    /* P-h/2 — ikony linków bliżej lewej krawędzi: lewy padding maleje z
+       --space-sm (16px) do --space-2xs (8px). SCOPE: świadome odstępstwo od
+       planu, który kazał zmienić bazowe `.sidebar` — bazowa reguła stroi też
+       DRAWER (single/mobile), a plan wymaga „single bez zmian". Dlatego skracamy
+       padding TYLKO na widokach z trwałym menu. */
+    padding-left: var(--space-2xs);
   }
 
   /* Logo żyje w topbarze; nagłówek sidebara (z „zamknij") zbędny. Hamburger
