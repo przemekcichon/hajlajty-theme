@@ -329,7 +329,7 @@
        mają być PRZYCINANE do bieżącej szerokości sidebara, nie zawijać się ani
        nie wylewać na kolumnę treści — patrz white-space:nowrap na nav-link niżej. */
     overflow-x: hidden;
-    border-right: 1px solid var(--border);
+    /* border-right: 1px solid var(--border); */
     transition: opacity var(--t-med);
     /* Lewy padding 8px pochodzi teraz z bazowego `.sidebar` (wspólny dla drawera
        i menu stałego) — override tutaj już niepotrzebny. */
