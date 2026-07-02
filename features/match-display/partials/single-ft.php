@@ -6,8 +6,9 @@
  * Render READ-ONLY z match_data + taksonomii + ACF skrótu. Tłumaczenia RAW→PL
  * przez lookups.php (3a); YouTube ID przez derive.php. Drużyny rozwiązywane po
  * api_id do termu (helpers.php) — null = drużyna niewysiana, degradujemy bez
- * fatala. E3 dostarcza: pasek powrotu, player16, ibar, zakładki + statystyki.
- * Oś czasu (E4), składy (E5) i prawy aside (E6) to placeholdery do wypełnienia.
+ * fatala. Dostarcza: pasek powrotu (etap), player16 z nakładką „telebim"
+ * (drużyny+wynik na środku, metadane w rogach), nagłówek+fakty, zakładki
+ * (oś czasu / składy / statystyki) i prawy aside „Inne skróty".
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -17,7 +18,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 $post_id = isset( $args['post_id'] ) ? (int) $args['post_id'] : get_the_ID();
 $data    = isset( $args['data'] ) && is_array( $args['data'] ) ? $args['data'] : hajlajty_get_match_data( $post_id );
 
-$state    = hajlajty_lookup_status( $data['status']['short'] ?? null )['state'];
 $round_pl = hajlajty_lookup_round( $data['round'] ?? null );
 $terms    = hajlajty_match_get_team_terms( $post_id );
 
@@ -55,14 +55,32 @@ $away_name = $team_name( $terms['away'] );
 $home_flag = $flag_url( $terms['home'] );
 $away_flag = $flag_url( $terms['away'] );
 $match_label = $home_name . ' – ' . $away_name;
+
+// --- Czas: PŁASKA meta `kickoff` (Y-m-d H:i:s, UTC), jak w single-ns.php. ---
+// Dwie maski PL przez wp_date (strefa+locale serwisu): róg placeholdera BEZ dnia
+// tygodnia, fakty pod spodem Z dniem. Brak meta → degradujemy (pusty string).
+$kickoff_raw = get_post_meta( $post_id, 'kickoff', true );
+$kickoff_dt  = ( is_string( $kickoff_raw ) && '' !== $kickoff_raw )
+	? date_create_immutable( $kickoff_raw, new DateTimeZone( 'UTC' ) )
+	: false;
+$kickoff_ts  = $kickoff_dt ? $kickoff_dt->getTimestamp() : 0;
+$date_corner = $kickoff_ts ? wp_date( 'j M y · H:i', $kickoff_ts ) : ''; // P-górny róg: jak mini zapowiedzi (+ rok 2-cyfr).
+$date_full   = $kickoff_ts ? wp_date( 'l, j F Y', $kickoff_ts ) : '';    // fakty pod placeholderem.
+
+// Wynik do wyświetlenia (null → „–"); status meczu = literał renderu (lookup zna
+// tylko stan ZAKONCZONY, bez tekstu PL). „Po meczu" = parytet z „LIVE"/„Zapowiedź".
+$score_h   = null === $goals_home ? '–' : (string) $goals_home;
+$score_a   = null === $goals_away ? '–' : (string) $goals_away;
+$score_h1  = $home_name . ' ' . $score_h . '–' . $score_a . ' ' . $away_name; // h1 (SEO/a11y, ukryty wizualnie).
+$status_pl = 'Po meczu';
 ?>
-<div class="watch-top container">
+<div class="watch-top watch-top--compact container">
 	<a class="back-link" href="<?php echo esc_url( home_url( '/' ) ); ?>">
 		<svg viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></svg>
 		Wróć
 	</a>
 	<?php if ( '' !== $round_pl ) : ?>
-		<span class="crumb">Skróty · <b><?php echo esc_html( $round_pl ); ?></b></span>
+		<span class="match-phase">⚽ <?php echo esc_html( $round_pl ); ?></span>
 	<?php endif; ?>
 </div>
 
@@ -70,49 +88,97 @@ $match_label = $home_name . ' – ' . $away_name;
 	<div class="watch__grid">
 		<div class="watch__main">
 
-			<!-- ===== PLAYER 16:9 (osadzony skrót — YouTube przez iframe) ===== -->
+			<?php
+			// ===== NAKŁADKA „telebim" placeholdera 16:9 =====
+			// JEDNO źródło markupu dla OBU stanów (ze skrótem / bez): parytet szkieletu,
+			// różnią się TYLKO 3 elementy (badge L-górny, środek: play vs glif, P-dolny
+			// róg: czas trwania vs „…wkrótce"). Nakładka żyje WEWNĄTRZ fasady/stanu
+			// pustego, więc znika, gdy iframe gra (`.player16.is-playing .player16__facade
+			// { display:none }`). Duplikacja markupu „telebim" z `.board`/`.preview`
+			// DOZWOLONA per-slice (DRY wolno łamać, VSA nie).
+			$render_overlay = static function ( $has_skrot ) use (
+				$home_name,
+				$away_name,
+				$home_flag,
+				$away_flag,
+				$score_h,
+				$score_a,
+				$status_pl,
+				$date_corner,
+				$kanal_name,
+				$skrot_dur
+			) {
+				?>
+				<span class="player16__badge <?php echo $has_skrot ? 'is-ready' : 'is-wait'; ?>">
+					<span class="player16__dot"></span><?php echo $has_skrot ? 'Oficjalny skrót' : esc_html( $status_pl ); ?>
+				</span>
+				<?php if ( '' !== $date_corner ) : ?>
+					<span class="player16__date"><?php echo esc_html( $date_corner ); ?></span>
+				<?php endif; ?>
+
+				<?php // Środek: home (flaga+nazwa+gole) | play/glif | away — liczba goli POD drużyną. ?>
+				<div class="player16__center">
+					<div class="team-slot">
+						<?php if ( '' !== $home_flag ) : ?><img class="country-flag team-slot__flag" src="<?php echo esc_url( $home_flag ); ?>" alt="" /><?php endif; ?>
+						<span class="team-slot__name"><?php echo esc_html( $home_name ); ?></span>
+						<span class="player16__goals"><?php echo esc_html( $score_h ); ?></span>
+					</div>
+					<div class="player16__mid">
+						<?php if ( $has_skrot ) : ?>
+							<span class="player16__play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span>
+						<?php else : ?>
+							<span class="player16__glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18M8 5v14M16 5v14"/></svg></span>
+						<?php endif; ?>
+					</div>
+					<div class="team-slot">
+						<?php if ( '' !== $away_flag ) : ?><img class="country-flag team-slot__flag" src="<?php echo esc_url( $away_flag ); ?>" alt="" /><?php endif; ?>
+						<span class="team-slot__name"><?php echo esc_html( $away_name ); ?></span>
+						<span class="player16__goals"><?php echo esc_html( $score_a ); ?></span>
+					</div>
+				</div>
+
+				<?php if ( $has_skrot && '' !== $kanal_name ) : ?>
+					<span class="player16__src" title="Materiał opublikowany przez kanał">
+						<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23 7.5a3 3 0 0 0-2.1-2.1C19 4.8 12 4.8 12 4.8s-7 0-8.9.6A3 3 0 0 0 1 7.5C.4 9.4.4 12 .4 12s0 2.6.6 4.5a3 3 0 0 0 2.1 2.1c1.9.6 8.9.6 8.9.6s7 0 8.9-.6a3 3 0 0 0 2.1-2.1c.6-1.9.6-4.5.6-4.5s0-2.6-.6-4.5z"/><path fill="currentColor" d="M9.8 15.3V8.7l5.7 3.3z" style="fill:#000"/></svg>
+						<span><?php echo esc_html( $kanal_name ); ?></span>
+					</span>
+				<?php endif; ?>
+
+				<?php if ( $has_skrot ) : ?>
+					<?php if ( ! empty( $skrot_dur ) ) : ?>
+						<span class="player16__dur"><?php echo esc_html( $skrot_dur ); ?></span>
+					<?php endif; ?>
+				<?php else : ?>
+					<span class="player16__soon">Skrót wideo pojawi się wkrótce</span>
+				<?php endif; ?>
+				<?php
+			};
+			?>
+
+			<!-- ===== PLAYER 16:9 (telebim → osadzony skrót YouTube przez iframe) ===== -->
 			<div class="player16 reveal" id="player"<?php echo $yt_id ? ' data-yt="' . esc_attr( $yt_id ) . '"' : ''; ?> data-title="<?php echo esc_attr( 'Skrót meczu ' . $match_label ); ?>">
 				<?php if ( $yt_id ) : ?>
 					<button class="player16__facade" id="playBtn" type="button" aria-label="<?php echo esc_attr( 'Odtwórz skrót meczu ' . $match_label ); ?>">
-						<span class="player16__src"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23 7.5a3 3 0 0 0-2.1-2.1C19 4.8 12 4.8 12 4.8s-7 0-8.9.6A3 3 0 0 0 1 7.5C.4 9.4.4 12 .4 12s0 2.6.6 4.5a3 3 0 0 0 2.1 2.1c1.9.6 8.9.6 8.9.6s7 0 8.9-.6a3 3 0 0 0 2.1-2.1c.6-1.9.6-4.5.6-4.5s0-2.6-.6-4.5z"/><path fill="currentColor" d="M9.8 15.3V8.7l5.7 3.3z" style="fill:#000"/></svg> Oficjalny skrót</span>
-						<span class="player16__play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span>
-						<?php if ( ! empty( $skrot_dur ) ) : ?>
-							<span class="player16__dur"><?php echo esc_html( $skrot_dur ); ?></span>
-						<?php endif; ?>
+						<?php $render_overlay( true ); ?>
 					</button>
 				<?php else : ?>
-					<div class="player16__empty">Skrót wideo pojawi się wkrótce.</div>
+					<div class="player16__empty">
+						<?php $render_overlay( false ); ?>
+					</div>
 				<?php endif; ?>
 			</div>
 
-			<!-- ===== BELKA INTERAKCJI (pod playerem) ===== -->
-			<div class="ibar">
-				<div class="ibar__main">
-					<div class="ibar__tags">
-						<?php if ( '' !== $round_pl ) : ?>
-							<span class="ibar__phase">⚽ <?php echo esc_html( $round_pl ); ?></span>
-						<?php endif; ?>
-						<?php if ( '' !== $kanal_name ) : ?>
-							<span class="ibar__source" title="Materiał opublikowany przez kanał">
-								<svg viewBox="0 0 24 24"><path d="M21.6 7.2a2.5 2.5 0 0 0-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.4A2.5 2.5 0 0 0 2.4 7.2 26 26 0 0 0 2 12a26 26 0 0 0 .4 4.8 2.5 2.5 0 0 0 1.8 1.8C5.8 19 12 19 12 19s6.2 0 7.8-.4a2.5 2.5 0 0 0 1.8-1.8A26 26 0 0 0 22 12a26 26 0 0 0-.4-4.8z"/><path d="M10 15V9l5.2 3z"/></svg>
-								Źródło wideo: <b><?php echo esc_html( $kanal_name ); ?></b>
-							</span>
-						<?php endif; ?>
-					</div>
-					<div class="ibar__match">
-						<span class="ibar__team">
-							<?php if ( '' !== $home_flag ) : ?><img class="country-flag" src="<?php echo esc_url( $home_flag ); ?>" alt="" /><?php endif; ?>
-							<span class="tname"><?php echo esc_html( $home_name ); ?></span>
-						</span>
-						<span class="ibar__score"><?php echo esc_html( null === $goals_home ? '–' : $goals_home ); ?> <i>:</i> <?php echo esc_html( null === $goals_away ? '–' : $goals_away ); ?></span>
-						<span class="ibar__team away">
-							<?php if ( '' !== $away_flag ) : ?><img class="country-flag" src="<?php echo esc_url( $away_flag ); ?>" alt="" /><?php endif; ?>
-							<span class="tname"><?php echo esc_html( $away_name ); ?></span>
-						</span>
-						<?php if ( 'ZAKONCZONY' === $state ) : ?>
-							<span class="ibar__ft">KONIEC</span>
-						<?php endif; ?>
-					</div>
+			<!-- ===== NAGŁÓWEK + FAKTY (pod placeholderem, wzorem zapowiedzi/live) =====
+			     h1 = tekst „{home} {gh}–{ga} {away}" DLA SEO/a11y, ukryty wizualnie
+			     (--compact). Widoczne pod telebimem tylko fakty: data + status,
+			     wyśrodkowane jak w NS/live (NIE dublujemy nazw/wyniku — są na telebimie). -->
+			<div class="match-head match-head--compact">
+				<h1 class="match-title"><?php echo esc_html( $score_h1 ); ?></h1>
+				<div class="match-facts">
+					<?php if ( '' !== $date_full ) : ?>
+						<span class="fact"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M8 2v4M16 2v4M3 10h18"/></svg> <b><?php echo esc_html( $date_full ); ?></b></span>
+					<?php endif; ?>
+					<span class="fact"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg> <b><?php echo esc_html( $status_pl ); ?></b></span>
 				</div>
 			</div>
 

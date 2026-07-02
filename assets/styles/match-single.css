@@ -4,7 +4,8 @@
    KOMPONENT RDZENIA WIDOKU MECZU (single). JEDEN plik dla całego
    rdzenia — NIE fragmentowany per zakładka. Wyekstrahowany 1:1 z
    monolitu „Hajlajty - Skrót Meczu.html" (wariant ZAKOŃCZONY):
-   pasmo watch + powrót, player16, belka ibar, zakładki, oś czasu,
+   pasmo watch + powrót, player16 z nakładką „telebim" (P-i: drużyny+wynik
+   na środku, metadane w rogach), zakładki, oś czasu,
    statystyki, składy (half-pitch + ławka). Powłoka (topbar/sidebar/
    stopka) jest w layout.css; tokeny/reset w tokens.css/base.css.
 
@@ -43,9 +44,6 @@
 }
 .back-link:hover { background: var(--surface-hover); border-color: var(--border-strong); }
 .back-link svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
-.crumb { font-size: 13px; font-weight: 600; color: var(--text-faint); }
-.crumb b { color: var(--text-muted); font-weight: 700; }
-@media (max-width: 620px) { .crumb { display: none; } }
 
 /* ---- Układ „watch": główna kolumna + prawy sidebar ---- */
 .watch { padding-block: 0 var(--space-2xl); }
@@ -77,7 +75,30 @@
     radial-gradient(120% 130% at 50% -20%, var(--accent-soft), transparent 58%),
     repeating-linear-gradient(135deg, var(--thumb-a) 0 16px, var(--thumb-b) 16px 32px);
 }
-.player16__facade { position: absolute; inset: 0; width: 100%; height: 100%; display: grid; place-items: center; }
+/* P-i: fasada / stan pusty niosą NAKŁADKĘ „telebim" — środek (drużyny+wynik+play)
+   wyśrodkowany gridem, metadane w rogach ABSOLUTNIE. Oba stany dzielą ten sam
+   szkielet; różnią się tylko 3 elementami (badge, glif środka, prawy dolny róg). */
+.player16__facade,
+.player16__empty {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  display: grid; place-items: center; padding: clamp(14px, 3.4vw, 22px);
+}
+/* Fasada jest przyciskiem — resetujemy natywne style. */
+.player16__facade { text-align: inherit; color: inherit; cursor: pointer; }
+
+/* ---- Środek: home (flaga+nazwa+gole) | play | away ---- */
+/* Sloty drużyn reużywają `.team-slot` z zapowiedzi 1:1 (te same rozmiary flag/nazw
+   — bez zawężania). Liczba goli POD nazwą: większa od nazwy, ale proporcjonalna. */
+.player16__center {
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+  gap: clamp(16px, 4vw, 56px); width: 100%; max-width: 760px;
+}
+.player16__mid { display: flex; align-items: center; justify-content: center; }
+.player16__goals {
+  font-size: clamp(26px, 4.2vw, 46px); font-weight: 800; line-height: 1;
+  letter-spacing: -0.01em; font-variant-numeric: tabular-nums; color: var(--text);
+}
+
 .player16__play {
   width: clamp(56px, 9vw, 76px); aspect-ratio: 1; display: grid; place-items: center; border-radius: 50%;
   background: oklch(0 0 0 / 0.46); backdrop-filter: blur(2px); border: 1.5px solid oklch(1 0 0 / 0.5);
@@ -86,71 +107,58 @@
 .player16__play svg { width: clamp(24px, 3.4vw, 30px); height: clamp(24px, 3.4vw, 30px); fill: #fff; transform: translateX(2px); }
 .player16__facade:hover .player16__play { transform: scale(1.08); background: var(--accent); }
 .player16__facade:hover .player16__play svg { fill: var(--accent-ink); }
+/* Stan bez skrótu: wyszarzony glif „wideo w drodze" w miejscu play — BRAK CTA. */
+.player16__glyph {
+  width: clamp(56px, 9vw, 76px); aspect-ratio: 1; display: grid; place-items: center; border-radius: 50%;
+  background: oklch(0 0 0 / 0.32); border: 1.5px solid oklch(1 0 0 / 0.24);
+}
+.player16__glyph svg { width: clamp(24px, 3.4vw, 30px); height: clamp(24px, 3.4vw, 30px); stroke: oklch(1 0 0 / 0.6); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+[data-theme="light"] .player16__glyph { background: oklch(0 0 0 / 0.14); border-color: oklch(0 0 0 / 0.18); }
+[data-theme="light"] .player16__glyph svg { stroke: oklch(0 0 0 / 0.5); }
+
+/* ---- Rogi nakładki (ciemna gradientowa podkładka pod tekstem — a11y w obu motywach) ---- */
+.player16__badge {
+  position: absolute; left: 14px; top: 14px; z-index: 3;
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 6px 12px 6px 10px; border-radius: var(--r-pill);
+  background: oklch(0 0 0 / 0.5); backdrop-filter: blur(3px); border: 1px solid oklch(1 0 0 / 0.18);
+  color: #fff; font-size: 12px; font-weight: 800; letter-spacing: 0.04em;
+}
+/* Kropki STATYCZNE (bez pulsu — spokojniej niż live): zielona/akcent = skrót gotowy,
+   bursztyn = oczekuje na skrót. */
+.player16__dot { width: 7px; height: 7px; border-radius: 50%; flex: 0 0 auto; }
+.player16__badge.is-ready .player16__dot { background: var(--accent); }
+.player16__badge.is-wait .player16__dot { background: var(--card-yellow); }
+.player16__date {
+  position: absolute; right: 14px; top: 14px; z-index: 3;
+  padding: 6px 12px; border-radius: var(--r-pill);
+  background: oklch(0 0 0 / 0.5); backdrop-filter: blur(3px); border: 1px solid oklch(1 0 0 / 0.18);
+  color: #fff; font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums;
+}
+/* Czas trwania: PRAWY DOLNY róg (parytet z „…wkrótce"). */
 .player16__dur {
-  position: absolute; right: 12px; bottom: 12px; padding: 4px 9px; border-radius: 7px;
+  position: absolute; right: 14px; bottom: 14px; z-index: 3; padding: 5px 11px; border-radius: 7px;
   background: oklch(0 0 0 / 0.74); color: #fff; font-size: 13px; font-weight: 700; letter-spacing: 0.02em;
 }
+/* Źródło (kanał YT): LEWY DOLNY róg, tylko gdy skrót jest. */
 .player16__src {
-  position: absolute; left: 14px; top: 14px; display: inline-flex; align-items: center; gap: 7px;
-  padding: 5px 11px 5px 9px; border-radius: var(--r-pill);
+  position: absolute; left: 14px; bottom: 14px; z-index: 3; display: inline-flex; align-items: center; gap: 7px;
+  max-width: calc(100% - 28px); padding: 5px 11px 5px 9px; border-radius: var(--r-pill);
   background: oklch(0 0 0 / 0.5); backdrop-filter: blur(3px); border: 1px solid oklch(1 0 0 / 0.18);
   color: #fff; font-size: 12px; font-weight: 700;
 }
-.player16__src svg { width: 15px; height: 15px; fill: #fff; }
+.player16__src svg { width: 15px; height: 15px; fill: #fff; flex: 0 0 auto; }
+.player16__src span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Bez skrótu: komunikat „…wkrótce" w PRAWYM DOLNYM rogu (miejsce czasu trwania). */
+.player16__soon {
+  position: absolute; right: 14px; bottom: 14px; z-index: 3; max-width: calc(100% - 28px);
+  padding: 6px 12px; border-radius: var(--r-pill); text-align: right;
+  background: oklch(0 0 0 / 0.5); backdrop-filter: blur(3px); border: 1px solid oklch(1 0 0 / 0.18);
+  color: #fff; font-size: 12px; font-weight: 700;
+}
 .player16.is-playing { background: #000; border-color: #000; }
 .player16 iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
 .player16.is-playing .player16__facade { display: none; }
-
-/* Player bez wideo (skrót jeszcze nieprzypisany) — neutralny komunikat. */
-.player16__empty {
-  position: absolute; inset: 0; display: grid; place-items: center; text-align: center;
-  padding: var(--space-md); color: var(--text-muted); font-size: 14px; font-weight: 600;
-}
-
-/* ---- BELKA INTERAKCJI (pod playerem) ---- */
-.ibar {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: var(--space-md); flex-wrap: wrap;
-  margin-top: var(--space-md);
-}
-.ibar__main { display: flex; flex-direction: column; gap: var(--space-2xs); min-width: 0; }
-.ibar__tags { display: flex; align-items: center; gap: var(--space-2xs); flex-wrap: wrap; }
-.ibar__tags .ibar__phase { align-self: auto; }
-.ibar__phase {
-  align-self: flex-start; display: inline-flex; align-items: center; gap: 7px;
-  padding: 5px 12px; border-radius: var(--r-pill);
-  background: var(--accent-soft); color: var(--accent-strong);
-  font-size: 12px; font-weight: 800; letter-spacing: 0.03em; white-space: nowrap;
-}
-[data-theme="dark"] .ibar__phase { color: var(--accent); }
-.ibar__source {
-  display: inline-flex; align-items: center; gap: 7px;
-  padding: 5px 12px; border-radius: var(--r-pill);
-  background: var(--surface-2); border: 1px solid var(--border);
-  color: var(--text-muted);
-  font-size: 12px; font-weight: 700; white-space: nowrap;
-}
-.ibar__source b { color: var(--text); font-weight: 800; }
-.ibar__source svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-.ibar__match {
-  display: flex; align-items: center; gap: clamp(10px, 2vw, 20px);
-  font-weight: 800; letter-spacing: -0.02em;
-}
-.ibar__team {
-  display: inline-flex; align-items: center; gap: var(--space-2xs);
-  font-size: clamp(18px, 2.6vw, 26px); min-width: 0;
-}
-.ibar__team.away { flex-direction: row-reverse; }
-.ibar__team .country-flag { height: clamp(20px, 2.6vw, 26px); border-radius: 3px; }
-.ibar__team .tname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ibar__score {
-  display: inline-flex; align-items: center; gap: clamp(6px, 1.2vw, 12px);
-  font-size: clamp(22px, 3.4vw, 34px); font-variant-numeric: tabular-nums;
-  padding: 2px clamp(10px, 1.6vw, 16px); border-radius: var(--r-md);
-  background: var(--surface-2);
-}
-.ibar__score i { font-style: normal; opacity: 0.4; font-weight: 700; }
-.ibar__ft { font-size: 11px; font-weight: 800; letter-spacing: 0.08em; color: var(--text-faint); align-self: center; }
 
 /* ---- SYSTEM ZAKŁADEK ---- */
 .tabs {
@@ -326,7 +334,11 @@
 @media (max-width: 768px) {
   body { overflow-x: hidden; overflow-x: clip; }
   .player16 { width: auto; margin-inline: calc(-1 * var(--gutter)); border-radius: 0; border-inline: none; }
-  .ibar__match { flex-wrap: wrap; row-gap: var(--space-3xs); }
+  /* P-i: na wąskim 16:9 dociskamy odstępy klastra i zmniejszamy rogi (flagi/nazwy
+     zostają w rozmiarze zapowiedzi — clamp i tak skaluje je z vw). */
+  .player16__center { gap: clamp(6px, 3.4vw, 18px); }
+  .player16__badge, .player16__date, .player16__src, .player16__soon { font-size: 11px; padding: 5px 10px; }
+  .player16__dur { font-size: 12px; }
 }
 
 /* Delikatne wejście (jak monolit) */
