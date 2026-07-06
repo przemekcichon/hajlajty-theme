@@ -163,7 +163,7 @@
 /* ---- SYSTEM ZAKŁADEK ---- */
 .tabs {
   display: flex; align-items: stretch; gap: var(--space-2xs);
-  margin-top: var(--space-xl);
+  margin-top: var(--space-md);
   border-bottom: 1px solid var(--border);
   overflow-x: auto; scrollbar-width: none;
 }
