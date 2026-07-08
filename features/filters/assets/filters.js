@@ -103,6 +103,26 @@
     });
   }
 
+  /* Zaznaczone (lepkie) chipy na PRZÓD listy — alfabetycznie wśród zaznaczonych,
+     reszta zostaje w swojej kolejności. Wołane TYLKO przy starcie (po load()), NIE
+     przy kliku: po reloadzie lepki wybór jest od razu widoczny bez przewijania
+     paska, a sam klik nie „skacze" pod kursorem. Reorder w KAŻDYM kontenerze chipów
+     osobno (pasek desktop + siatka modalu); strzałki są POZA [data-filter-chips]. */
+  function sortChips() {
+    Array.prototype.slice.call(bar.querySelectorAll("[data-filter-chips]")).forEach(function (cont) {
+      var list = Array.prototype.slice.call(cont.querySelectorAll(".chip[data-filter-tax]"));
+      var active = [], rest = [];
+      list.forEach(function (chip) {
+        var on = !!(state.tax[chip.getAttribute("data-filter-tax")] || {})[chip.getAttribute("data-filter-val")];
+        (on ? active : rest).push(chip);
+      });
+      if (!active.length) return; // nic zaznaczonego w tym kontenerze — bez zmian
+      active.sort(function (a, b) { return label(a).localeCompare(label(b), "pl"); });
+      // appendChild PRZENOSI istniejące węzły → ustawiamy całość jako [aktywne, reszta].
+      active.concat(rest).forEach(function (chip) { cont.appendChild(chip); });
+    });
+  }
+
   function syncControls() {
     clearTextBtns.forEach(function (b) { b.hidden = state.q === ""; });
     var active = anyActive();
@@ -322,5 +342,6 @@
 
   /* ------------------------- START ------------------------------ */
   load();
+  sortChips(); // lepkie chipy na przód — dopiero po wczytaniu stanu, przed renderem
   apply();
 })();
