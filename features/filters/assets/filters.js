@@ -8,7 +8,9 @@
        zawęża też chipy drużyn (by szukana była od razu pod ręką),
      • chipy — filtr po natywnych taksonomiach (drużyna=FIFA, reszta=slug),
        OR w obrębie taksonomii, AND między taksonomiami; tekst AND z chipami,
-     • wybór TRWA w sessionStorage między listami, aż go odznaczysz.
+     • LEPKOŚĆ (sessionStorage) dotyczy TYLKO chipów — trwają między listami, aż
+       je odznaczysz. Tekst wyszukiwarki jest EFEMERYCZNY: przejście na inną listę
+       czyści pole i jego zawężenie (lepki zostaje tylko wybór klikiem = chip).
 
    Desktop: pasek chipów + pole w topbarze. Mobile: lupa → pełnoekranowy MODAL
    (to samo pole + siatka tych samych chipów) + pigułka aktywnego filtra. Chipy i
@@ -53,11 +55,15 @@
   }
 
   function load() {
+    // Świadomie przywracamy TYLKO chipy. Tekst wyszukiwarki (state.q) jest
+    // EFEMERYCZNY — nie wraca po nawigacji, więc przejście na inną listę czyści
+    // pole I jego zawężenie. Lepki zostaje tylko wybór zabezpieczony klikiem
+    // (chip). Bardziej intuicyjne, zwłaszcza na mobile, gdzie tekst tkwi w modalu
+    // za lupą i „niewidzialny" filtr tekstowy myli. Patrz P-n w docs/plan.md.
     try {
       var raw = sessionStorage.getItem(STORE_KEY);
       if (!raw) return;
       var data = JSON.parse(raw);
-      if (data && typeof data.q === "string") state.q = data.q;
       if (data && data.tax) {
         TAXES.forEach(function (t) {
           (Array.isArray(data.tax[t]) ? data.tax[t] : []).forEach(function (v) { state.tax[t][v] = true; });
@@ -67,7 +73,8 @@
   }
   function persist() {
     try {
-      var out = { q: state.q, tax: {} };
+      // q celowo NIE trafia do storage — tekst nie przeżywa nawigacji (patrz load()).
+      var out = { tax: {} };
       TAXES.forEach(function (t) { out.tax[t] = Object.keys(state.tax[t]); });
       sessionStorage.setItem(STORE_KEY, JSON.stringify(out));
     } catch (e) {}
