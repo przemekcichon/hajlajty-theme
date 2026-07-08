@@ -411,6 +411,9 @@
   .player16__dur { font-size: 12px; }
   /* P-o: na wąskim 16:9 kółko mniejsze → napis bliżej pod nim. */
   .player16__empty--external .player16__cta-row { gap: 8px; transform: translate(-50%, clamp(40px, 11vw, 52px)); }
+  /* P-o mobile (decyzja właściciela): bez „?" i mniejszy tekst CTA. */
+  .yt-note { display: none; }
+  .yt-cta-link { font-size: 13px; }
 }
 
 /* Delikatne wejście (jak monolit) */
