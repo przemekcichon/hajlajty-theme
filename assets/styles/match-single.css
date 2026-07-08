@@ -203,8 +203,12 @@
 }
 [data-theme="light"] .yt-note__trigger { background: oklch(0 0 0 / 0.55); }
 .yt-note__trigger:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* Popover otwiera się W GÓRĘ i W LEWO od „?” (prawa krawędź kotwiczona do
+   triggera). Powód: .player16 ma overflow:hidden, a na wąskim mobilnym telebimie
+   „?” siedzi na prawo od środka — wyśrodkowany popover wychodziłby poza prawą
+   krawędź i zostałby ucięty. Kotwiczenie w prawo → rośnie w lewo, w głąb telebimu. */
 .yt-note__pop {
-  position: absolute; bottom: calc(100% + 10px); left: 50%; transform: translateX(-50%) translateY(4px);
+  position: absolute; bottom: calc(100% + 10px); right: -4px; left: auto; transform: translateY(4px);
   width: max-content; max-width: min(280px, 78vw); z-index: 6; text-align: left;
   padding: 10px 12px; border-radius: 10px; background: oklch(0.18 0 0); color: #fff;
   border: 1px solid oklch(1 0 0 / 0.14); box-shadow: 0 8px 28px oklch(0 0 0 / 0.5);
@@ -216,7 +220,7 @@
 .yt-note:hover .yt-note__pop,
 .yt-note:focus-within .yt-note__pop,
 .yt-note.is-open .yt-note__pop {
-  opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); pointer-events: auto;
+  opacity: 1; visibility: visible; transform: translateY(0); pointer-events: auto;
 }
 @media (prefers-reduced-motion: reduce) {
   .yt-cta, .yt-note__pop { transition: none; }

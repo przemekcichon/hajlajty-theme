@@ -188,7 +188,12 @@
       if (!ytNote.contains(e.target)) setYtNoteOpen(false);
     });
     document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape" || e.key === "Esc") setYtNoteOpen(false);
+      if (e.key === "Escape" || e.key === "Esc") {
+        setYtNoteOpen(false);
+        // Zdejmij focus z triggera, inaczej :focus-within trzymałby popover
+        // widocznym mimo Esc (recenzja P-o).
+        if (ytTrigger && document.activeElement === ytTrigger) ytTrigger.blur();
+      }
     });
   }
 
