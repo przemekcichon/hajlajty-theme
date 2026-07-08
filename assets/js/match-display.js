@@ -167,6 +167,36 @@
     });
   }
 
+  /* ---------- P-o: skrót NIEOSADZALNY — tooltip „?” (klik/tap + klawiatura) ----------
+     CSS pokazuje popover na :hover i :focus-within (mysz + klawiatura). JS dokłada
+     TAP na dotyku (mobile nie ma hovera) i domknięcie Esc / klikiem poza. Bez JS
+     tooltip nadal działa hoverem/focusem — progressive enhancement. Null-safe. */
+  var ytNote = $(".yt-note");
+  if (ytNote) {
+    var ytTrigger = $(".yt-note__trigger", ytNote);
+    var setYtNoteOpen = function (open) {
+      ytNote.classList.toggle("is-open", open);
+      if (ytTrigger) ytTrigger.setAttribute("aria-expanded", open ? "true" : "false");
+    };
+    if (ytTrigger) {
+      ytTrigger.addEventListener("click", function (e) {
+        e.stopPropagation();
+        setYtNoteOpen(!ytNote.classList.contains("is-open"));
+      });
+    }
+    document.addEventListener("click", function (e) {
+      if (!ytNote.contains(e.target)) setYtNoteOpen(false);
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" || e.key === "Esc") {
+        setYtNoteOpen(false);
+        // Zdejmij focus z triggera, inaczej :focus-within trzymałby popover
+        // widocznym mimo Esc (recenzja P-o).
+        if (ytTrigger && document.activeElement === ytTrigger) ytTrigger.blur();
+      }
+    });
+  }
+
   /* ---------- WRÓĆ: cofnij do poprzedniej strony (nie zawsze home) ----------
      Progressive enhancement: href=home_url('/') zostaje jako fallback (brak JS
      LUB brak historii w serwisie). Gdy istnieje historia z TEJ SAMEJ domeny —

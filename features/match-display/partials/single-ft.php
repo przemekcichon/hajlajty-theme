@@ -26,6 +26,16 @@ $skrot_url = function_exists( 'get_field' ) ? get_field( 'skrot_url', $post_id )
 $skrot_dur = function_exists( 'get_field' ) ? get_field( 'skrot_duration', $post_id ) : get_post_meta( $post_id, 'skrot_duration', true );
 $yt_id     = hajlajty_youtube_id( is_string( $skrot_url ) ? $skrot_url : '' );
 
+// P-o: flaga redaktora „film tylko na YouTube / nie osadzaj" (ACF true_false z
+// fallbackiem na surowe meta, jak wyżej). Istotna TYLKO gdy jest yt_id (skrót
+// istnieje): wtedy zamiast ścieżki fasada→iframe pokazujemy stan STATYCZNY z
+// CTA na YouTube — user nie trafia na błąd „wyłączył odtwarzanie na innych
+// stronach". Trzy stany telebimu: playable / external / wait.
+$skrot_noembed = function_exists( 'get_field' ) ? get_field( 'skrot_nieosadzalny', $post_id ) : get_post_meta( $post_id, 'skrot_nieosadzalny', true );
+$is_external   = $yt_id && $skrot_noembed;
+$is_playable   = $yt_id && ! $skrot_noembed;
+$yt_watch      = $yt_id ? 'https://www.youtube.com/watch?v=' . $yt_id : '';
+
 // Źródło wideo = taksonomia `kanal` (NIE ACF). Pomijamy span, gdy brak termu.
 $kanal_terms = get_the_terms( $post_id, 'kanal' );
 $kanal_name  = ( is_array( $kanal_terms ) && ! is_wp_error( $kanal_terms ) && ! empty( $kanal_terms ) ) ? $kanal_terms[0]->name : '';
@@ -96,7 +106,12 @@ $status_pl = 'Po meczu';
 			// pustego, więc znika, gdy iframe gra (`.player16.is-playing .player16__facade
 			// { display:none }`). Duplikacja markupu „telebim" z `.board`/`.preview`
 			// DOZWOLONA per-slice (DRY wolno łamać, VSA nie).
-			$render_overlay = static function ( $has_skrot ) use (
+			// P-o: $mode zamiast bool — trzy stany telebimu:
+			//   'skrot'    — skrót gra u nas (fasada → iframe, jak dotąd),
+			//   'external' — skrót istnieje, ale nieosadzalny → CTA na YouTube,
+			//   'wait'     — brak skrótu (mecz po meczu, wideo w drodze).
+			// „Ma wideo" (badge is-ready, kanał, czas trwania) = skrot LUB external.
+			$render_overlay = static function ( $mode ) use (
 				$home_name,
 				$away_name,
 				$home_flag,
@@ -106,11 +121,14 @@ $status_pl = 'Po meczu';
 				$status_pl,
 				$date_corner,
 				$kanal_name,
-				$skrot_dur
+				$skrot_dur,
+				$yt_watch,
+				$match_label
 			) {
+				$has_video = ( 'wait' !== $mode );
 				?>
-				<span class="player16__badge <?php echo $has_skrot ? 'is-ready' : 'is-wait'; ?>">
-					<span class="player16__dot"></span><?php echo $has_skrot ? 'Oficjalny skrót' : esc_html( $status_pl ); ?>
+				<span class="player16__badge <?php echo $has_video ? 'is-ready' : 'is-wait'; ?>">
+					<span class="player16__dot"></span><?php echo $has_video ? 'Oficjalny skrót' : esc_html( $status_pl ); ?>
 				</span>
 				<?php if ( '' !== $date_corner ) : ?>
 					<span class="player16__date"><?php echo esc_html( $date_corner ); ?></span>
@@ -124,8 +142,13 @@ $status_pl = 'Po meczu';
 						<span class="player16__goals"><?php echo esc_html( $score_h ); ?></span>
 					</div>
 					<div class="player16__mid">
-						<?php if ( $has_skrot ) : ?>
+						<?php if ( 'skrot' === $mode ) : ?>
 							<span class="player16__play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span>
+						<?php elseif ( 'external' === $mode ) : ?>
+							<?php // Nieosadzalny: kółko = LINK „otwórz na YouTube (nowa karta)". Sama ikona „otwórz w nowej karcie" (bez play — osadzenie i tak nie zadziała). ?>
+							<a class="player16__launch" href="<?php echo esc_url( $yt_watch ); ?>" target="_blank" rel="noopener" aria-label="<?php echo esc_attr( 'Obejrzyj skrót meczu ' . $match_label . ' na YouTube (nowa karta)' ); ?>">
+								<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h5"/></svg>
+							</a>
 						<?php else : ?>
 							<span class="player16__glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18M8 5v14M16 5v14"/></svg></span>
 						<?php endif; ?>
@@ -137,14 +160,29 @@ $status_pl = 'Po meczu';
 					</div>
 				</div>
 
-				<?php if ( $has_skrot && '' !== $kanal_name ) : ?>
+				<?php // P-o: stan „nieosadzalny" — widoczny CTA na YouTube + „?" z powodem. ?>
+				<?php // Napis „Obejrzyj na YouTube" + „?" — chip jak rogi telebimu, POD kółkiem (absolutnie, nie rusza centrowania drużyn). ?>
+				<?php if ( 'external' === $mode ) : ?>
+					<div class="player16__cta-row">
+						<a class="yt-cta-link" href="<?php echo esc_url( $yt_watch ); ?>" target="_blank" rel="noopener">Obejrzyj na YouTube</a>
+						<span class="yt-note">
+							<button class="yt-note__trigger" type="button" aria-label="Dlaczego nie mogę odtworzyć tutaj?" aria-expanded="false" aria-describedby="ytNoteBody">?</button>
+							<span class="yt-note__pop" id="ytNoteBody" role="tooltip">
+								<b>Film niedostępny</b>
+								Właściciel filmu wyłączył możliwość odtwarzania na innych stronach
+							</span>
+						</span>
+					</div>
+				<?php endif; ?>
+
+				<?php if ( $has_video && '' !== $kanal_name ) : ?>
 					<span class="player16__src" title="Materiał opublikowany przez kanał">
 						<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23 7.5a3 3 0 0 0-2.1-2.1C19 4.8 12 4.8 12 4.8s-7 0-8.9.6A3 3 0 0 0 1 7.5C.4 9.4.4 12 .4 12s0 2.6.6 4.5a3 3 0 0 0 2.1 2.1c1.9.6 8.9.6 8.9.6s7 0 8.9-.6a3 3 0 0 0 2.1-2.1c.6-1.9.6-4.5.6-4.5s0-2.6-.6-4.5z"/><path fill="currentColor" d="M9.8 15.3V8.7l5.7 3.3z" style="fill:#000"/></svg>
 						<span><?php echo esc_html( $kanal_name ); ?></span>
 					</span>
 				<?php endif; ?>
 
-				<?php if ( $has_skrot ) : ?>
+				<?php if ( $has_video ) : ?>
 					<?php if ( ! empty( $skrot_dur ) ) : ?>
 						<span class="player16__dur"><?php echo esc_html( $skrot_dur ); ?></span>
 					<?php endif; ?>
@@ -155,15 +193,21 @@ $status_pl = 'Po meczu';
 			};
 			?>
 
-			<!-- ===== PLAYER 16:9 (telebim → osadzony skrót YouTube przez iframe) ===== -->
-			<div class="player16 reveal" id="player"<?php echo $yt_id ? ' data-yt="' . esc_attr( $yt_id ) . '"' : ''; ?> data-title="<?php echo esc_attr( 'Skrót meczu ' . $match_label ); ?>">
-				<?php if ( $yt_id ) : ?>
+			<!-- ===== PLAYER 16:9 (telebim → osadzony skrót YT / CTA / oczekiwanie) =====
+			     data-yt TYLKO gdy skrót gra u nas (playable) — dla stanu „nieosadzalny"
+			     go NIE dajemy, żeby JS nigdy nie próbował wstrzyknąć iframe. -->
+			<div class="player16 reveal" id="player"<?php echo $is_playable ? ' data-yt="' . esc_attr( $yt_id ) . '"' : ''; ?> data-title="<?php echo esc_attr( 'Skrót meczu ' . $match_label ); ?>">
+				<?php if ( $is_playable ) : ?>
 					<button class="player16__facade" id="playBtn" type="button" aria-label="<?php echo esc_attr( 'Odtwórz skrót meczu ' . $match_label ); ?>">
-						<?php $render_overlay( true ); ?>
+						<?php $render_overlay( 'skrot' ); ?>
 					</button>
+				<?php elseif ( $is_external ) : ?>
+					<div class="player16__empty player16__empty--external">
+						<?php $render_overlay( 'external' ); ?>
+					</div>
 				<?php else : ?>
 					<div class="player16__empty">
-						<?php $render_overlay( false ); ?>
+						<?php $render_overlay( 'wait' ); ?>
 					</div>
 				<?php endif; ?>
 			</div>
