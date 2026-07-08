@@ -145,8 +145,10 @@ $status_pl = 'Po meczu';
 						<?php if ( 'skrot' === $mode ) : ?>
 							<span class="player16__play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span>
 						<?php elseif ( 'external' === $mode ) : ?>
-							<?php // Nieosadzalny: statyczny glif „gra na YouTube" — NIE play (osadzenie i tak nie zadziała). Play + strzałka zewnętrzna. ?>
-							<span class="player16__ext" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2" y="4" width="14" height="12" rx="2.5"/><path d="M7.5 7.2v5.6l4.8-2.8z" style="fill:currentColor"/><path d="M15 5h5v5M20 5l-7 7"/></svg></span>
+							<?php // Nieosadzalny: kółko = LINK „otwórz na YouTube (nowa karta)". Sama ikona „otwórz w nowej karcie" (bez play — osadzenie i tak nie zadziała). ?>
+							<a class="player16__launch" href="<?php echo esc_url( $yt_watch ); ?>" target="_blank" rel="noopener" aria-label="<?php echo esc_attr( 'Obejrzyj skrót meczu ' . $match_label . ' na YouTube (nowa karta)' ); ?>">
+								<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h5"/></svg>
+							</a>
 						<?php else : ?>
 							<span class="player16__glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18M8 5v14M16 5v14"/></svg></span>
 						<?php endif; ?>
@@ -159,10 +161,11 @@ $status_pl = 'Po meczu';
 				</div>
 
 				<?php // P-o: stan „nieosadzalny" — widoczny CTA na YouTube + „?" z powodem. ?>
+				<?php // Napis „Obejrzyj na YouTube" + „?" — chip jak rogi telebimu, POD kółkiem (absolutnie, nie rusza centrowania drużyn). ?>
 				<?php if ( 'external' === $mode ) : ?>
 					<div class="player16__cta-row">
-						<a class="yt-cta" href="<?php echo esc_url( $yt_watch ); ?>" target="_blank" rel="noopener" aria-label="<?php echo esc_attr( 'Obejrzyj skrót meczu ' . $match_label . ' na YouTube (nowa karta)' ); ?>">
-							<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23 7.5a3 3 0 0 0-2.1-2.1C19 4.8 12 4.8 12 4.8s-7 0-8.9.6A3 3 0 0 0 1 7.5C.4 9.4.4 12 .4 12s0 2.6.6 4.5a3 3 0 0 0 2.1 2.1c1.9.6 8.9.6 8.9.6s7 0 8.9-.6a3 3 0 0 0 2.1-2.1c.6-1.9.6-4.5.6-4.5s0-2.6-.6-4.5z"/><path fill="currentColor" d="M9.8 15.3V8.7l5.7 3.3z" style="fill:#fff"/></svg>
+						<a class="yt-cta-chip" href="<?php echo esc_url( $yt_watch ); ?>" target="_blank" rel="noopener">
+							<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23 7.5a3 3 0 0 0-2.1-2.1C19 4.8 12 4.8 12 4.8s-7 0-8.9.6A3 3 0 0 0 1 7.5C.4 9.4.4 12 .4 12s0 2.6.6 4.5a3 3 0 0 0 2.1 2.1c1.9.6 8.9.6 8.9.6s7 0 8.9-.6a3 3 0 0 0 2.1-2.1c.6-1.9.6-4.5.6-4.5s0-2.6-.6-4.5z"/><path d="M9.8 15.3V8.7l5.7 3.3z" style="fill:#000"/></svg>
 							<span>Obejrzyj na YouTube</span>
 						</a>
 						<span class="yt-note">
