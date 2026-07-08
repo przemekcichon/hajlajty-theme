@@ -186,17 +186,17 @@
   transform: translate(-50%, clamp(46px, 7.5vw, 62px));
   display: inline-flex; align-items: center; gap: 8px; max-width: calc(100% - 28px);
 }
-/* Chip „Obejrzyj na YouTube" — styl jak rogi telebimu (badge/data/czas). */
-.yt-cta-chip {
-  display: inline-flex; align-items: center; gap: 7px;
-  padding: 6px 12px; border-radius: var(--r-pill); text-decoration: none;
-  background: oklch(0 0 0 / 0.5); backdrop-filter: blur(3px); border: 1px solid oklch(1 0 0 / 0.18);
-  color: #fff; font-size: 12px; font-weight: 800; letter-spacing: 0.02em;
-  transition: background var(--t-med);
+/* „Obejrzyj na YouTube" — zwykły tekst-link (bez chipsu, bez ikony YT). Kolor
+   var(--text) czyta się na telebimie w OBU motywach (jasny tekst na ciemnym /
+   ciemny na jasnym). Podkreślenie sygnalizuje link. */
+.yt-cta-link {
+  color: var(--text); font-size: clamp(14px, 1.9vw, 17px); font-weight: 800;
+  letter-spacing: 0.01em; text-decoration: none; white-space: nowrap;
+  text-shadow: 0 1px 6px oklch(0 0 0 / 0.35);
 }
-.yt-cta-chip svg { width: 15px; height: 15px; fill: #fff; flex: 0 0 auto; }
-.yt-cta-chip:hover { background: oklch(0 0 0 / 0.66); }
-.yt-cta-chip:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.yt-cta-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+.yt-cta-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+[data-theme="light"] .yt-cta-link { text-shadow: none; }
 
 /* „?” — trigger tooltipa. Odkrywalny: hover, focus (klawiatura), tap (JS .is-open). */
 .yt-note { position: relative; display: inline-flex; }
@@ -227,7 +227,7 @@
   opacity: 1; visibility: visible; transform: translateY(0); pointer-events: auto;
 }
 @media (prefers-reduced-motion: reduce) {
-  .player16__launch, .yt-cta-chip, .yt-note__pop { transition: none; }
+  .player16__launch, .yt-cta-link, .yt-note__pop { transition: none; }
 }
 
 /* ---- SYSTEM ZAKŁADEK ---- */
@@ -407,7 +407,7 @@
   /* P-i: na wąskim 16:9 dociskamy odstępy klastra i zmniejszamy rogi (flagi/nazwy
      zostają w rozmiarze zapowiedzi — clamp i tak skaluje je z vw). */
   .player16__center { gap: clamp(6px, 3.4vw, 18px); }
-  .player16__badge, .player16__date, .player16__src, .player16__soon, .yt-cta-chip { font-size: 11px; padding: 5px 10px; }
+  .player16__badge, .player16__date, .player16__src, .player16__soon { font-size: 11px; padding: 5px 10px; }
   .player16__dur { font-size: 12px; }
   /* P-o: na wąskim 16:9 kółko mniejsze → napis bliżej pod nim. */
   .player16__empty--external .player16__cta-row { gap: 8px; transform: translate(-50%, clamp(40px, 11vw, 52px)); }

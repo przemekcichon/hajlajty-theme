@@ -164,10 +164,7 @@ $status_pl = 'Po meczu';
 				<?php // Napis „Obejrzyj na YouTube" + „?" — chip jak rogi telebimu, POD kółkiem (absolutnie, nie rusza centrowania drużyn). ?>
 				<?php if ( 'external' === $mode ) : ?>
 					<div class="player16__cta-row">
-						<a class="yt-cta-chip" href="<?php echo esc_url( $yt_watch ); ?>" target="_blank" rel="noopener">
-							<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23 7.5a3 3 0 0 0-2.1-2.1C19 4.8 12 4.8 12 4.8s-7 0-8.9.6A3 3 0 0 0 1 7.5C.4 9.4.4 12 .4 12s0 2.6.6 4.5a3 3 0 0 0 2.1 2.1c1.9.6 8.9.6 8.9.6s7 0 8.9-.6a3 3 0 0 0 2.1-2.1c.6-1.9.6-4.5.6-4.5s0-2.6-.6-4.5z"/><path d="M9.8 15.3V8.7l5.7 3.3z" style="fill:#000"/></svg>
-							<span>Obejrzyj na YouTube</span>
-						</a>
+						<a class="yt-cta-link" href="<?php echo esc_url( $yt_watch ); ?>" target="_blank" rel="noopener">Obejrzyj na YouTube</a>
 						<span class="yt-note">
 							<button class="yt-note__trigger" type="button" aria-label="Dlaczego nie mogę odtworzyć tutaj?" aria-expanded="false" aria-describedby="ytNoteBody">?</button>
 							<span class="yt-note__pop" id="ytNoteBody" role="tooltip">
