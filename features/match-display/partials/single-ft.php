@@ -77,12 +77,15 @@ $kickoff_ts  = $kickoff_dt ? $kickoff_dt->getTimestamp() : 0;
 $date_corner = $kickoff_ts ? wp_date( 'j M y · H:i', $kickoff_ts ) : ''; // P-górny róg: jak mini zapowiedzi (+ rok 2-cyfr).
 $date_full   = $kickoff_ts ? wp_date( 'l, j F Y', $kickoff_ts ) : '';    // fakty pod placeholderem.
 
-// Wynik do wyświetlenia (null → „–"); status meczu = literał renderu (lookup zna
-// tylko stan ZAKONCZONY, bez tekstu PL). „Po meczu" = parytet z „LIVE"/„Zapowiedź".
-$score_h   = null === $goals_home ? '–' : (string) $goals_home;
-$score_a   = null === $goals_away ? '–' : (string) $goals_away;
+// Wynik do wyświetlenia (null → „–") + rozstrzygnięcie pucharowe (P-l): PEN dokleja
+// nawias serii karnych do golu każdej strony („1(3)"/„1(4)"), a status zyskuje notę
+// „po karnych"/„po dogrywce". Pochodna renderu z match_data (helpers.php), READ-ONLY.
+// „Po meczu" = parytet z „LIVE"/„Zapowiedź"; lookup zna tylko stan ZAKONCZONY.
+$outcome   = hajlajty_match_outcome( $data );
+$score_h   = $outcome['home'];
+$score_a   = $outcome['away'];
 $score_h1  = $home_name . ' ' . $score_h . '–' . $score_a . ' ' . $away_name; // h1 (SEO/a11y, ukryty wizualnie).
-$status_pl = 'Po meczu';
+$status_pl = '' !== $outcome['note'] ? 'Po meczu · ' . $outcome['note'] : 'Po meczu';
 ?>
 <div class="watch-top watch-top--compact container">
 	<a class="back-link" href="<?php echo esc_url( home_url( '/' ) ); ?>">

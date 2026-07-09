@@ -97,3 +97,55 @@ function hajlajty_match_get_team_terms( int $post_id ): array {
 
 	return $result;
 }
+
+/**
+ * Rozstrzygnięcie meczu pucharowego po 90' — POCHODNA renderu (P-l), READ-ONLY.
+ *
+ * Interpretuje `match_data` (status.short + goals + score.penalty) na trzy gotowe
+ * do wyświetlenia stringi. Jedno źródło tej logiki dla WSZYSTKICH powierzchni,
+ * które pokazują wynik zakończonego meczu: single (match-display) oraz karty i
+ * drabinka (match-lists) — żeby nie powielać literałów „po karnych"/„po dogrywce"
+ * ani reguły nawiasu po pięciu plikach. Mieszka w helpers.php (obok
+ * `hajlajty_get_match_data`), bo match-lists już zależy od tych helperów.
+ *
+ * Format decyzji właściciela (P-l):
+ *  - PEN (koniec po karnych): przy golu KAŻDEJ strony nawias z wynikiem serii,
+ *    np. gole 1:1 + karne 3:4 → home „1(3)", away „1(4)"; nota „po karnych".
+ *  - AET (koniec w dogrywce, bez karnych): gole niosą zwycięzcę (np. 2:1) → BEZ
+ *    nawiasu; sama nota „po dogrywce".
+ *  - zwykły FT / brak statusu: gole bez nawiasu, bez noty.
+ * Zwycięzca NIE jest liczony osobno (pochodna gole/serii) — #3, zero nowych pól.
+ *
+ * @param array $data match_data (status.short, goals.{home,away}, score.penalty.{home,away}).
+ * @return array{home:string,away:string,note:string} home/away = wynik strony
+ *   (null-gol → „–", nawias serii TYLKO dla PEN); note = nota końca meczu albo „".
+ */
+function hajlajty_match_outcome( array $data ): array {
+	$short = (string) ( $data['status']['short'] ?? '' );
+	$gh    = $data['goals']['home'] ?? null;
+	$ga    = $data['goals']['away'] ?? null;
+
+	$home = ( null === $gh ) ? '–' : (string) $gh;
+	$away = ( null === $ga ) ? '–' : (string) $ga;
+	$note = '';
+
+	if ( 'PEN' === $short ) {
+		$note = 'po karnych';
+		$ph   = $data['score']['penalty']['home'] ?? null;
+		$pa   = $data['score']['penalty']['away'] ?? null;
+		// Nawias tylko gdy seria realnie jest w danych (obie strony) — inaczej
+		// degradujemy do samej noty, bez „(–)".
+		if ( null !== $ph && null !== $pa ) {
+			$home .= '(' . (int) $ph . ')';
+			$away .= '(' . (int) $pa . ')';
+		}
+	} elseif ( 'AET' === $short ) {
+		$note = 'po dogrywce';
+	}
+
+	return array(
+		'home' => $home,
+		'away' => $away,
+		'note' => $note,
+	);
+}

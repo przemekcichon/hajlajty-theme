@@ -51,8 +51,13 @@ $away_name  = hajlajty_match_lists_team_name( $terms['away'] );
 $goals_home = $data['goals']['home'] ?? null;
 $goals_away = $data['goals']['away'] ?? null;
 
+// Rozstrzygnięcie pucharowe (P-l): wynik strony z ew. nawiasem serii karnych
+// („1(3)") + nota „po karnych"/„po dogrywce". Pochodna match_data (helpers.php).
+$outcome = hajlajty_match_outcome( $data );
+
 // Przygaszenie przegranej: tylko gdy ZNAMY oba wyniki i jeden jest ściśle mniejszy
-// (remis i brak/niepełny wynik → bez przygaszenia). Decyzja P-c.
+// (remis i brak/niepełny wynik → bez przygaszenia). Decyzja P-c. Liczymy z golów
+// regulaminowych — PEN zostaje remisem (obie strony pełne), zwycięzcę niesie nawias.
 $has_result = ( null !== $goals_home && null !== $goals_away );
 $home_lose  = $has_result && ( (int) $goals_home < (int) $goals_away );
 $away_lose  = $has_result && ( (int) $goals_away < (int) $goals_home );
@@ -82,12 +87,16 @@ $meta_segments[] = 'skrót';
 		<div class="rvideo__match">
 			<div class="rvideo__row<?php echo $home_lose ? ' rvideo__row--lose' : ''; ?>">
 				<span class="rvideo__team"><?php if ( '' !== $home_flag ) : ?><img class="country-flag" src="<?php echo esc_url( $home_flag ); ?>" alt="" /><?php endif; ?><span class="rvideo__tname"><?php echo esc_html( $home_name ); ?></span></span>
-				<span class="rvideo__num"><?php echo esc_html( null === $goals_home ? '–' : $goals_home ); ?></span>
+				<span class="rvideo__num"><?php echo esc_html( $outcome['home'] ); ?></span>
 			</div>
 			<div class="rvideo__row<?php echo $away_lose ? ' rvideo__row--lose' : ''; ?>">
 				<span class="rvideo__team"><?php if ( '' !== $away_flag ) : ?><img class="country-flag" src="<?php echo esc_url( $away_flag ); ?>" alt="" /><?php endif; ?><span class="rvideo__tname"><?php echo esc_html( $away_name ); ?></span></span>
-				<span class="rvideo__num"><?php echo esc_html( null === $goals_away ? '–' : $goals_away ); ?></span>
+				<span class="rvideo__num"><?php echo esc_html( $outcome['away'] ); ?></span>
 			</div>
 		</div>
+		<?php // P-l: nota rozstrzygnięcia pucharowego pod wynikiem (nawias serii jest w wyniku). ?>
+		<?php if ( '' !== $outcome['note'] ) : ?>
+			<span class="card-decider"><?php echo esc_html( $outcome['note'] ); ?></span>
+		<?php endif; ?>
 	</div>
 </a>
