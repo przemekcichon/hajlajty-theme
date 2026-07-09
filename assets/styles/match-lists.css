@@ -344,6 +344,15 @@ main { padding-block: var(--space-xl) var(--space-2xl); }
 .watch__aside .rvideo { grid-template-columns: 168px 1fr; }
 @media (max-width: 620px) { .watch__aside .rvideo { grid-template-columns: 140px 1fr; } }
 
+/* P-l: nota rozstrzygnięcia pucharowego („po karnych"/„po dogrywce") pod wynikiem
+   karty skrótu. Nawias serii karnych („1(3)") żyje w samym wyniku — to jest sama
+   etykieta końca meczu. Wspólna dla .vcard (pionowej) i .rvideo (rail): drobna,
+   przygaszona; wyśrodkowana pod centrowanym wynikiem .vcard, dosunięta do wiersza
+   meczu w wąskim .rvideo. */
+.card-decider { font-size: 11px; font-weight: 700; color: var(--text-muted); }
+.vcard .card-decider { display: block; text-align: center; margin-top: 8px; }
+.rvideo .card-decider { margin-top: 2px; }
+
 /* ============================================================
    6. PUSTY STAN (archiwum bez wyników)
 ============================================================ */

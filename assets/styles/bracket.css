@@ -95,7 +95,7 @@
   display: flex;
   flex-direction: column;
   flex: 0 0 auto;
-  width: 120px;
+  width: 130px; /* P-l: +10px, by wynik z nawiasem serii karnych „1(3)" mieścił się bez ściśnięcia */
 }
 /* Środek: Finał + (pod nim, osobno) mecz o 3. miejsce. Szerszy, bo nagłówek
    „Mecz o 3. miejsce" nie mieści się w 120px. Centrowany pionowo, by Finał stał

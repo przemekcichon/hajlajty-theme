@@ -58,8 +58,10 @@ $home_flag  = hajlajty_flag_url( $terms['home'] );
 $away_flag  = hajlajty_flag_url( $terms['away'] );
 $home_name  = hajlajty_match_lists_team_name( $terms['home'] );
 $away_name  = hajlajty_match_lists_team_name( $terms['away'] );
-$goals_home = $data['goals']['home'] ?? null;
-$goals_away = $data['goals']['away'] ?? null;
+
+// Rozstrzygnięcie pucharowe (P-l): wynik strony z ew. nawiasem serii karnych
+// („1(3)") + nota „po karnych"/„po dogrywce". Pochodna match_data (helpers.php).
+$outcome = hajlajty_match_outcome( $data );
 ?>
 <a class="vcard card-video" href="<?php echo esc_url( get_permalink( $post_id ) ); ?>"<?php echo hajlajty_match_lists_card_filter_attrs( $terms ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped — atrybuty escapowane w helperze. ?>>
 	<div class="thumb">
@@ -91,12 +93,16 @@ $goals_away = $data['goals']['away'] ?? null;
 				<span class="vcard__team-name"><?php echo esc_html( $home_name ); ?></span>
 			</div>
 			<div class="vcard__result">
-				<span><?php echo esc_html( null === $goals_home ? '–' : $goals_home ); ?></span><span class="vcard__sep">:</span><span><?php echo esc_html( null === $goals_away ? '–' : $goals_away ); ?></span>
+				<span><?php echo esc_html( $outcome['home'] ); ?></span><span class="vcard__sep">:</span><span><?php echo esc_html( $outcome['away'] ); ?></span>
 			</div>
 			<div class="vcard__team">
 				<?php if ( '' !== $away_flag ) : ?><img class="country-flag" src="<?php echo esc_url( $away_flag ); ?>" alt="" /><?php endif; ?>
 				<span class="vcard__team-name"><?php echo esc_html( $away_name ); ?></span>
 			</div>
 		</div>
+		<?php // P-l: nota rozstrzygnięcia pucharowego pod wynikiem (nawias serii jest w wyniku). ?>
+		<?php if ( '' !== $outcome['note'] ) : ?>
+			<span class="card-decider"><?php echo esc_html( $outcome['note'] ); ?></span>
+		<?php endif; ?>
 	</div>
 </a>

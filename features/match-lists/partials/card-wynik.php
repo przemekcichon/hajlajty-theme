@@ -41,8 +41,9 @@ $away_name = hajlajty_match_lists_team_name( $terms['away'] );
 $state    = hajlajty_lookup_status( $data['status']['short'] ?? null )['state'];
 $is_canc  = ( 'ODWOLANY' === $state );
 
-$goals_home = $data['goals']['home'] ?? null;
-$goals_away = $data['goals']['away'] ?? null;
+// Rozstrzygnięcie pucharowe (P-l): wynik strony z ew. nawiasem serii karnych
+// („1(3)") + nota „po karnych"/„po dogrywce". Pochodna match_data (helpers.php).
+$outcome = hajlajty_match_outcome( $data );
 ?>
 <a class="rcard<?php echo $is_canc ? ' rcard--off' : ''; ?>" href="<?php echo esc_url( get_permalink( $post_id ) ); ?>"<?php echo hajlajty_match_lists_card_filter_attrs( $terms ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped — atrybuty escapowane w helperze. ?>>
 	<div class="rcard__top">
@@ -51,7 +52,15 @@ $goals_away = $data['goals']['away'] ?? null;
 			<?php $hajl_no = isset( $args['match_no'] ) ? (int) $args['match_no'] : 0; if ( $hajl_no > 0 ) : ?><span class="card__matchno">Mecz <?php echo (int) $hajl_no; ?></span><?php endif; ?>
 		<?php endif; ?>
 		<span class="rcard__status">
-			<?php echo esc_html( $is_canc ? 'Odwołany' : 'Zakończony' ); ?>
+			<?php
+			// ODWOŁANY: sam badge. ZAKOŃCZONY: „Zakończony" + ew. nota rozstrzygnięcia
+			// pucharowego („· po karnych"/„· po dogrywce") — bez nowej klasy/CSS.
+			$rcard_status = $is_canc ? 'Odwołany' : 'Zakończony';
+			if ( ! $is_canc && '' !== $outcome['note'] ) {
+				$rcard_status .= ' · ' . $outcome['note'];
+			}
+			echo esc_html( $rcard_status );
+			?>
 		</span>
 	</div>
 	<div class="rcard__match">
@@ -63,7 +72,7 @@ $goals_away = $data['goals']['away'] ?? null;
 			<span class="rcard__score rcard__score--off">—</span>
 		<?php else : ?>
 			<span class="rcard__score">
-				<b><?php echo esc_html( null === $goals_home ? '–' : $goals_home ); ?></b><span class="rcard__sep">:</span><b><?php echo esc_html( null === $goals_away ? '–' : $goals_away ); ?></b>
+				<b><?php echo esc_html( $outcome['home'] ); ?></b><span class="rcard__sep">:</span><b><?php echo esc_html( $outcome['away'] ); ?></b>
 			</span>
 		<?php endif; ?>
 		<div class="rcard__team rcard__team--away">

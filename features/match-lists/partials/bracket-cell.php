@@ -60,26 +60,17 @@ if ( 'real' === $bmode ) :
 		);
 
 	$bstate = hajlajty_lookup_status( $bdata['status']['short'] ?? null )['state'];
-	$bshort = (string) ( $bdata['status']['short'] ?? '' );
-	$bgh    = $bdata['goals']['home'] ?? null;
-	$bga    = $bdata['goals']['away'] ?? null;
 
 	$bhome_flag = hajlajty_flag_url( $bterms['home'] );
 	$baway_flag = hajlajty_flag_url( $bterms['away'] );
 	$bhome_code = hajlajty_match_lists_team_code( $bterms['home'] );
 	$baway_code = hajlajty_match_lists_team_code( $bterms['away'] );
 
-	// Rozstrzygnięcie po 90' (NOWY odczyt): AET=po dogrywce; PEN=po karnych (+ wynik).
-	$bnote = '';
-	if ( 'AET' === $bshort ) {
-		$bnote = 'po dogrywce';
-	} elseif ( 'PEN' === $bshort ) {
-		$bpen_h = $bdata['score']['penalty']['home'] ?? null;
-		$bpen_a = $bdata['score']['penalty']['away'] ?? null;
-		$bnote  = ( null !== $bpen_h && null !== $bpen_a )
-			? 'karne ' . (int) $bpen_h . ':' . (int) $bpen_a
-			: 'po karnych';
-	}
+	// Rozstrzygnięcie po 90' — TA SAMA pochodna co single/karty (helpers.php, P-l):
+	// PEN dokleja nawias serii do golu każdej strony („1(3)"/„1(4)") + nota
+	// „po karnych"; AET → sama nota „po dogrywce". Ujednolica dawną osobną notę
+	// „karne h:a" do zapisu w nawiasie spójnego z resztą serwisu.
+	$boutcome = hajlajty_match_outcome( $bdata );
 
 	$bshow_score = in_array( $bstate, array( 'ZAKONCZONY', 'LIVE' ), true );
 	$bwhen_label = $bwhen( get_post_meta( $bcard_id, 'kickoff', true ) );
@@ -91,15 +82,15 @@ if ( 'real' === $bmode ) :
 		<span class="bracket-cell__team">
 			<?php if ( '' !== $bhome_flag ) : ?><img class="country-flag" src="<?php echo esc_url( $bhome_flag ); ?>" alt="" /><?php else : ?><span class="bracket-cell__qmark" aria-hidden="true">?</span><?php endif; ?>
 			<span class="bracket-cell__code"><?php echo esc_html( $bhome_code ); ?></span>
-			<?php if ( $bshow_score ) : ?><b class="bracket-cell__g"><?php echo esc_html( null === $bgh ? '–' : $bgh ); ?></b><?php endif; ?>
+			<?php if ( $bshow_score ) : ?><b class="bracket-cell__g"><?php echo esc_html( $boutcome['home'] ); ?></b><?php endif; ?>
 		</span>
 		<span class="bracket-cell__team">
 			<?php if ( '' !== $baway_flag ) : ?><img class="country-flag" src="<?php echo esc_url( $baway_flag ); ?>" alt="" /><?php else : ?><span class="bracket-cell__qmark" aria-hidden="true">?</span><?php endif; ?>
 			<span class="bracket-cell__code"><?php echo esc_html( $baway_code ); ?></span>
-			<?php if ( $bshow_score ) : ?><b class="bracket-cell__g"><?php echo esc_html( null === $bga ? '–' : $bga ); ?></b><?php endif; ?>
+			<?php if ( $bshow_score ) : ?><b class="bracket-cell__g"><?php echo esc_html( $boutcome['away'] ); ?></b><?php endif; ?>
 		</span>
 		<?php if ( '' !== $bwhen_label ) : ?><span class="bracket-cell__when"><?php echo esc_html( $bwhen_label ); ?></span><?php endif; ?>
-		<?php if ( $bshow_score && '' !== $bnote ) : ?><span class="bracket-cell__note"><?php echo esc_html( $bnote ); ?></span><?php endif; ?>
+		<?php if ( $bshow_score && '' !== $boutcome['note'] ) : ?><span class="bracket-cell__note"><?php echo esc_html( $boutcome['note'] ); ?></span><?php endif; ?>
 	</a>
 	<?php
 else :
