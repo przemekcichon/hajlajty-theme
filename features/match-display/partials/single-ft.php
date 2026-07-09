@@ -40,9 +40,6 @@ $yt_watch      = $yt_id ? 'https://www.youtube.com/watch?v=' . $yt_id : '';
 $kanal_terms = get_the_terms( $post_id, 'kanal' );
 $kanal_name  = ( is_array( $kanal_terms ) && ! is_wp_error( $kanal_terms ) && ! empty( $kanal_terms ) ) ? $kanal_terms[0]->name : '';
 
-$goals_home = $data['goals']['home'] ?? null;
-$goals_away = $data['goals']['away'] ?? null;
-
 // --- Lokalne helpery renderu (closures: brak redeklaracji między pętlami) ---
 // Flaga przez współdzielony helper (flags.php): mapuje fifa_code (3-lit. FIFA)
 // na slug flagcdn (ISO alpha-2). Wcześniej strtolower(fifa_code) dawał 404.
