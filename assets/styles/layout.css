@@ -147,6 +147,50 @@
 [data-theme="dark"] .nav-link.is-active { color: var(--accent); }
 .nav-link .badge-live { margin-left: auto; font-size: 11px; font-weight: 800; letter-spacing: 0.06em; color: var(--live); }
 
+/* ---- Mobile (drawer): wyrównanie głowy sidebara do topbara ----
+   Na ≤768px drawer nakłada się na header, więc hamburger+logo w
+   `.sidebar__head` muszą siedzieć DOKŁADNIE tam, gdzie w `.topbar__left`
+   (inaczej „przeskakują" w prawo przy otwarciu menu). Topbar (mobile) sadza
+   glif hamburgera na `--gutter`: `padding-inline: var(--gutter)` +
+   `icon-btn { margin-left: -11px }` (11px = wewn. padding icon-btn 44↔22).
+   Baza drawera startowała od `--space-2xs` (8px) bez korekty -11 → glif @19px
+   i logo dalej w prawo; a że `--gutter` jest responsywne (clamp 16–40px),
+   rozjazd wręcz zmieniał znak w tym paśmie. Odtwarzamy tu ten sam przepis, żeby
+   głowa drawera ŚLEDZIŁA `--gutter`:
+   - head padding-left = `--gutter - --space-2xs` (dokłada do 8px bazowego
+     paddingu `.sidebar` → efektywnie `--gutter`), padding-right 0;
+   - `icon-btn { margin-left: -11px }` — glif hamburgera na `--gutter`;
+   - gap `--space-3xs` (jak `.topbar__left` na mobile) — logo na tej samej osi.
+   Konsekwencja (spójny lewy inset pod hamburgerem+logo): `.nav-link` dostaje
+   ten sam efektywny lewy inset — ikony i teksty linków licują z glifem @`--gutter`.
+
+   PION: głowa ma być wyśrodkowana na TEJ SAMEJ osi co topbar (72px @ top:0 →
+   środek 36px). Baza kasowała górny padding `.sidebar` tylko w połowie
+   (`margin-top: -(--space-2xs)` = -8px przy paddingu -(--space-sm) = 16px) →
+   głowa startowała @8px, więc przy pełnej wysokości siedziałaby 8px NIŻEJ. Do
+   tego `.sidebar__head` to domyślny element flex w kolumnie o `height:100dvh;
+   overflow-y:auto` — przy treści wyższej niż ekran `flex-shrink` zbijał jej
+   wysokość < 72px, a że top jest zakotwiczony, środek wjeżdżał ~1–2px NAD oś
+   topbara (efekt zależny od wysokości viewportu → niestabilny). Domykamy pion
+   deterministycznie: `flex: 0 0 auto` (realne 72px, bez kurczenia) + margin-top
+   kasujący CAŁY górny padding (`-(--space-sm)`) → głowa @top:0, środek 36px =
+   oś topbara. Działa też z paskiem admina (drawer dostaje `top:46/32px`, głowa
+   podąża). Poziomy offset paska admina (`.admin-bar .sidebar { top }`) nietknięty.
+
+   SCOPE ≤768px celowo: ≥1100px (stałe menu) `.sidebar__head` jest display:none,
+   a ikona `.nav-link` MUSI zostać @24px (padding-left 16 + `.sidebar` 8) —
+   nie regresować. */
+@media (max-width: 768px) {
+  .sidebar__head {
+    padding-inline: calc(var(--gutter) - var(--space-2xs)) 0;
+    gap: var(--space-3xs);
+    margin-top: calc(-1 * var(--space-sm));
+    flex: 0 0 auto;
+  }
+  .sidebar__head > .icon-btn:first-child { margin-left: -11px; }
+  .nav-link { padding-left: calc(var(--gutter) - var(--space-2xs)); }
+}
+
 /* ============================================================
    DYSKRETNE SCROLLBARY
 ============================================================ */
