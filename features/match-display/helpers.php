@@ -99,6 +99,40 @@ function hajlajty_match_get_team_terms( int $post_id ): array {
 }
 
 /**
+ * Dokleja nawias serii karnych „(n)" do gotowych stringów wyniku — o ile seria
+ * REALNIE jest w danych (obie strony `score.penalty` !== null). JEDYNE źródło
+ * FORMATU nawiasu P-l w całym renderze: używane przez `hajlajty_match_outcome`
+ * (mecz ZAKOŃCZONY — gałąź PEN) ORAZ przez żywy telebim (P-m, karne w toku),
+ * żeby literał „(n)" i warunek obecności serii nie żyły w dwóch miejscach i nie
+ * mogły się rozjechać. Sam warunek KIEDY nawias wolno pokazać (status) należy do
+ * wołającego — ta funkcja tylko sprawdza obecność danych i formatuje.
+ *
+ * CZYSTA funkcja (czyta wyłącznie tablicę `$data`, zero WordPressa).
+ *
+ * @param string $home Wynik gospodarza już zmapowany na string (np. „1", „–").
+ * @param string $away Wynik gościa (jak wyżej).
+ * @param array  $data match_data — czyta `score.penalty.{home,away}`.
+ * @return array{home:string,away:string} Wyniki z doklejonym nawiasem, albo
+ *   nietknięte, gdy brak pełnej serii (degradacja bez „(–)").
+ */
+function hajlajty_match_series_bracket( string $home, string $away, array $data ): array {
+	$ph = $data['score']['penalty']['home'] ?? null;
+	$pa = $data['score']['penalty']['away'] ?? null;
+
+	// Nawias tylko gdy seria realnie jest w danych (obie strony) — inaczej
+	// zostawiamy sam wynik, bez „(–)".
+	if ( null !== $ph && null !== $pa ) {
+		$home .= '(' . (int) $ph . ')';
+		$away .= '(' . (int) $pa . ')';
+	}
+
+	return array(
+		'home' => $home,
+		'away' => $away,
+	);
+}
+
+/**
  * Rozstrzygnięcie meczu pucharowego po 90' — POCHODNA renderu (P-l), READ-ONLY.
  *
  * Interpretuje `match_data` (status.short + goals + score.penalty) na trzy gotowe
@@ -116,6 +150,10 @@ function hajlajty_match_get_team_terms( int $post_id ): array {
  *  - zwykły FT / brak statusu: gole bez nawiasu, bez noty.
  * Zwycięzca NIE jest liczony osobno (pochodna gole/serii) — #3, zero nowych pól.
  *
+ * Nawias serii domyka `hajlajty_match_series_bracket()` — TYLKO w gałęzi PEN, więc
+ * zachowanie dla wszystkich stanów (i powierzchni P-l) jest identyczne jak dotąd.
+ * P-m używa TEGO SAMEGO formatera osobno na żywym telebimie (bez noty).
+ *
  * @param array $data match_data (status.short, goals.{home,away}, score.penalty.{home,away}).
  * @return array{home:string,away:string,note:string} home/away = wynik strony
  *   (null-gol → „–", nawias serii TYLKO dla PEN); note = nota końca meczu albo „".
@@ -130,15 +168,10 @@ function hajlajty_match_outcome( array $data ): array {
 	$note = '';
 
 	if ( 'PEN' === $short ) {
-		$note = 'po karnych';
-		$ph   = $data['score']['penalty']['home'] ?? null;
-		$pa   = $data['score']['penalty']['away'] ?? null;
-		// Nawias tylko gdy seria realnie jest w danych (obie strony) — inaczej
-		// degradujemy do samej noty, bez „(–)".
-		if ( null !== $ph && null !== $pa ) {
-			$home .= '(' . (int) $ph . ')';
-			$away .= '(' . (int) $pa . ')';
-		}
+		$note   = 'po karnych';
+		$series = hajlajty_match_series_bracket( $home, $away, $data );
+		$home   = $series['home'];
+		$away   = $series['away'];
 	} elseif ( 'AET' === $short ) {
 		$note = 'po dogrywce';
 	}
