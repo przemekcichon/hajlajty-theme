@@ -89,6 +89,20 @@ $anchor    = static function ( $id ) use ( $post_id, $live_attr ) {
 
 	$goals_home  = $data['goals']['home'] ?? null;
 	$goals_away  = $data['goals']['away'] ?? null;
+
+	// P-m: żywy wynik serii karnych na telebimie. Format nawiasu identyczny jak
+	// P-l (zakończony PEN) — TEN SAM formater `hajlajty_match_series_bracket`.
+	// Warunek jest DANE-owy, nie statusowy: nawias dochodzi, gdy seria realnie
+	// trwa (`score.penalty` obu stron !== null) — czyli w praktyce w statusie
+	// `P` (Karne). W dogrywce (`ET`) i pozostałych fazach live seria jest null,
+	// więc telebim pokazuje sam wynik `goals.*` jak dotąd (zero regresji). Nota
+	// „po karnych"/„po dogrywce" NIE dochodzi na żywo — należy do stanu
+	// ZAKOŃCZONEGO (P-l, wariant FT); po gwizdku poller milknie (`data-live=0`).
+	$score_home = ( null === $goals_home ) ? '–' : (string) $goals_home;
+	$score_away = ( null === $goals_away ) ? '–' : (string) $goals_away;
+	$series     = hajlajty_match_series_bracket( $score_home, $score_away, $data );
+	$score_home = $series['home'];
+	$score_away = $series['away'];
 	$match_label = $home_name . ' – ' . $away_name;
 
 	$endpoint = esc_url( rest_url( 'hajlajty/v1/mecz/' . $post_id . '/live' ) );
@@ -120,10 +134,13 @@ $anchor    = static function ( $id ) use ( $post_id, $live_attr ) {
 					<span class="nm"><?php echo esc_html( $home_name ); ?></span>
 				</div>
 				<div class="board__nums">
-					<?php // data-side: hook dla scoreBump (MVP-b) — poller porównuje wartość przed/po. ?>
-					<span class="n" data-side="home"><?php echo esc_html( null === $goals_home ? '–' : $goals_home ); ?></span>
+					<?php // data-side: hook dla scoreBump (MVP-b) — poller porównuje wartość przed/po.
+					// P-m: w karnych wartość to „1(3)" — scoreOf (live-refresh.js, regex ^\d+$)
+					// czyta ją jako null, więc bump gola NIE odpala na rzutach serii (pożądane;
+					// bez regresji: w 1H/2H/ET seria jest null, więc wynik to czysta liczba). ?>
+					<span class="n" data-side="home"><?php echo esc_html( $score_home ); ?></span>
 					<span class="sep">:</span>
-					<span class="n" data-side="away"><?php echo esc_html( null === $goals_away ? '–' : $goals_away ); ?></span>
+					<span class="n" data-side="away"><?php echo esc_html( $score_away ); ?></span>
 				</div>
 				<div class="board__team">
 					<?php if ( '' !== $away_flag ) : ?><img class="country-flag" src="<?php echo esc_url( $away_flag ); ?>" alt="" /><?php endif; ?>
