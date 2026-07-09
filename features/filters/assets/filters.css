@@ -98,7 +98,11 @@ body.hajlajty-has-search .topbar__inner {
   border: none;
   background: none;
   color: var(--text);
-  font-size: 15px;
+  /* ≥16px, żeby iOS Safari NIE auto-zoomował strony przy focusie pola (dotyczy
+     obu inputów tej klasy: pole w topbarze desktop + pole w modalu mobile).
+     15px wyzwalał zoom → poziomy scroll i „przeskok" headera. Nie ruszamy
+     viewport meta (zoom zostaje w rękach usera — dostępność). */
+  font-size: 16px;
   font-weight: 500;
 }
 .filters-search__input::placeholder { color: var(--text-faint); }
